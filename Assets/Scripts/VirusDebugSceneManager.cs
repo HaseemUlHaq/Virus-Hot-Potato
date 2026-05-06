@@ -43,7 +43,7 @@ public class VirusDebugSceneManager : MonoBehaviour
         debugText.text =
             $"Fuse Started: {virus.DebugFuseStarted} | Remaining: {remainingSeconds:0.00}s\n" +
             $"Current Holder: {holderText} | Last Touched: {lastTouchedText}\n" +
-            $"Round Resolved: {virus.RoundResolved}\n" +
+            $"Round Resolved: {virus.DebugRoundResolved}\n" +
             $"Eliminated Player: {eliminatedText}\n" +
             $"State Authority: {authorityText} | Local Player: {runner.LocalPlayer}";
     }

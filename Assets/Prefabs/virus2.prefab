@@ -130,7 +130,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 253617902287259287}
   serializedVersion: 5
-  m_Mass: 0.3
+  m_Mass: 0.1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -251,6 +251,7 @@ MonoBehaviour:
   explosionPrefab: {fileID: 2433282508537954060, guid: 3ef3ae421f71c5c4e97fe12dc2fc6312, type: 3}
   explosionFxFallback: {fileID: 2433282508523890284, guid: 3ef3ae421f71c5c4e97fe12dc2fc6312, type: 3}
   eliminationMessageText: {fileID: 0}
+  useGravityWhenFree: 1
   _RoundResolved:
     _value: 0
 --- !u!135 &-4467349010169092253
