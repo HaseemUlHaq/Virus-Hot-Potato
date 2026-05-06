@@ -241,6 +241,9 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 6350738330080727634, guid: da98780e533fe794aa83fa27bbfddf57, type: 3}
       insertIndex: -1
+      addedObject: {fileID: -4684532900824010515}
+    - targetCorrespondingSourceObject: {fileID: 6350738330080727634, guid: da98780e533fe794aa83fa27bbfddf57, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 1441223682305279637}
     - targetCorrespondingSourceObject: {fileID: 6350738330080727634, guid: da98780e533fe794aa83fa27bbfddf57, type: 3}
       insertIndex: -1
@@ -256,7 +259,10 @@ PrefabInstance:
       addedObject: {fileID: 2094018330630298708}
     - targetCorrespondingSourceObject: {fileID: 6350738330080727634, guid: da98780e533fe794aa83fa27bbfddf57, type: 3}
       insertIndex: -1
-      addedObject: {fileID: -5083204631100615973}
+      addedObject: {fileID: -7493379991467861307}
+    - targetCorrespondingSourceObject: {fileID: 6350738330080727634, guid: da98780e533fe794aa83fa27bbfddf57, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4783540827661145736}
   m_SourcePrefab: {fileID: 100100000, guid: da98780e533fe794aa83fa27bbfddf57, type: 3}
 --- !u!4 &2343032710906675026 stripped
 Transform:
@@ -268,6 +274,28 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 6350738330080727634, guid: da98780e533fe794aa83fa27bbfddf57, type: 3}
   m_PrefabInstance: {fileID: 8353497431118018490}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &-4684532900824010515
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3156969989723268584}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b023183069df224080314a560e6e1ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Meta.XR.BuildingBlocks::Meta.XR.BuildingBlocks.BuildingBlock
+  blockId: e9b4b64f-1c7e-4dff-8f3c-ce409bdc3951
+  instanceId: 801da832-9eab-433b-95b3-f47591c9eca1
+  version: 1
+  installationRoutineCheckpoint:
+    _installationRoutineId: 54548176-30f4-4a4a-8057-340a383c6102
+    _installationVariants:
+    - _memberName: _useGravity
+      _value: '{}'
+    - _memberName: installMatchmaking
+      _value: '{"value__":0}'
 --- !u!54 &1441223682305279637
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -292,7 +320,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 0
   m_IsKinematic: 1
-  m_Interpolate: 1
+  m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!114 &3772089490100083979
@@ -357,7 +385,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 2094018330630298708}
-  - {fileID: -5083204631100615973}
+  - {fileID: 4783540827661145736}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &2094018330630298708
 MonoBehaviour:
@@ -366,7 +394,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3156969989723268584}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
@@ -376,7 +404,7 @@ MonoBehaviour:
   SyncParent: 0
   _autoAOIOverride: 1
   DisableSharedModeInterpolation: 0
---- !u!114 &-5083204631100615973
+--- !u!114 &-7493379991467861307
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -385,6 +413,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 3156969989723268584}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 68ef5547c3fb877429eef323861e7c90, type: 3}
+  m_Script: {fileID: 11500000, guid: 413bd4e9cbbc96b46ac5a1d62a4105d5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NetworkGrabbableVirus
+  m_EditorClassIdentifier: Meta.XR.MultiplayerBlocks.Shared::Meta.XR.MultiplayerBlocks.Shared.TransferOwnershipOnSelect
+  UseGravity: 0
+--- !u!114 &4783540827661145736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3156969989723268584}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b72e9ba2c21430c818f53e1079c2a93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Meta.XR.MultiplayerBlocks.Fusion::Meta.XR.MultiplayerBlocks.Fusion.TransferOwnershipFusion
