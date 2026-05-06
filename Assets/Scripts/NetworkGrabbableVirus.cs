@@ -510,13 +510,19 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
             return;
 
+        if (!_rb.isKinematic)
+
+        {
+
+            _rb.linearVelocity = Vector3.zero;
+
+            _rb.angularVelocity = Vector3.zero;
+
+        }
+
         _rb.isKinematic = true;
 
         _rb.useGravity = false;
-
-        _rb.linearVelocity = Vector3.zero;
-
-        _rb.angularVelocity = Vector3.zero;
 
         _rb.constraints = RigidbodyConstraints.FreezeAll;
 
