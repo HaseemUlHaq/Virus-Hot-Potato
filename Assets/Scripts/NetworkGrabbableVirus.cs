@@ -12,6 +12,10 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     [SerializeField] private ParticleSystem explosionFxFallback;
     [SerializeField] private TextMeshProUGUI eliminationMessageText;
 
+    [Header("Physics after first grab")]
+    [Tooltip("While spawn-locked: kinematic + no gravity + FreezeAll. After first grab, when released: dynamic with this gravity. Bounciness comes from a PhysicMaterial on the collider.")]
+    [SerializeField] private bool useGravityWhenFree = true;
+
     [Networked] private TickTimer FuseTimer { get; set; }
     [Networked] private NetworkBool FuseStarted { get; set; }
     [Networked] public NetworkBool RoundResolved { get; private set; }
@@ -21,6 +25,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     [Networked] private PlayerRef CurrentHolder { get; set; }
     [Networked] private NetworkBool HasLastTouchedPlayer { get; set; }
     [Networked] private PlayerRef LastTouchedPlayer { get; set; }
+    [Networked] private NetworkBool SpawnRestUnlocked { get; set; }
 
     public bool DebugFuseStarted => FuseStarted;
     public bool DebugHasHolder => HasHolder;
@@ -42,6 +47,8 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         _grabbable.WhenPointerEventRaised += OnPointerEvent;
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SnapshotTo, false);
 
+        ApplyRestingSpawnLock();
+
         if (HasStateAuthority)
         {
             FuseTimer = TickTimer.CreateFromSeconds(Runner, fuseDurationSeconds);
@@ -50,6 +57,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             HasHolder = false;
             HasElimination = false;
             HasLastTouchedPlayer = false;
+            SpawnRestUnlocked = false;
         }
 
         if (RoundResolved)
@@ -66,6 +74,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             HasHolder = false;
             HasElimination = false;
             HasLastTouchedPlayer = false;
+            SpawnRestUnlocked = false;
         }
 
         if (RoundResolved)
@@ -76,6 +85,8 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
         if (HasStateAuthority && FuseStarted && FuseTimer.Expired(Runner))
             ResolveRound();
+
+        SyncRestingRigidbodyLocks();
     }
 
     // Phase 1: last touched player loses if virus is in flight at fuse end.
@@ -107,6 +118,8 @@ public class NetworkGrabbableVirus : NetworkBehaviour
                 _rb.angularVelocity = Vector3.zero;
             }
             _rb.isKinematic = true;
+            _rb.useGravity = false;
+            _rb.constraints = RigidbodyConstraints.FreezeAll;
         }
     }
 
@@ -178,11 +191,53 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         }
     }
 
+    private void ApplyRestingSpawnLock()
+    {
+        if (_rb == null)
+            return;
+        _rb.isKinematic = true;
+        _rb.useGravity = false;
+        _rb.linearVelocity = Vector3.zero;
+        _rb.angularVelocity = Vector3.zero;
+        _rb.constraints = RigidbodyConstraints.FreezeAll;
+    }
+
+    private void SyncRestingRigidbodyLocks()
+    {
+        if (_rb == null || RoundResolved)
+            return;
+        if (!SpawnRestUnlocked)
+        {
+            ApplyRestingSpawnLock();
+            return;
+        }
+
+        // After first touch: authority simulates bounce/throw; proxies follow NetworkTransform.
+        if (HasHolder)
+            return;
+        if (!Object.HasStateAuthority)
+            return;
+
+        ApplyFreeFlightPhysics();
+    }
+
+    private void ApplyFreeFlightPhysics()
+    {
+        if (_rb == null)
+            return;
+        _rb.constraints = RigidbodyConstraints.None;
+        _rb.isKinematic = false;
+        _rb.useGravity = useGravityWhenFree;
+        if (_rb.collisionDetectionMode == CollisionDetectionMode.Discrete)
+            _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+    }
+
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void RPC_NotifyGrab(PlayerRef player)
     {
         if (RoundResolved)
             return;
+        SpawnRestUnlocked = true;
         HasHolder = true;
         CurrentHolder = player;
         HasLastTouchedPlayer = true;
