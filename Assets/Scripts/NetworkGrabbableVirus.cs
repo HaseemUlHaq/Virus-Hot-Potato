@@ -1,10 +1,16 @@
-using UnityEngine;
+using System.Collections.Generic;
 
 using Fusion;
 
 using Oculus.Interaction;
 
+using Oculus.Interaction.HandGrab;
+
+using Oculus.Interaction.Input;
+
 using TMPro;
+
+using UnityEngine;
 
 
 
@@ -45,6 +51,26 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     [Tooltip("While spawn-locked: kinematic + no gravity + FreezeAll. After first grab, when released: dynamic with this gravity. Bounciness comes from a PhysicMaterial on the collider.")]
 
     [SerializeField] private bool useGravityWhenFree = true;
+
+
+
+    [Header("Virus color after swipe (local, persists)")]
+
+    [Tooltip("Virus surface color after a left-hand grab/swipe. When you let go, the virus stays this color until the other hand swipes.")]
+
+    [SerializeField] private Color virusColorAfterLeftSwipe = new Color(0.25f, 0.55f, 1f, 1f);
+
+    [Tooltip("Virus surface color after a right-hand grab/swipe. When you let go, the virus stays this color until the other hand swipes.")]
+
+    [SerializeField] private Color virusColorAfterRightSwipe = new Color(1f, 0.35f, 0.25f, 1f);
+
+    [SerializeField] private MeshRenderer virusColorMeshRenderer;
+
+    [SerializeField]
+
+    [Tooltip("Shader color property to tint (Virus 2.mat uses _Color_2 for the main body; use _Color_3_Overlay for the accent slot).")]
+
+    private string virusSwipeTintShaderProperty = "_Color_2";
 
 
 
@@ -104,6 +130,26 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
 
 
+    private readonly Dictionary<int, Handedness> _grabHandByInteractorId = new Dictionary<int, Handedness>();
+
+    private int _lastGrabInteractorId = -1;
+
+    private MeshRenderer _virusMeshRenderer;
+
+    private MaterialPropertyBlock _virusColorMpb;
+
+    private Color _persistedVirusSurfaceColor = Color.white;
+
+    private int _virusSwipeTintPropertyId;
+
+    private static readonly int ShaderPropBaseColor = Shader.PropertyToID("_BaseColor");
+
+    private static readonly int ShaderPropColor = Shader.PropertyToID("_Color");
+
+    private static readonly int ShaderPropColor2Fallback = Shader.PropertyToID("_Color_2");
+
+
+
     public override void Spawned()
 
     {
@@ -115,6 +161,22 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         _grabbable.WhenPointerEventRaised += OnPointerEvent;
 
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SnapshotTo, false);
+
+
+
+        _virusMeshRenderer = virusColorMeshRenderer != null ? virusColorMeshRenderer : GetComponent<MeshRenderer>();
+
+        _virusColorMpb = new MaterialPropertyBlock();
+
+        _virusSwipeTintPropertyId = Shader.PropertyToID(string.IsNullOrEmpty(virusSwipeTintShaderProperty)
+
+            ? "_Color_2"
+
+            : virusSwipeTintShaderProperty.Trim());
+
+        CachePersistedVirusColorFromMaterial();
+
+        RefreshVirusSwipeSurfaceColor();
 
 
 
@@ -484,6 +546,18 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
             case PointerEventType.Select:
 
+                if (TryGetHandednessFromPointerEvent(evt, out Handedness selectHand))
+
+                {
+
+                    _grabHandByInteractorId[evt.Identifier] = selectHand;
+
+                    _lastGrabInteractorId = evt.Identifier;
+
+                }
+
+                RefreshVirusSwipeSurfaceColor();
+
                 RPC_NotifyGrab(Runner.LocalPlayer);
 
                 break;
@@ -492,7 +566,19 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
             case PointerEventType.Unselect:
 
-                RPC_NotifyRelease();
+            case PointerEventType.Cancel:
+
+                _grabHandByInteractorId.Remove(evt.Identifier);
+
+                if (_lastGrabInteractorId == evt.Identifier)
+
+                    _lastGrabInteractorId = FirstInteractorIdOrMinusOne(_grabHandByInteractorId);
+
+                RefreshVirusSwipeSurfaceColor();
+
+                if (_grabHandByInteractorId.Count == 0)
+
+                    RPC_NotifyRelease();
 
                 break;
 
@@ -635,6 +721,390 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         if (_grabbable != null)
 
             _grabbable.WhenPointerEventRaised -= OnPointerEvent;
+
+        _grabHandByInteractorId.Clear();
+
+        _lastGrabInteractorId = -1;
+
+        ApplySurfaceColor(_persistedVirusSurfaceColor);
+
+    }
+
+
+
+    private void CachePersistedVirusColorFromMaterial()
+
+    {
+
+        if (_virusMeshRenderer == null || _virusMeshRenderer.sharedMaterial == null)
+
+        {
+
+            _persistedVirusSurfaceColor = Color.white;
+
+            return;
+
+        }
+
+        Material sharedMat = _virusMeshRenderer.sharedMaterial;
+
+        if (TryReadTintFromMaterial(sharedMat, _virusSwipeTintPropertyId, out Color configured))
+
+            _persistedVirusSurfaceColor = configured;
+
+        else if (TryReadTintFromMaterial(sharedMat, ShaderPropColor2Fallback, out configured))
+
+            _persistedVirusSurfaceColor = configured;
+
+        else if (sharedMat.HasProperty(ShaderPropBaseColor))
+
+            _persistedVirusSurfaceColor = sharedMat.GetColor(ShaderPropBaseColor);
+
+        else if (sharedMat.HasProperty(ShaderPropColor))
+
+            _persistedVirusSurfaceColor = sharedMat.GetColor(ShaderPropColor);
+
+        else
+
+            _persistedVirusSurfaceColor = Color.white;
+
+    }
+
+
+
+    private static bool TryReadTintFromMaterial(Material sharedMat, int propertyId, out Color color)
+
+    {
+
+        color = default;
+
+        if (!sharedMat.HasProperty(propertyId))
+
+            return false;
+
+        color = sharedMat.GetColor(propertyId);
+
+        return true;
+
+    }
+
+
+
+    private static bool TryGetHandednessFromPointerEvent(PointerEvent evt, out Handedness handedness)
+
+    {
+
+        handedness = default;
+
+        object data = evt.Data;
+
+        if (data == null)
+
+            return false;
+
+        if (TryHandednessFromKnownInteractors(data, out handedness))
+
+            return true;
+
+        Transform root = null;
+
+        if (data is Component dataComp)
+
+            root = dataComp.transform;
+
+        else if (data is GameObject dataGo)
+
+            root = dataGo.transform;
+
+        if (root == null)
+
+            return false;
+
+        return TryHandednessFromInteractorHierarchy(root, out handedness);
+
+    }
+
+
+
+    private static bool TryHandednessFromKnownInteractors(object data, out Handedness handedness)
+
+    {
+
+        handedness = default;
+
+        if (data is HandGrabInteractor handGrab && handGrab.Hand != null)
+
+        {
+
+            handedness = handGrab.Hand.Handedness;
+
+            return true;
+
+        }
+
+        if (data is DistanceHandGrabInteractor distanceGrab && distanceGrab.Hand != null)
+
+        {
+
+            handedness = distanceGrab.Hand.Handedness;
+
+            return true;
+
+        }
+
+        return false;
+
+    }
+
+
+
+    private static bool TryHandednessFromInteractorHierarchy(Transform root, out Handedness handedness)
+
+    {
+
+        handedness = default;
+
+        Transform t = root;
+
+        for (int depth = 0; depth < 24 && t != null; depth++)
+
+        {
+
+            foreach (MonoBehaviour mb in t.GetComponents<MonoBehaviour>())
+
+            {
+
+                if (mb is HandGrabInteractor hgi && hgi.Hand != null)
+
+                {
+
+                    handedness = hgi.Hand.Handedness;
+
+                    return true;
+
+                }
+
+                if (mb is DistanceHandGrabInteractor dgi && dgi.Hand != null)
+
+                {
+
+                    handedness = dgi.Hand.Handedness;
+
+                    return true;
+
+                }
+
+                if (mb is IHand iHand)
+
+                {
+
+                    handedness = iHand.Handedness;
+
+                    return true;
+
+                }
+
+            }
+
+            t = t.parent;
+
+        }
+
+
+
+        foreach (HandGrabInteractor hgi in root.GetComponentsInChildren<HandGrabInteractor>(true))
+
+        {
+
+            if (hgi.Hand != null)
+
+            {
+
+                handedness = hgi.Hand.Handedness;
+
+                return true;
+
+            }
+
+        }
+
+
+
+        foreach (DistanceHandGrabInteractor dgi in root.GetComponentsInChildren<DistanceHandGrabInteractor>(true))
+
+        {
+
+            if (dgi.Hand != null)
+
+            {
+
+                handedness = dgi.Hand.Handedness;
+
+                return true;
+
+            }
+
+        }
+
+
+
+        foreach (Component comp in root.GetComponentsInChildren<Component>(true))
+
+        {
+
+            if (comp is IHand iHand)
+
+            {
+
+                handedness = iHand.Handedness;
+
+                return true;
+
+            }
+
+        }
+
+
+
+        return false;
+
+    }
+
+
+
+    private static int FirstInteractorIdOrMinusOne(Dictionary<int, Handedness> map)
+
+    {
+
+        foreach (int key in map.Keys)
+
+            return key;
+
+        return -1;
+
+    }
+
+
+
+    private Color VirusSwipeColorForHandedness(Handedness handedness)
+
+    {
+
+        return handedness == Handedness.Left ? virusColorAfterLeftSwipe : virusColorAfterRightSwipe;
+
+    }
+
+
+
+    private void RefreshVirusSwipeSurfaceColor()
+
+    {
+
+        if (_virusMeshRenderer == null)
+
+            return;
+
+        if (_grabHandByInteractorId.Count == 0)
+
+        {
+
+            ApplySurfaceColor(_persistedVirusSurfaceColor);
+
+            return;
+
+        }
+
+        Handedness handForColor;
+
+        if (_grabHandByInteractorId.Count == 1)
+
+        {
+
+            foreach (Handedness h in _grabHandByInteractorId.Values)
+
+            {
+
+                handForColor = h;
+
+                Color swipeColor = VirusSwipeColorForHandedness(handForColor);
+
+                _persistedVirusSurfaceColor = swipeColor;
+
+                ApplySurfaceColor(swipeColor);
+
+                return;
+
+            }
+
+        }
+
+        if (_lastGrabInteractorId >= 0 && _grabHandByInteractorId.TryGetValue(_lastGrabInteractorId, out Handedness lastHand))
+
+        {
+
+            handForColor = lastHand;
+
+            Color swipeColor = VirusSwipeColorForHandedness(handForColor);
+
+            _persistedVirusSurfaceColor = swipeColor;
+
+            ApplySurfaceColor(swipeColor);
+
+            return;
+
+        }
+
+        foreach (Handedness h in _grabHandByInteractorId.Values)
+
+        {
+
+            Color swipeColor = VirusSwipeColorForHandedness(h);
+
+            _persistedVirusSurfaceColor = swipeColor;
+
+            ApplySurfaceColor(swipeColor);
+
+            return;
+
+        }
+
+    }
+
+
+
+    private void ApplySurfaceColor(Color color)
+
+    {
+
+        if (_virusMeshRenderer == null)
+
+            return;
+
+        Material mat = _virusMeshRenderer.sharedMaterial;
+
+        _virusMeshRenderer.GetPropertyBlock(_virusColorMpb);
+
+        if (mat != null && mat.HasProperty(_virusSwipeTintPropertyId))
+
+            _virusColorMpb.SetColor(_virusSwipeTintPropertyId, color);
+
+        else if (mat != null && mat.HasProperty(ShaderPropColor2Fallback))
+
+            _virusColorMpb.SetColor(ShaderPropColor2Fallback, color);
+
+        else if (mat != null && mat.HasProperty(ShaderPropBaseColor))
+
+            _virusColorMpb.SetColor(ShaderPropBaseColor, color);
+
+        else if (mat != null && mat.HasProperty(ShaderPropColor))
+
+            _virusColorMpb.SetColor(ShaderPropColor, color);
+
+        else
+
+            _virusColorMpb.SetColor(_virusSwipeTintPropertyId, color);
+
+        _virusMeshRenderer.SetPropertyBlock(_virusColorMpb);
 
     }
 
