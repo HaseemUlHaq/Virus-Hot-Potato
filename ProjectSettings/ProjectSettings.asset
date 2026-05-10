@@ -273,8 +273,8 @@ PlayerSettings:
   AndroidAllowedArchitectures: -13
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
-  AndroidKeystoreName: C:/Users/loli6917/Documents/DCDC/user.keystore
-  AndroidKeyaliasName: name of the game + group nr
+  AndroidKeystoreName: C:/Users/haul9864/Downloads/user.keystore
+  AndroidKeyaliasName: group5
   AndroidEnableArmv9SecurityFeatures: 0
   AndroidEnableArm64MTE: 0
   AndroidBuildApkPerCpuArchitecture: 0

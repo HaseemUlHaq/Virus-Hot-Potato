@@ -2710,6 +2710,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8256206401899419316, guid: 50a934a2878b4084a89a79662fa354ea, type: 3}
+      propertyPath: _scaleConstraints.XAxis.AxisRange.Max
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8256206401899419316, guid: 50a934a2878b4084a89a79662fa354ea, type: 3}
+      propertyPath: _scaleConstraints.YAxis.AxisRange.Max
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8256206401899419316, guid: 50a934a2878b4084a89a79662fa354ea, type: 3}
+      propertyPath: _scaleConstraints.ZAxis.AxisRange.Max
+      value: 6
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
