@@ -139,6 +139,7 @@ GameObject:
   - component: {fileID: 192403807137716942}
   - component: {fileID: 6200816258233450413}
   - component: {fileID: 8256206401899419316}
+  - component: {fileID: 327164828225226664}
   m_Layer: 0
   m_Name: Virus_Difficult
   m_TagString: Untagged
@@ -457,3 +458,16 @@ MonoBehaviour:
         Min: 2
         Max: 4
   _resetScaleResponsivenessOnConstraintOvershoot: 0
+--- !u!114 &327164828225226664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1117160222877631255}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4a2bba66be8bd5409a1b82f1ce54853, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Oculus.Interaction.Samples::Oculus.Interaction.Samples.ColorChanger
+  _target: {fileID: 6549536755211833095}
