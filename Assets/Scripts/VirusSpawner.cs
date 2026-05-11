@@ -46,6 +46,7 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
             runner.AddCallbacks(this);
             _registeredRunners.Add(runner);
+            TrySpawnVirus(runner);
         }
     }
 
@@ -62,17 +63,42 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        if (_virusSpawned || VirusPrefab == null || runner == null || !runner.IsSharedModeMasterClient)
+        TrySpawnVirus(runner);
+    }
+
+    private void TrySpawnVirus(NetworkRunner runner)
+    {
+        if (_virusSpawned || VirusPrefab == null || runner == null || !runner.IsRunning || !runner.CanSpawn)
             return;
 
-        runner.Spawn(VirusPrefab, spawnPosition, Quaternion.identity);
-        _virusSpawned = true;
+        if (!HasVirusSpawnAuthority(runner))
+            return;
+
+        NetworkObject spawned = runner.Spawn(VirusPrefab, spawnPosition, Quaternion.identity);
+        if (spawned != null)
+            _virusSpawned = true;
+    }
+
+    private static bool HasVirusSpawnAuthority(NetworkRunner runner)
+    {
+        switch (runner.GameMode)
+        {
+            case GameMode.Single:
+                return true;
+            case GameMode.Shared:
+                return runner.IsSharedModeMasterClient;
+            default:
+                return runner.IsServer;
+        }
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
     public void OnInput(NetworkRunner runner, NetworkInput input) { }
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
-    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
+    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
+    {
+        _virusSpawned = false;
+    }
     public void OnConnectedToServer(NetworkRunner runner) { }
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
@@ -83,7 +109,10 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
     public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
     public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data) { }
     public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
-    public void OnSceneLoadDone(NetworkRunner runner) { }
+    public void OnSceneLoadDone(NetworkRunner runner)
+    {
+        TrySpawnVirus(runner);
+    }
     public void OnSceneLoadStart(NetworkRunner runner) { }
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
