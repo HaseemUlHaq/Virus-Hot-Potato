@@ -18,7 +18,7 @@ EditorBuildSettings:
     path: Assets/Scenes/Spatial-Anchors.unity
     guid: f46c0d3d359cf5f45ab9761449ed4466
   - enabled: 0
-    path: Assets/Scenes/Network-Working.unity
+    path: Assets/Scenes/Environment.Tindra.unity
     guid: e69ba37745142624e9bd063bcb63a69a
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
