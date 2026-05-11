@@ -1,4 +1,5 @@
 using Fusion;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Oculus.Interaction;
@@ -23,6 +24,11 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     [Header("Physics")]
     [SerializeField] private float rigidbodyMass = 0f;
+    [Header("Fusion / throw")]
+    [Tooltip("If enabled, state authority is released after you let go (with delay). Leaving this off keeps authority on your client so free-flight physics is not overwritten by another peer's NetworkTransform, which avoids mid-air snaps/stutter in shared mode.")]
+    [SerializeField] private bool releaseStateAuthorityOnUnselect = false;
+    [Tooltip("Only used when Release State Authority On Unselect is enabled.")]
+    [SerializeField] private float releaseStateAuthorityDelaySeconds = 0.35f;
 
     [Header("Virus Color — hand swipe")]
     [SerializeField] private Color virusColorAfterLeftSwipe = new Color(0.25f, 0.55f, 1f, 1f);
@@ -48,6 +54,12 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     public bool IsBeingGrabbed { get; private set; } = false;
     private bool _pendingGrab = false;
     private bool _pendingRelease = false;
+    private Coroutine _deferredReleaseAuthorityRoutine;
+
+    /// <summary>
+    /// While true, <see cref="PetriDish"/> owns NetworkTransform off — do not re-enable it from grab logic.
+    /// </summary>
+    private bool _petriDishDisablesNetworkTransform;
 
     // ─── Color system ─────────────────────────────────────────────────────
     private readonly Dictionary<int, Handedness> _grabHandByInteractorId = new();
@@ -120,6 +132,25 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         _grabbable.WhenPointerEventRaised += OnPointerEvent;
     }
 
+    /// <summary>Called by <see cref="PetriDish"/> when snap/release changes who controls NetworkTransform.</summary>
+    public void SetPetriDishSnapNetworkTransformDisabled(bool petriDishHoldsTransformOff)
+    {
+        _petriDishDisablesNetworkTransform = petriDishHoldsTransformOff;
+    }
+
+    private void Update()
+    {
+        if (_networkTransform == null) return;
+        if (_petriDishDisablesNetworkTransform) return;
+
+        // Until state authority reaches this client, Fusion reapplies the spawner pose every tick and the
+        // Interaction SDK cannot pull the virus — it looks "stuck". Suppress NT only in that window.
+        if (IsBeingGrabbed && !Object.HasStateAuthority)
+            _networkTransform.enabled = false;
+        else
+            _networkTransform.enabled = true;
+    }
+
     // ─── Network Tick ─────────────────────────────────────────────────────
 
     public override void FixedUpdateNetwork()
@@ -175,6 +206,12 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             case PointerEventType.Select:
                 IsBeingGrabbed = true;
 
+                if (_deferredReleaseAuthorityRoutine != null)
+                {
+                    StopCoroutine(_deferredReleaseAuthorityRoutine);
+                    _deferredReleaseAuthorityRoutine = null;
+                }
+
                 // Release from petri dish if snapped
                 PetriDish dish = FindObjectsByType<PetriDish>(FindObjectsSortMode.None)
                     .FirstOrDefault(d => d.SnappedVirus == gameObject);
@@ -209,7 +246,8 @@ public class NetworkGrabbableVirus : NetworkBehaviour
                 if (_grabHandByInteractorId.Count == 0)
                     RPC_NotifyRelease();
 
-                Object.ReleaseStateAuthority();
+                if (releaseStateAuthorityOnUnselect)
+                    ScheduleDeferredReleaseStateAuthority();
                 break;
 
             case PointerEventType.Cancel:
@@ -223,7 +261,8 @@ public class NetworkGrabbableVirus : NetworkBehaviour
                 if (_grabHandByInteractorId.Count == 0)
                     RPC_NotifyRelease();
 
-                Object.ReleaseStateAuthority();
+                if (releaseStateAuthorityOnUnselect)
+                    ScheduleDeferredReleaseStateAuthority();
                 break;
         }
     }
@@ -456,10 +495,42 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         _rb.mass = rigidbodyMass;
     }
 
+    private void ScheduleDeferredReleaseStateAuthority()
+    {
+        if (_deferredReleaseAuthorityRoutine != null)
+        {
+            StopCoroutine(_deferredReleaseAuthorityRoutine);
+            _deferredReleaseAuthorityRoutine = null;
+        }
+
+        if (releaseStateAuthorityDelaySeconds <= 0f)
+        {
+            if (Object != null && Object.IsValid)
+                Object.ReleaseStateAuthority();
+            return;
+        }
+
+        _deferredReleaseAuthorityRoutine = StartCoroutine(DeferredReleaseStateAuthority());
+    }
+
+    private IEnumerator DeferredReleaseStateAuthority()
+    {
+        yield return new WaitForSeconds(releaseStateAuthorityDelaySeconds);
+        _deferredReleaseAuthorityRoutine = null;
+        if (Object != null && Object.IsValid)
+            Object.ReleaseStateAuthority();
+    }
+
     // ─── Cleanup ──────────────────────────────────────────────────────────
 
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
+        if (_deferredReleaseAuthorityRoutine != null)
+        {
+            StopCoroutine(_deferredReleaseAuthorityRoutine);
+            _deferredReleaseAuthorityRoutine = null;
+        }
+
         if (_grabbable != null)
             _grabbable.WhenPointerEventRaised -= OnPointerEvent;
 

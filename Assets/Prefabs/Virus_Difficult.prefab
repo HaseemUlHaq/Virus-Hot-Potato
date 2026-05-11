@@ -249,9 +249,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1117160222877631255}
   serializedVersion: 5
-  m_Mass: 0.1
-  m_LinearDamping: 1
-  m_AngularDamping: 0.5
+  m_Mass: 0.035
+  m_LinearDamping: 0.02
+  m_AngularDamping: 0.25
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -367,6 +367,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkGrabbableVirus
   fuseDurationSeconds: 30
+  rigidbodyMass: 0
+  releaseStateAuthorityOnUnselect: 0
+  releaseStateAuthorityDelaySeconds: 0.35
+  virusColorAfterLeftSwipe: {r: 0.25, g: 0.55, b: 1, a: 1}
+  virusColorAfterRightSwipe: {r: 1, g: 0.35, b: 0.25, a: 1}
+  virusColorMeshRenderer: {fileID: 0}
+  virusSwipeTintShaderProperty: _Color_2
+  eliminationMessageText: {fileID: 0}
 --- !u!135 &6200816258233450413
 SphereCollider:
   m_ObjectHideFlags: 0
