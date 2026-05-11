@@ -65,49 +65,13 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
         UnityEngine.Debug.Log("VirusSpawner reset for new round");
     }
 
-    // ─── Spawn Logic ──────────────────────────────────────────────────────
-
-    private void TrySpawnVirus()
-    {
-        // Don't spawn if already spawned
-        if (_virusSpawned) return;
-
-        // Don't spawn if position not set yet
-        if (!_positionReady) return;
-
-        // Don't spawn if prefab not assigned
-        if (VirusPrefab == null)
-        {
-            UnityEngine.Debug.LogWarning("Virus prefab not assigned on VirusSpawner");
-            return;
-        }
-
-        // Find the active master client runner
-        NetworkRunner masterRunner = null;
-        foreach (var runner in _registeredRunners)
-        {
-            if (runner != null && runner.IsRunning && runner.IsSharedModeMasterClient)
-            {
-                masterRunner = runner;
-                break;
-            }
-        }
-
-        // Not master client or runner not ready yet — will retry when player joins
-        if (masterRunner == null)
-        {
-            UnityEngine.Debug.Log("Runner not ready yet — will spawn when Fusion connects");
-            return;
-        }
-
-        // Spawn the virus
-        masterRunner.Spawn(VirusPrefab, _spawnPosition, Quaternion.identity);
-        _virusSpawned = true;
-        UnityEngine.Debug.Log("Virus spawned at: " + _spawnPosition);
-    }
-
     // ─── Fusion Callbacks ─────────────────────────────────────────────────
 
+    /// When a player joins, try to spawn in case table was found before Fusion connected
+    //public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
+    //{
+    //    TrySpawnVirus(runner);
+    //}
     /// When a player joins, try to spawn in case table was found before Fusion connected
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
@@ -135,6 +99,7 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
                 continue;
             runner.AddCallbacks(this);
             _registeredRunners.Add(runner);
+            TrySpawnVirus(runner);
         }
     }
 
@@ -148,12 +113,53 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
         _registeredRunners.Clear();
     }
 
-    // ─── Unused Fusion callbacks (required by interface) ──────────────────
+     // ─── Spawn Logic ──────────────────────────────────────────────────────
+    private static bool HasVirusSpawnAuthority(NetworkRunner runner)
+    {
+        if (runner == null)
+            return false;
+        switch (runner.GameMode)
+        {
+            case GameMode.Single:
+                return true;
+            case GameMode.Shared:
+                return runner.IsSharedModeMasterClient;
+            default:
+                return runner.IsServer;
+        }
+    }
+    /// <summary>Retry spawn using any registered runner that is allowed to spawn.</summary>
+    private void TrySpawnVirus()
+    {
+        foreach (var runner in _registeredRunners)
+            TrySpawnVirus(runner);
+    }
+    /// <summary>Attempt spawn on this runner (registration / Fusion callbacks).</summary>
+    private void TrySpawnVirus(NetworkRunner runner)
+    {
+        if (_virusSpawned)
+            return;
+        if (VirusPrefab == null || runner == null || !runner.IsRunning || !runner.CanSpawn)
+            return;
+        if (!_positionReady)
+            return;
+        if (!HasVirusSpawnAuthority(runner))
+            return;
+        NetworkObject spawned = runner.Spawn(VirusPrefab, _spawnPosition, Quaternion.identity);
+        if (spawned != null)
+        {
+            _virusSpawned = true;
+            UnityEngine.Debug.Log("Virus spawned at: " + _spawnPosition);
+        }
+    }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
     public void OnInput(NetworkRunner runner, NetworkInput input) { }
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
-    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
+    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
+    {
+        _virusSpawned = false;
+    }
     public void OnConnectedToServer(NetworkRunner runner) { }
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
@@ -164,7 +170,10 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
     public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
     public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data) { }
     public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
-    public void OnSceneLoadDone(NetworkRunner runner) { }
+    public void OnSceneLoadDone(NetworkRunner runner)
+    {
+        TrySpawnVirus(runner);
+    }
     public void OnSceneLoadStart(NetworkRunner runner) { }
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
