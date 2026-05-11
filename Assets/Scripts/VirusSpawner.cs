@@ -1,18 +1,24 @@
-using Fusion;
+﻿using Fusion;
 using Fusion.Sockets;
 using System;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
+    [Header("Assign in Inspector")]
     public NetworkObject VirusPrefab;
-    [SerializeField] private Vector3 spawnPosition = new Vector3(0f, 0.05f, 0f);
 
-    private bool _virusSpawned;
+    // Internal state
+    private bool _virusSpawned = false;
+    private bool _positionReady = false;
+    private Vector3 _spawnPosition = Vector3.zero;
+
     private readonly List<NetworkRunner> _registeredRunners = new List<NetworkRunner>();
     private Coroutine _runnerDiscoveryRoutine;
+
+    // ─── Lifecycle ────────────────────────────────────────────────────────
 
     private void OnEnable()
     {
@@ -26,6 +32,54 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
             StopCoroutine(_runnerDiscoveryRoutine);
         UnregisterFromRunners();
     }
+
+    // ─── Public API ───────────────────────────────────────────────────────
+
+    /// Called by TableAnchor when table is found
+    /// Sets spawn position to center of table surface
+    public void SetTablePosition(Vector3 tablePosition)
+    {
+        // 0.15m above table surface
+        _spawnPosition = tablePosition + Vector3.up * 0.15f;
+        _positionReady = true;
+        UnityEngine.Debug.Log("Table position received. Virus will spawn at: " + _spawnPosition);
+        TrySpawnVirus();
+    }
+
+    /// Called by PuckTracker when QR is detected
+    /// Overrides spawn position with QR horizontal position
+    /// but keeps table surface Y so virus is always on the table
+    public void SetSpawnPosition(Vector3 position)
+    {
+        _spawnPosition = position;
+        _positionReady = true;
+        UnityEngine.Debug.Log("QR spawn position received: " + _spawnPosition);
+        TrySpawnVirus();
+    }
+
+    /// Call this at the start of each new round
+    public void ResetForNewRound()
+    {
+        _virusSpawned = false;
+        _positionReady = false;
+        UnityEngine.Debug.Log("VirusSpawner reset for new round");
+    }
+
+    // ─── Fusion Callbacks ─────────────────────────────────────────────────
+
+    /// When a player joins, try to spawn in case table was found before Fusion connected
+    //public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
+    //{
+    //    TrySpawnVirus(runner);
+    //}
+    /// When a player joins, try to spawn in case table was found before Fusion connected
+    public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
+    {
+        if (!runner.IsSharedModeMasterClient) return;
+        TrySpawnVirus();
+    }
+
+    // ─── Runner Management ────────────────────────────────────────────────
 
     private IEnumerator DiscoverRunnersRoutine()
     {
@@ -43,7 +97,6 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
         {
             if (runner == null || _registeredRunners.Contains(runner))
                 continue;
-
             runner.AddCallbacks(this);
             _registeredRunners.Add(runner);
             TrySpawnVirus(runner);
@@ -57,30 +110,14 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
             if (runner != null)
                 runner.RemoveCallbacks(this);
         }
-
         _registeredRunners.Clear();
     }
 
-    public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
-    {
-        TrySpawnVirus(runner);
-    }
-
-    private void TrySpawnVirus(NetworkRunner runner)
-    {
-        if (_virusSpawned || VirusPrefab == null || runner == null || !runner.IsRunning || !runner.CanSpawn)
-            return;
-
-        if (!HasVirusSpawnAuthority(runner))
-            return;
-
-        NetworkObject spawned = runner.Spawn(VirusPrefab, spawnPosition, Quaternion.identity);
-        if (spawned != null)
-            _virusSpawned = true;
-    }
-
+     // ─── Spawn Logic ──────────────────────────────────────────────────────
     private static bool HasVirusSpawnAuthority(NetworkRunner runner)
     {
+        if (runner == null)
+            return false;
         switch (runner.GameMode)
         {
             case GameMode.Single:
@@ -89,6 +126,30 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
                 return runner.IsSharedModeMasterClient;
             default:
                 return runner.IsServer;
+        }
+    }
+    /// <summary>Retry spawn using any registered runner that is allowed to spawn.</summary>
+    private void TrySpawnVirus()
+    {
+        foreach (var runner in _registeredRunners)
+            TrySpawnVirus(runner);
+    }
+    /// <summary>Attempt spawn on this runner (registration / Fusion callbacks).</summary>
+    private void TrySpawnVirus(NetworkRunner runner)
+    {
+        if (_virusSpawned)
+            return;
+        if (VirusPrefab == null || runner == null || !runner.IsRunning || !runner.CanSpawn)
+            return;
+        if (!_positionReady)
+            return;
+        if (!HasVirusSpawnAuthority(runner))
+            return;
+        NetworkObject spawned = runner.Spawn(VirusPrefab, _spawnPosition, Quaternion.identity);
+        if (spawned != null)
+        {
+            _virusSpawned = true;
+            UnityEngine.Debug.Log("Virus spawned at: " + _spawnPosition);
         }
     }
 

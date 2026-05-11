@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 
 using Fusion;
-
 using Oculus.Interaction;
+using System.Linq;
 
 using Oculus.Interaction.HandGrab;
 
@@ -15,19 +15,37 @@ using UnityEngine;
 
 
 [RequireComponent(typeof(NetworkObject))]
-
 [RequireComponent(typeof(Grabbable))]
-
 public class NetworkGrabbableVirus : NetworkBehaviour
-
 {
+    // ─── Components ───────────────────────────────────────────────────────
+    private Grabbable _grabbable;
+    private Rigidbody _rb;
+    private NetworkTransform _networkTransform;
+    private ChangeDetector _changeDetector;
 
+    // ─── Settings ─────────────────────────────────────────────────────────
+    [Header("Fuse Settings")]
     [SerializeField] private float fuseDurationSeconds = 10f;
 
-    [SerializeField] private GameObject explosionPrefab;
+    // ─── Networked State ──────────────────────────────────────────────────
+    [Networked] public PlayerRef CurrentHolder { get; private set; } = PlayerRef.None;
+    [Networked] private PlayerRef _lastTouchedPlayer { get; set; } = PlayerRef.None;
+    [Networked] private PlayerRef _eliminatedPlayer { get; set; } = PlayerRef.None;
+    [Networked] private bool _roundResolved { get; set; } = false;
+    [Networked] private TickTimer _fuseTimer { get; set; }
 
-    [SerializeField] private ParticleSystem explosionFxFallback;
+    // ─── Local State ──────────────────────────────────────────────────────
+    public bool IsBeingGrabbed { get; private set; } = false;
+    private bool _pendingGrab = false;
+    private bool _pendingRelease = false;
 
+    // ─── Debug Properties ─────────────────────────────────────────────────
+    public float GetRemainingSeconds()
+    {
+        if (!_fuseTimer.IsRunning) return fuseDurationSeconds;
+        return _fuseTimer.RemainingTime(Runner) ?? 0f;
+    }
     [SerializeField] private TextMeshProUGUI eliminationMessageText;
 
 
@@ -88,11 +106,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     [Networked] private NetworkBool HasElimination { get; set; }
 
-    [Networked] public PlayerRef EliminatedPlayer { get; set; }
-
     [Networked] private NetworkBool HasHolder { get; set; }
-
-    [Networked] private PlayerRef CurrentHolder { get; set; }
 
     [Networked] private NetworkBool HasLastTouchedPlayer { get; set; }
 
@@ -100,35 +114,15 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     [Networked] private NetworkBool SpawnRestUnlocked { get; set; }
 
-
-
-    public bool DebugFuseStarted => FuseStarted;
-
-    public bool DebugHasHolder => HasHolder;
-
-    public bool DebugHasElimination => HasElimination;
-
-    public bool DebugRoundResolved => RoundResolved;
-
+    public bool DebugHasHolder => CurrentHolder != PlayerRef.None;
     public PlayerRef DebugCurrentHolder => CurrentHolder;
+    public PlayerRef DebugLastTouchedPlayer => _lastTouchedPlayer;
+    public bool DebugHasElimination => _eliminatedPlayer != PlayerRef.None;
+    public PlayerRef EliminatedPlayer => _eliminatedPlayer;
+    public bool DebugFuseStarted => _fuseTimer.IsRunning;
+    public bool DebugRoundResolved => _roundResolved;
 
-    public PlayerRef DebugLastTouchedPlayer => LastTouchedPlayer;
-
-
-
-    private Grabbable _grabbable;
-
-    private Rigidbody _rb;
-
-    private ChangeDetector _changeDetector;
-
-    private bool _localEliminationAnnounced;
-
-    private bool _localExplosionPlayed;
-
-    private bool _wasRoundResolved;
-
-
+    // ─── Lifecycle ────────────────────────────────────────────────────────
 
     private readonly Dictionary<int, Handedness> _grabHandByInteractorId = new Dictionary<int, Handedness>();
 
@@ -151,12 +145,16 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
 
     public override void Spawned()
-
     {
-
         _grabbable = GetComponent<Grabbable>();
-
         _rb = GetComponent<Rigidbody>();
+        _networkTransform = GetComponent<NetworkTransform>();
+
+        if (_rb != null)
+        {
+            _rb.isKinematic = false;
+            _rb.useGravity = true;
+        }
 
         _grabbable.WhenPointerEventRaised += OnPointerEvent;
 
@@ -218,266 +216,51 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     }
 
-
+    // ─── Network Tick — runs when we have authority ────────────────────────
 
     public override void FixedUpdateNetwork()
-
     {
-
-        if (HasStateAuthority && !FuseStarted && !RoundResolved)
-
+        // Handle pending grab — now we definitely have authority
+        if (_pendingGrab && Object.HasStateAuthority)
         {
+            _pendingGrab = false;
+            CurrentHolder = Runner.LocalPlayer;
+            _lastTouchedPlayer = Runner.LocalPlayer;
 
-            FuseTimer = TickTimer.CreateFromSeconds(Runner, fuseDurationSeconds);
-
-            FuseStarted = true;
-
-            RoundResolved = false;
-
-            WaitingBetweenRoundRestart = false;
-
-            HasHolder = false;
-
-            HasElimination = false;
-
-            HasLastTouchedPlayer = false;
-
-            SpawnRestUnlocked = false;
-
-        }
-
-
-
-        if (RoundResolved)
-
-        {
-
-            SyncGrabbableForRoundState();
-
-
-
-            if (HasStateAuthority
-
-                && WaitingBetweenRoundRestart
-
-                && (float)Runner.SimulationTime >= NextRoundAtSimulationTime)
-
+            if (!_fuseTimer.IsRunning && !_roundResolved)
             {
-
-                BeginNextRound();
-
+                _fuseTimer = TickTimer.CreateFromSeconds(Runner, fuseDurationSeconds);
+                UnityEngine.Debug.Log("Fuse started!");
             }
-
-
-
-            return;
-
         }
 
+        // Handle pending release
+        if (_pendingRelease && Object.HasStateAuthority)
+        {
+            _pendingRelease = false;
+            CurrentHolder = PlayerRef.None;
+        }
 
+        // Check fuse expiry
+        if (!Object.HasStateAuthority) return;
+        if (_roundResolved) return;
+        if (!_fuseTimer.IsRunning) return;
 
-        if (HasStateAuthority && FuseStarted && FuseTimer.Expired(Runner))
+        if (_fuseTimer.Expired(Runner))
+        {
+            _eliminatedPlayer = CurrentHolder != PlayerRef.None
+                ? CurrentHolder
+                : _lastTouchedPlayer;
 
-            ResolveRound();
+            _roundResolved = true;
+            _fuseTimer = TickTimer.None;
 
-
-
-        SyncRestingRigidbodyLocks();
-
-        SyncGrabbableForRoundState();
-
+            UnityEngine.Debug.Log("BOOM! Eliminated: " + _eliminatedPlayer);
+        }
     }
 
-
-
-    public override void Render()
-
+    private void ApplyRestingSpawnLock()
     {
-
-        if (_wasRoundResolved && !RoundResolved)
-
-        {
-
-            _localExplosionPlayed = false;
-
-            _localEliminationAnnounced = false;
-
-            if (eliminationMessageText != null)
-
-                eliminationMessageText.gameObject.SetActive(false);
-
-        }
-
-
-
-        _wasRoundResolved = RoundResolved;
-
-
-
-        foreach (var change in _changeDetector.DetectChanges(this))
-
-        {
-
-            if (change != nameof(RoundResolved) || !RoundResolved)
-
-                continue;
-
-        }
-
-
-
-        if (RoundResolved && !_localExplosionPlayed)
-
-        {
-
-            _localExplosionPlayed = true;
-
-            if (explosionPrefab != null)
-
-                Instantiate(explosionPrefab, transform.position, Quaternion.identity);
-
-            else if (explosionFxFallback != null)
-
-                explosionFxFallback.Play();
-
-        }
-
-
-
-        if (!RoundResolved || !HasElimination || _localEliminationAnnounced)
-
-            return;
-
-
-
-        if (EliminatedPlayer != Runner.LocalPlayer)
-
-            return;
-
-
-
-        _localEliminationAnnounced = true;
-
-        Debug.Log("[HotPotato] You are eliminated.");
-
-        if (eliminationMessageText != null)
-
-        {
-
-            eliminationMessageText.gameObject.SetActive(true);
-
-            eliminationMessageText.text = "You are out!";
-
-        }
-
-    }
-
-
-
-    public float GetRemainingSeconds()
-
-    {
-
-        if (!FuseStarted || RoundResolved)
-
-            return 0f;
-
-
-
-        float remaining = FuseTimer.RemainingTime(Runner).GetValueOrDefault(0f);
-
-        return Mathf.Max(remaining, 0f);
-
-    }
-
-
-
-    private void ResolveRound()
-
-    {
-
-        RoundResolved = true;
-
-        if (HasHolder)
-
-        {
-
-            HasElimination = true;
-
-            EliminatedPlayer = CurrentHolder;
-
-        }
-
-        else if (HasLastTouchedPlayer)
-
-        {
-
-            HasElimination = true;
-
-            EliminatedPlayer = LastTouchedPlayer;
-
-        }
-
-        else
-
-        {
-
-            HasElimination = false;
-
-        }
-
-
-
-        WaitingBetweenRoundRestart = true;
-
-        NextRoundAtSimulationTime = (float)Runner.SimulationTime + pauseAfterExplosionSeconds;
-
-
-
-        Debug.Log($"[HotPotato] Fuse expired. Holder={CurrentHolder}, LastTouched={LastTouchedPlayer}, HasHolder={HasHolder}");
-
-
-
-        FreezeRigidbodyExplodedPose();
-
-    }
-
-
-
-    private void BeginNextRound()
-
-    {
-
-        RoundResolved = false;
-
-        WaitingBetweenRoundRestart = false;
-
-        HasElimination = false;
-
-        EliminatedPlayer = default;
-
-        HasHolder = false;
-
-        HasLastTouchedPlayer = false;
-
-        SpawnRestUnlocked = false;
-
-        FuseTimer = TickTimer.CreateFromSeconds(Runner, fuseDurationSeconds);
-
-        FuseStarted = true;
-
-        ApplyRigidbodyMassIfConfigured();
-
-        ApplyRestingSpawnLock();
-
-    }
-
-
-
-    private void FreezeRigidbodyExplodedPose()
-
-    {
-
         if (_rb == null)
 
             return;
@@ -500,8 +283,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     }
 
-
-
     private void ApplyRigidbodyMassIfConfigured()
 
     {
@@ -514,12 +295,34 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     }
 
-
-
-    private void SyncGrabbableForRoundState()
-
+    private void FreezeRigidbodyExplodedPose()
     {
 
+        if (_rb == null)
+
+            return;
+
+        if (!_rb.isKinematic)
+
+        {
+
+            _rb.linearVelocity = Vector3.zero;
+
+            _rb.angularVelocity = Vector3.zero;
+
+        }
+
+        _rb.isKinematic = true;
+
+        _rb.useGravity = false;
+
+        _rb.constraints = RigidbodyConstraints.FreezeAll;
+    }
+
+    // ─── Grab Events ──────────────────────────────────────────────────────
+
+    private void SyncGrabbableForRoundState()
+    {
         if (_grabbable == null)
 
             return;
@@ -528,24 +331,18 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     }
 
-
-
     private void OnPointerEvent(PointerEvent evt)
-
     {
-
-        if (RoundResolved)
-
-            return;
-
-
-
         switch (evt.Type)
-
         {
-
             case PointerEventType.Select:
+                IsBeingGrabbed = true;
 
+                // Release from petri dish
+                PetriDish dish = FindObjectsByType<PetriDish>(FindObjectsSortMode.None)
+                    .FirstOrDefault(d => d.SnappedVirus == gameObject);
+                if (dish != null)
+                    dish.ReleaseVirus();
                 if (TryGetHandednessFromPointerEvent(evt, out Handedness selectHand))
 
                 {
@@ -560,11 +357,38 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
                 RPC_NotifyGrab(Runner.LocalPlayer);
 
+                // Request authority — state will be set in FixedUpdateNetwork
+                // once authority is confirmed
+                Object.RequestStateAuthority();
+                _pendingGrab = true;
+                _pendingRelease = false;
+
+                if (_networkTransform != null)
+                    _networkTransform.enabled = false;
+
+                if (_rb != null)
+                {
+                    _rb.isKinematic = false;
+                    _rb.useGravity = false;
+                }
                 break;
 
-
-
             case PointerEventType.Unselect:
+                IsBeingGrabbed = false;
+                _pendingRelease = true;
+                _pendingGrab = false;
+
+                if (_rb != null)
+                {
+                    _rb.isKinematic = false;
+                    _rb.useGravity = true;
+                }
+
+                if (_networkTransform != null)
+                    _networkTransform.enabled = true;
+
+                Object.ReleaseStateAuthority();
+                break;
 
             case PointerEventType.Cancel:
 
@@ -580,106 +404,44 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
                     RPC_NotifyRelease();
 
+                if (_networkTransform != null)
+                    _networkTransform.enabled = true;
+
+                Object.ReleaseStateAuthority();
                 break;
-
         }
-
     }
 
+    // ─── Public API ───────────────────────────────────────────────────────
 
-
-    private void ApplyRestingSpawnLock()
-
+    public void ResetForNewRound()
     {
+        if (!Object.HasStateAuthority) return;
+        CurrentHolder = PlayerRef.None;
+        _lastTouchedPlayer = PlayerRef.None;
+        _eliminatedPlayer = PlayerRef.None;
+        _roundResolved = false;
+        _fuseTimer = TickTimer.None;
+        _pendingGrab = false;
+        _pendingRelease = false;
 
-        if (_rb == null)
-
-            return;
-
-        if (!_rb.isKinematic)
-
+        if (_rb != null)
         {
-
+            _rb.isKinematic = false;
+            _rb.useGravity = true;
             _rb.linearVelocity = Vector3.zero;
-
-            _rb.angularVelocity = Vector3.zero;
-
         }
-
-        _rb.isKinematic = true;
-
-        _rb.useGravity = false;
-
-        _rb.constraints = RigidbodyConstraints.FreezeAll;
-
     }
 
-
-
-    private void SyncRestingRigidbodyLocks()
-
+    public void SetFuseDuration(float seconds)
     {
-
-        if (_rb == null)
-
-            return;
-
-        if (!SpawnRestUnlocked)
-
-        {
-
-            ApplyRestingSpawnLock();
-
-            return;
-
-        }
-
-
-
-        if (HasHolder)
-
-            return;
-
-        if (!Object.HasStateAuthority)
-
-            return;
-
-
-
-        ApplyFreeFlightPhysics();
-
+        fuseDurationSeconds = seconds;
     }
-
-
-
-    private void ApplyFreeFlightPhysics()
-
-    {
-
-        if (_rb == null)
-
-            return;
-
-        _rb.constraints = RigidbodyConstraints.None;
-
-        _rb.isKinematic = false;
-
-        _rb.useGravity = useGravityWhenFree;
-
-        if (_rb.collisionDetectionMode == CollisionDetectionMode.Discrete)
-
-            _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-
-    }
-
-
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
 
     private void RPC_NotifyGrab(PlayerRef player)
-
     {
-
         if (RoundResolved)
 
             return;
@@ -693,7 +455,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         HasLastTouchedPlayer = true;
 
         LastTouchedPlayer = player;
-
     }
 
 
@@ -701,25 +462,19 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
 
     private void RPC_NotifyRelease()
-
     {
-
         if (RoundResolved)
 
             return;
 
         HasHolder = false;
-
     }
 
-
+    // ─── Cleanup ──────────────────────────────────────────────────────────
 
     public override void Despawned(NetworkRunner runner, bool hasState)
-
     {
-
         if (_grabbable != null)
-
             _grabbable.WhenPointerEventRaised -= OnPointerEvent;
 
         _grabHandByInteractorId.Clear();
@@ -1107,7 +862,4 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         _virusMeshRenderer.SetPropertyBlock(_virusColorMpb);
 
     }
-
 }
-
-
