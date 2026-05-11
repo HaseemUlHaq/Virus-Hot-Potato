@@ -3,27 +3,45 @@ using Fusion;
 
 public class PetriDish : MonoBehaviour
 {
+    private enum DishVisual
+    {
+        Empty,
+        Nearby,
+        Occupied
+    }
+
     [Header("Settings")]
     [SerializeField] private int playerIndex = 1;
     [SerializeField] private float virusHoverHeight = 0.08f;
-    [SerializeField] private float snapSpeedThreshold = 0.3f;
-    [SerializeField] private float snapDelay = 0.3f;
+    [SerializeField] private float snapSpeedThreshold = 0.45f;
+    [SerializeField] private float snapDelay = 0.25f;
+    [Tooltip("World-space radius to detect a virus near the dish (yellow state). Uses FixedUpdate overlap — stable vs trigger flicker.")]
+    [SerializeField] private float nearbyDetectionRadius = 0.55f;
+    [Tooltip("World-space radius used when testing whether we can snap.")]
+    [SerializeField] private float snapOverlapRadius = 0.4f;
+    [Tooltip("Seconds with no virus in nearby radius before returning to green (reduces yellow flicker at the edge).")]
+    [SerializeField] private float nearbyExitDebounce = 0.12f;
 
     [Header("Visuals")]
     [SerializeField] private Renderer dishRenderer;
-    [SerializeField] private Color emptyColor = new Color(0.3f, 0.8f, 0.3f, 1f);
-    [SerializeField] private Color occupiedColor = new Color(0.8f, 0.2f, 0.2f, 1f);
-    [SerializeField] private Color nearbyColor = new Color(1f, 0.8f, 0.2f, 1f);
+    [SerializeField] private Color emptyColor = new Color(0.25f, 0.75f, 0.25f, 1f);
+    [SerializeField] private Color occupiedColor = new Color(0.85f, 0.15f, 0.15f, 1f);
+    [SerializeField] private Color nearbyColor = new Color(1f, 0.82f, 0.15f, 1f);
 
-    private GameObject _snappedVirus = null;
-    private bool _isOccupied = false;
+    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+    private static readonly int ColorId = Shader.PropertyToID("_Color");
+
+    private GameObject _snappedVirus;
+    private bool _isOccupied;
     private Rigidbody _virusRb;
     private NetworkTransform _virusNetTransform;
     private Material _matInstance;
 
-    // Snap delay — prevents immediate snap on release
-    private float _virusEnteredTime = -1f;
-    private bool _virusInsideTrigger = false;
+    private DishVisual _visual = DishVisual.Empty;
+    private float _noNearbyTimer;
+    private float _snapDwellStart = -1f;
+    private NetworkGrabbableVirus _pendingAuthorityForSnap;
+    private NetworkGrabbableVirus _cachedVirus;
 
     public bool IsOccupied => _isOccupied;
     public GameObject SnappedVirus => _snappedVirus;
@@ -32,95 +50,175 @@ public class PetriDish : MonoBehaviour
     {
         if (dishRenderer != null)
         {
-            // Force unique material instance
             _matInstance = new Material(dishRenderer.material);
             dishRenderer.material = _matInstance;
-            UnityEngine.Debug.Log("PetriDish " + playerIndex + " material instance created");
+        }
+
+        ApplyVisual(DishVisual.Empty, force: true);
+        RefreshVirusCache();
+    }
+
+    private void RefreshVirusCache()
+    {
+        if (_cachedVirus != null && _cachedVirus.gameObject != null)
+            return;
+        _cachedVirus = FindFirstObjectByType<NetworkGrabbableVirus>();
+    }
+
+    private void FixedUpdate()
+    {
+        if (_isOccupied)
+        {
+            if (_snappedVirus != null)
+            {
+                _snappedVirus.transform.position = SnapHoverWorldPosition();
+                _snappedVirus.transform.rotation = Quaternion.identity;
+            }
+
+            return;
+        }
+
+        RefreshVirusCache();
+
+        Vector3 center = SnapCenterWorld();
+        float detectR = Mathf.Max(nearbyDetectionRadius, snapOverlapRadius);
+        NetworkGrabbableVirus virus = null;
+        if (!TryFindVirusInRadius(center, detectR, out virus) &&
+            _cachedVirus != null &&
+            Vector3.Distance(_cachedVirus.transform.position, center) <= detectR)
+        {
+            virus = _cachedVirus;
+        }
+
+        bool inArea = virus != null;
+
+        if (inArea)
+        {
+            _noNearbyTimer = 0f;
+            ApplyVisual(DishVisual.Nearby);
+
+            float dist = Vector3.Distance(virus.transform.position, center);
+            if (dist <= snapOverlapRadius)
+            {
+                if (_snapDwellStart < 0f)
+                    _snapDwellStart = Time.time;
+
+                if (Time.time - _snapDwellStart >= snapDelay)
+                    TrySnapVirus(virus, center);
+            }
+            else
+            {
+                _snapDwellStart = -1f;
+            }
         }
         else
         {
-            UnityEngine.Debug.LogWarning("PetriDish " + playerIndex + " has no renderer!");
+            _snapDwellStart = -1f;
+            _pendingAuthorityForSnap = null;
+            _noNearbyTimer += Time.fixedDeltaTime;
+            if (_noNearbyTimer >= nearbyExitDebounce)
+                ApplyVisual(DishVisual.Empty);
         }
-
-        SetColor(emptyColor);
     }
 
-    private void Update()
+    private readonly Collider[] _overlapHits = new Collider[32];
+
+    /// <summary>
+    /// Fusion can host networked rigidbodies in the runner's <see cref="PhysicsScene"/> (not the default scene),
+    /// especially in multi-peer / editor setups. <see cref="Physics.OverlapSphereNonAlloc"/> only hits the default scene.
+    /// </summary>
+    private bool TryFindVirusInRadius(Vector3 center, float radius, out NetworkGrabbableVirus virus)
     {
-        // Keep virus hovering above dish
-        if (_isOccupied && _snappedVirus != null)
+        virus = null;
+
+        int n = Physics.OverlapSphereNonAlloc(center, radius, _overlapHits, ~0, QueryTriggerInteraction.Collide);
+        if (TryPickVirusFromHits(n, out virus))
+            return true;
+
+        foreach (NetworkRunner runner in NetworkRunner.Instances)
         {
-            _snappedVirus.transform.position = transform.position +
-                                               Vector3.up * virusHoverHeight;
-            _snappedVirus.transform.rotation = Quaternion.identity;
+            if (runner == null || !runner.IsRunning)
+                continue;
+
+            PhysicsScene ps = runner.GetPhysicsScene();
+            if (!ps.IsValid() || ps == Physics.defaultPhysicsScene)
+                continue;
+
+            n = ps.OverlapSphere(center, radius, _overlapHits, ~0, QueryTriggerInteraction.Collide);
+            if (TryPickVirusFromHits(n, out virus))
+                return true;
         }
 
-        // Delayed snap check — only snap after virus has been
-        // inside trigger for snapDelay seconds AND is not grabbed
-        if (!_isOccupied && _virusInsideTrigger && _virusEnteredTime > 0f)
+        return false;
+    }
+
+    private bool TryPickVirusFromHits(int hitCount, out NetworkGrabbableVirus virus)
+    {
+        virus = null;
+        for (int i = 0; i < hitCount; i++)
         {
-            float timeInside = Time.time - _virusEnteredTime;
-            if (timeInside >= snapDelay)
+            Collider c = _overlapHits[i];
+            if (c == null) continue;
+            virus = c.GetComponentInParent<NetworkGrabbableVirus>();
+            if (virus != null) return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// PetriDish logic often sits on a parent while the mesh is on an offset child — using only
+    /// <see cref="Transform.position"/> misses the virus. Prefer the assigned renderer's bounds center.
+    /// </summary>
+    private Vector3 DishWorldCenter()
+    {
+        if (dishRenderer != null)
+            return dishRenderer.bounds.center;
+        return transform.position;
+    }
+
+    private Vector3 SnapCenterWorld() => DishWorldCenter() + Vector3.up * (virusHoverHeight * 0.5f);
+
+    private void TrySnapVirus(NetworkGrabbableVirus grab, Vector3 center)
+    {
+        if (_isOccupied || grab == null) return;
+
+        Rigidbody rb = grab.GetComponent<Rigidbody>();
+        if (rb == null) return;
+
+        NetworkObject netObj = grab.GetComponent<NetworkObject>();
+        if (netObj != null && !netObj.HasStateAuthority)
+        {
+            if (_pendingAuthorityForSnap != grab)
             {
-                TrySnap();
+                _pendingAuthorityForSnap = grab;
+                netObj.RequestStateAuthority();
             }
+
+            return;
         }
-    }
 
-    private void TrySnap()
-    {
-        if (_isOccupied) return;
+        _pendingAuthorityForSnap = null;
 
-        // Only check objects currently inside our trigger
-        Collider[] hits = Physics.OverlapSphere(
-            transform.position,
-            0.08f  // small fixed radius — only snaps when very close to dish center
-        );
+        if (grab.IsBeingGrabbed)
+            return;
 
-        foreach (var hit in hits)
-        {
-            NetworkGrabbableVirus grab = hit.GetComponentInParent<NetworkGrabbableVirus>();
-            if (grab == null) continue;
+        if (rb.linearVelocity.magnitude >= snapSpeedThreshold)
+            return;
 
-            Rigidbody rb = grab.GetComponent<Rigidbody>();
-            if (rb == null) continue;
+        if (Vector3.Distance(grab.transform.position, center) > snapOverlapRadius * 1.05f)
+            return;
 
-            if (!grab.IsBeingGrabbed && rb.linearVelocity.magnitude < snapSpeedThreshold)
-            {
-                SnapVirus(grab.gameObject);
-                return;
-            }
-        }
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (_isOccupied) return;
-        if (!IsVirus(other.gameObject)) return;
-
-        _virusInsideTrigger = true;
-        _virusEnteredTime = Time.time;
-        SetColor(nearbyColor);
-        UnityEngine.Debug.Log("Virus entered dish " + playerIndex);
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (_isOccupied) return;
-        if (!IsVirus(other.gameObject)) return;
-
-        _virusInsideTrigger = false;
-        _virusEnteredTime = -1f;
-        SetColor(emptyColor);
-        UnityEngine.Debug.Log("Virus left dish " + playerIndex);
+        SnapVirus(grab.gameObject);
     }
 
     private void SnapVirus(GameObject virus)
     {
         _snappedVirus = virus;
         _isOccupied = true;
-        _virusInsideTrigger = false;
-        _virusEnteredTime = -1f;
+        _snapDwellStart = -1f;
+        _noNearbyTimer = 0f;
+        _pendingAuthorityForSnap = null;
 
         _virusRb = virus.GetComponent<Rigidbody>();
         _virusNetTransform = virus.GetComponent<NetworkTransform>();
@@ -136,16 +234,23 @@ public class PetriDish : MonoBehaviour
         if (_virusNetTransform != null)
             _virusNetTransform.enabled = false;
 
-        virus.transform.position = transform.position + Vector3.up * virusHoverHeight;
+        NetworkGrabbableVirus netVirus = virus.GetComponent<NetworkGrabbableVirus>();
+        if (netVirus != null)
+            netVirus.SetPetriDishSnapNetworkTransformDisabled(true);
+
+        virus.transform.position = SnapHoverWorldPosition();
         virus.transform.rotation = Quaternion.identity;
 
-        SetColor(occupiedColor);
-        UnityEngine.Debug.Log("Virus SNAPPED to dish " + playerIndex);
+        ApplyVisual(DishVisual.Occupied, force: true);
     }
 
     public void ReleaseVirus()
     {
         if (_snappedVirus == null) return;
+
+        NetworkGrabbableVirus netVirus = _snappedVirus.GetComponent<NetworkGrabbableVirus>();
+        if (netVirus != null)
+            netVirus.SetPetriDishSnapNetworkTransformDisabled(false);
 
         if (_virusRb != null)
         {
@@ -160,24 +265,33 @@ public class PetriDish : MonoBehaviour
         _isOccupied = false;
         _virusRb = null;
         _virusNetTransform = null;
-        _virusInsideTrigger = false;
-        _virusEnteredTime = -1f;
+        _snapDwellStart = -1f;
+        _noNearbyTimer = 0f;
 
-        SetColor(emptyColor);
-        UnityEngine.Debug.Log("Virus RELEASED from dish " + playerIndex);
+        ApplyVisual(DishVisual.Empty, force: true);
     }
 
-    private bool IsVirus(GameObject obj)
+    private void ApplyVisual(DishVisual state, bool force = false)
     {
-        return obj.GetComponentInParent<NetworkGrabbableVirus>() != null;
-    }
+        if (!force && _visual == state) return;
+        _visual = state;
 
-    private void SetColor(Color color)
-    {
-        if (_matInstance != null)
+        Color c = state switch
         {
-            _matInstance.color = color;
-            UnityEngine.Debug.Log("PetriDish " + playerIndex + " color set to " + color);
-        }
+            DishVisual.Occupied => occupiedColor,
+            DishVisual.Nearby => nearbyColor,
+            _ => emptyColor,
+        };
+
+        if (_matInstance == null) return;
+
+        if (_matInstance.HasProperty(BaseColorId))
+            _matInstance.SetColor(BaseColorId, c);
+        if (_matInstance.HasProperty(ColorId))
+            _matInstance.SetColor(ColorId, c);
+
+        _matInstance.color = c;
     }
+
+    private Vector3 SnapHoverWorldPosition() => DishWorldCenter() + Vector3.up * virusHoverHeight;
 }

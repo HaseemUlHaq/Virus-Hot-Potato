@@ -1002,7 +1002,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &521681371
 Transform:
   m_ObjectHideFlags: 0
@@ -1033,8 +1033,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PetriDish
   playerIndex: 1
   virusHoverHeight: 0.06
-  snapSpeedThreshold: 0.3
-  snapDelay: 0.5
+  snapSpeedThreshold: 0.45
+  snapDelay: 0.35
+  nearbyDetectionRadius: 0.55
+  snapOverlapRadius: 0.4
+  nearbyExitDebounce: 0.12
   dishRenderer: {fileID: 576440443}
   emptyColor: {r: 0.3, g: 0.8, b: 0.3, a: 0.4}
   occupiedColor: {r: 0.8, g: 0.2, b: 0.2, a: 0.6}
@@ -1202,7 +1205,7 @@ Transform:
   m_GameObject: {fileID: 576440440}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.04609999, y: -0.032629997, z: -0.020319998}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.12004299, y: 0.009596467, z: 0.12004299}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -1227,7 +1230,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.1
+  m_Radius: 0.56
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
@@ -1316,7 +1319,7 @@ Transform:
   m_GameObject: {fileID: 602430037}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1.44432}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.12004299, y: 0.009596467, z: 0.12004299}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -1341,7 +1344,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.05
+  m_Radius: 0.58
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
@@ -3014,7 +3017,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1350363672
 Transform:
   m_ObjectHideFlags: 0
@@ -3024,7 +3027,7 @@ Transform:
   m_GameObject: {fileID: 1350363671}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.414, y: 0.09513, z: 0.88632}
+  m_LocalPosition: {x: 0.414, y: 0.09513, z: -0.568}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3045,8 +3048,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PetriDish
   playerIndex: 2
   virusHoverHeight: 0.06
-  snapSpeedThreshold: 0.3
-  snapDelay: 0.3
+  snapSpeedThreshold: 0.45
+  snapDelay: 0.35
+  nearbyDetectionRadius: 0.55
+  snapOverlapRadius: 0.4
+  nearbyExitDebounce: 0.12
   dishRenderer: {fileID: 602430040}
   emptyColor: {r: 0.3, g: 0.8, b: 0.3, a: 0.4}
   occupiedColor: {r: 0.8, g: 0.2, b: 0.2, a: 0.6}
@@ -7072,3 +7078,5 @@ SceneRoots:
   - {fileID: 520069651}
   - {fileID: 852832057}
   - {fileID: 481225569}
+  - {fileID: 857894820}
+  - {fileID: 1977987381}
