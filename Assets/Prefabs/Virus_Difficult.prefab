@@ -139,6 +139,7 @@ GameObject:
   - component: {fileID: 192403807137716942}
   - component: {fileID: 6200816258233450413}
   - component: {fileID: 8256206401899419316}
+  - component: {fileID: -7246603162035133767}
   m_Layer: 0
   m_Name: Virus_Difficult
   m_TagString: Untagged
@@ -324,6 +325,7 @@ MonoBehaviour:
   - {fileID: 4365179667862193385}
   - {fileID: 7988194878196335637}
   - {fileID: 192403807137716942}
+  - {fileID: -7246603162035133767}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &4365179667862193385
 MonoBehaviour:
@@ -375,6 +377,10 @@ MonoBehaviour:
   virusColorMeshRenderer: {fileID: 0}
   virusSwipeTintShaderProperty: _Color_2
   eliminationMessageText: {fileID: 0}
+  _VirusScale: 1
+  _VirusColor: {r: 1, g: 1, b: 1, a: 1}
+  _IsPulsating:
+    _value: 0
 --- !u!135 &6200816258233450413
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -446,16 +452,31 @@ MonoBehaviour:
     XAxis:
       ConstrainAxis: 1
       AxisRange:
-        Min: 0.25
-        Max: 4
+        Min: 0.4
+        Max: 3
     YAxis:
       ConstrainAxis: 1
       AxisRange:
-        Min: 0.25
-        Max: 4
+        Min: 0.4
+        Max: 3
     ZAxis:
       ConstrainAxis: 1
       AxisRange:
-        Min: 0.25
-        Max: 4
+        Min: 0.4
+        Max: 3
   _resetScaleResponsivenessOnConstraintOvershoot: 0
+--- !u!114 &-7246603162035133767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1117160222877631255}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea76ecea5d8c9474ead25fa847de0d46, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GrabFreeTransformerNetworkBridge
+  grabFreeTransformer: {fileID: 8256206401899419316}
+  grabbable: {fileID: 6718763999853824213}
+  scaleChangedThreshold: 0.01

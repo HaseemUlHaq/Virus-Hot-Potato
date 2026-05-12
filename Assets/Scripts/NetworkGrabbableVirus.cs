@@ -50,6 +50,19 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     [Networked] private NetworkBool HasElimination { get; set; }
     [Networked] private NetworkBool FuseStarted { get; set; }
 
+    // ─── Virus Visual Properties (Networked) ──────────────────────────────
+    /// <summary>Scale multiplier - synced across all players (like car explode view!)</summary>
+    [Networked, OnChangedRender(nameof(OnVirusScaleChanged))]
+    public float VirusScale { get; set; } = 1.0f;
+
+    /// <summary>Surface tint color - synced across all players</summary>
+    [Networked, OnChangedRender(nameof(OnVirusColorChanged))]
+    public Color VirusColor { get; set; } = Color.white;
+
+    /// <summary>Pulsate animation enabled - synced across all players (EXACTLY like car explode!)</summary>
+    [Networked, OnChangedRender(nameof(OnVirusPulsateChanged))]
+    public NetworkBool IsPulsating { get; set; } = false;
+
     // ─── Local State ──────────────────────────────────────────────────────
     public bool IsBeingGrabbed { get; private set; } = false;
     private bool _pendingGrab = false;
@@ -59,7 +72,12 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     /// <summary>
     /// While true, <see cref="PetriDish"/> owns NetworkTransform off — do not re-enable it from grab logic.
     /// </summary>
-    private bool _petriDishDisablesNetworkTransform;
+    public bool _petriDishDisablesNetworkTransform;
+
+    // ─── Pulsate Animation State ──────────────────────────────────────────
+    private float _pulsateTime = 0f;
+    private const float PULSATE_SPEED = 2f;
+    private const float PULSATE_AMOUNT = 0.2f;
 
     // ─── Color system ─────────────────────────────────────────────────────
     private readonly Dictionary<int, Handedness> _grabHandByInteractorId = new();
@@ -127,12 +145,16 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             FuseStarted = false;
             HasElimination = false;
             SpawnRestUnlocked = false;
+
+            // Initialize virus visual properties
+            VirusScale = 1.0f;
+            VirusColor = _persistedVirusSurfaceColor;
+            IsPulsating = false;
         }
 
         _grabbable.WhenPointerEventRaised += OnPointerEvent;
     }
 
-    /// <summary>Called by <see cref="PetriDish"/> when snap/release changes who controls NetworkTransform.</summary>
     public void SetPetriDishSnapNetworkTransformDisabled(bool petriDishHoldsTransformOff)
     {
         _petriDishDisablesNetworkTransform = petriDishHoldsTransformOff;
@@ -356,38 +378,45 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     {
         if (_virusMeshRenderer == null) return;
 
+        Color targetColor = _persistedVirusSurfaceColor;
+
         if (_grabHandByInteractorId.Count == 0)
         {
-            ApplySurfaceColor(_persistedVirusSurfaceColor);
-            return;
+            targetColor = _persistedVirusSurfaceColor;
         }
-
-        if (_grabHandByInteractorId.Count == 1)
+        else if (_grabHandByInteractorId.Count == 1)
         {
             foreach (Handedness h in _grabHandByInteractorId.Values)
             {
-                Color swipeColor = VirusSwipeColorForHandedness(h);
-                _persistedVirusSurfaceColor = swipeColor;
-                ApplySurfaceColor(swipeColor);
-                return;
+                targetColor = VirusSwipeColorForHandedness(h);
+                _persistedVirusSurfaceColor = targetColor;
+            }
+        }
+        else if (_lastGrabInteractorId >= 0 &&
+            _grabHandByInteractorId.TryGetValue(_lastGrabInteractorId, out Handedness lastHand))
+        {
+            targetColor = VirusSwipeColorForHandedness(lastHand);
+            _persistedVirusSurfaceColor = targetColor;
+        }
+        else
+        {
+            foreach (Handedness h in _grabHandByInteractorId.Values)
+            {
+                targetColor = VirusSwipeColorForHandedness(h);
+                _persistedVirusSurfaceColor = targetColor;
+                break;
             }
         }
 
-        if (_lastGrabInteractorId >= 0 &&
-            _grabHandByInteractorId.TryGetValue(_lastGrabInteractorId, out Handedness lastHand))
+        // ★★★ KEY CHANGE: Update NETWORKED property instead of just local visual! ★★★
+        if (Object != null && Object.HasStateAuthority)
         {
-            Color swipeColor = VirusSwipeColorForHandedness(lastHand);
-            _persistedVirusSurfaceColor = swipeColor;
-            ApplySurfaceColor(swipeColor);
-            return;
+            VirusColor = targetColor;  // This syncs to ALL players!
         }
-
-        foreach (Handedness h in _grabHandByInteractorId.Values)
+        else
         {
-            Color swipeColor = VirusSwipeColorForHandedness(h);
-            _persistedVirusSurfaceColor = swipeColor;
-            ApplySurfaceColor(swipeColor);
-            return;
+            // If we don't have authority, just apply locally (will be overridden by network)
+            ApplySurfaceColor(targetColor);
         }
     }
 
@@ -519,6 +548,92 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         _deferredReleaseAuthorityRoutine = null;
         if (Object != null && Object.IsValid)
             Object.ReleaseStateAuthority();
+    }
+
+    // ─── Networked Visual Property Callbacks (SAME PATTERN AS CAR EXPLODE VIEW!) ────
+
+    /// <summary>
+    /// Called on ALL clients when VirusScale changes.
+    /// Same pattern as car's OnCatWalkObjectExplodeViewEnabled!
+    /// </summary>
+    private void OnVirusScaleChanged()
+    {
+        if (!IsPulsating)
+        {
+            transform.localScale = Vector3.one * VirusScale;
+        }
+        UnityEngine.Debug.Log($"Virus scale changed to {VirusScale} (synced across network!)");
+    }
+
+    /// <summary>
+    /// Called on ALL clients when VirusColor changes.
+    /// </summary>
+    private void OnVirusColorChanged()
+    {
+        ApplySurfaceColor(VirusColor);
+        _persistedVirusSurfaceColor = VirusColor;
+        UnityEngine.Debug.Log($"Virus color changed to {VirusColor} (synced across network!)");
+    }
+
+    /// <summary>
+    /// Called on ALL clients when IsPulsating changes.
+    /// EXACTLY like car's OnCatWalkObjectExplodeViewEnabled!
+    /// </summary>
+    private void OnVirusPulsateChanged()
+    {
+        _pulsateTime = 0f;
+
+        if (!IsPulsating)
+        {
+            // Reset to base scale when stopping
+            transform.localScale = Vector3.one * VirusScale;
+        }
+
+        UnityEngine.Debug.Log($"Virus pulsate toggled to {IsPulsating} (synced across network!)");
+    }
+
+    /// <summary>
+    /// Public methods to modify virus properties (with authority check!)
+    /// Same pattern as car's ToggleExplodeView!
+    /// </summary>
+    public void SetVirusScale(float newScale)
+    {
+        if (Object != null && Object.HasStateAuthority)
+        {
+            VirusScale = Mathf.Clamp(newScale, 0.5f, 3.0f);
+        }
+    }
+
+    public void SetVirusColor(Color newColor)
+    {
+        if (Object != null && Object.HasStateAuthority)
+        {
+            VirusColor = newColor;
+        }
+    }
+
+    public void TogglePulsate()
+    {
+        // EXACTLY like car's ToggleExplodeView()!
+        if (Object != null && Object.HasStateAuthority)
+        {
+            IsPulsating = !IsPulsating;
+        }
+    }
+
+    // ─── Render Loop (for pulsate animation) ─────────────────────────────
+
+    public override void Render()
+    {
+        base.Render();
+
+        // Animate pulsation on ALL clients (like car animation!)
+        if (IsPulsating)
+        {
+            _pulsateTime += Time.deltaTime * PULSATE_SPEED;
+            float pulse = 1f + Mathf.Sin(_pulsateTime) * PULSATE_AMOUNT;
+            transform.localScale = Vector3.one * VirusScale * pulse;
+        }
     }
 
     // ─── Cleanup ──────────────────────────────────────────────────────────

@@ -7,55 +7,60 @@ public class TableAnchor : MonoBehaviour
     [SerializeField] private GameObject virtualTable;
     [SerializeField] private VirusSpawner virusSpawner;
 
-    [Header("Tune these in Inspector")]
-    [SerializeField] private float yRotationOffset = 90f;
+    [Header("QR Code Settings")]
+    [SerializeField] private string qrCodePayload = "virus_puck_1";
 
-    // Any script can read these
+    [Header("Tune these in Inspector")]
+    [SerializeField] private float yRotationOffset = 0f;
+
     public static Vector3 TableSurfacePosition { get; private set; }
     public static bool TableFound { get; private set; } = false;
 
     void Start()
     {
-        MRUK.Instance.RegisterSceneLoadedCallback(OnSceneLoaded);
-    }
-
-    void OnSceneLoaded()
-    {
-        MRUKRoom room = MRUK.Instance.GetCurrentRoom();
-
-        if (room == null)
+        if (MRUK.Instance == null)
         {
-            UnityEngine.Debug.LogWarning("MRUK room is null");
+            Debug.LogError("TableAnchor: MRUK.Instance is null!");
             return;
         }
 
-        foreach (var anchor in room.Anchors)
+        // Enable QR code tracking
+        var config = MRUK.Instance.SceneSettings.TrackerConfiguration;
+        config.QRCodeTrackingEnabled = true;
+        MRUK.Instance.SceneSettings.TrackerConfiguration = config;
+
+        // Listen for QR codes
+        MRUK.Instance.SceneSettings.TrackableAdded.AddListener(OnTrackableAdded);
+    }
+
+    void OnTrackableAdded(MRUKTrackable trackable)
+    {
+        // Only care about QR codes
+        if (trackable.TrackableType != OVRAnchor.TrackableType.QRCode)
+            return;
+
+        // Check if this is our table QR code
+        if (trackable.MarkerPayloadString != qrCodePayload)
         {
-            if (anchor.HasAnyLabel(MRUKAnchor.SceneLabels.TABLE))
-            {
-                UnityEngine.Debug.Log("Table found at: " + anchor.transform.position);
-
-                // Snap virtual table to real table position
-                virtualTable.transform.position = anchor.transform.position;
-
-                // Apply rotation — X fix + Y offset
-                Quaternion baseRotation = anchor.transform.rotation *
-                                          Quaternion.Euler(90, 0, 0);
-                virtualTable.transform.rotation = baseRotation *
-                                                   Quaternion.Euler(0, yRotationOffset, 0);
-
-                // Store for other scripts
-                TableSurfacePosition = anchor.transform.position;
-                TableFound = true;
-
-                // Tell virus spawner where the table is
-                if (virusSpawner != null)
-                    virusSpawner.SetTablePosition(anchor.transform.position);
-
-                return;
-            }
+            Debug.Log($"Ignoring QR code: {trackable.MarkerPayloadString}");
+            return;
         }
 
-        UnityEngine.Debug.LogWarning("No table found — check room scan labels the table");
+        Debug.Log($"Table QR code found: {qrCodePayload}");
+
+        // Snap virtual table to QR code position
+        virtualTable.transform.position = trackable.transform.position;
+
+        // Apply rotation
+        Quaternion baseRotation = trackable.transform.rotation * Quaternion.Euler(90, 0, 0);
+        virtualTable.transform.rotation = baseRotation * Quaternion.Euler(0, yRotationOffset, 0);
+
+        // Store for other scripts
+        TableSurfacePosition = trackable.transform.position;
+        TableFound = true;
+
+        // Tell virus spawner
+        if (virusSpawner != null)
+            virusSpawner.SetTablePosition(trackable.transform.position);
     }
 }
