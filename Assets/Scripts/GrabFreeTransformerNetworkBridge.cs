@@ -2,10 +2,8 @@ using UnityEngine;
 using Fusion;
 using Oculus.Interaction;
 
-/// <summary>
-/// FASTER version - updates in FixedUpdateNetwork instead of Update
 /// This syncs with Fusion's network tick rate (60hz) for smoother updates
-/// </summary>
+
 [RequireComponent(typeof(NetworkGrabbableVirus))]
 public class GrabFreeTransformerNetworkBridge : NetworkBehaviour
 {
