@@ -51,15 +51,12 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     [Networked] private NetworkBool FuseStarted { get; set; }
 
     // ─── Virus Visual Properties (Networked) ──────────────────────────────
-    /// <summary>Scale multiplier - synced across all players (like car explode view!)</summary>
     [Networked, OnChangedRender(nameof(OnVirusScaleChanged))]
     public float VirusScale { get; set; } = 1.0f;
 
-    /// <summary>Surface tint color - synced across all players</summary>
     [Networked, OnChangedRender(nameof(OnVirusColorChanged))]
     public Color VirusColor { get; set; } = Color.white;
 
-    /// <summary>Pulsate animation enabled - synced across all players (EXACTLY like car explode!)</summary>
     [Networked, OnChangedRender(nameof(OnVirusPulsateChanged))]
     public NetworkBool IsPulsating { get; set; } = false;
 
@@ -68,10 +65,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     private bool _pendingGrab = false;
     private bool _pendingRelease = false;
     private Coroutine _deferredReleaseAuthorityRoutine;
-
-    /// <summary>
-    /// While true, <see cref="PetriDish"/> owns NetworkTransform off — do not re-enable it from grab logic.
-    /// </summary>
     public bool _petriDishDisablesNetworkTransform;
 
     // ─── Pulsate Animation State ──────────────────────────────────────────
@@ -129,7 +122,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         RefreshVirusSwipeSurfaceColor();
         ApplyRigidbodyMassIfConfigured();
 
-        // Set physics once — never touch again
+        // SIMPLE: Just set physics directly on all clients
         if (_rb != null)
         {
             _rb.isKinematic = false;
@@ -165,8 +158,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         if (_networkTransform == null) return;
         if (_petriDishDisablesNetworkTransform) return;
 
-        // Until state authority reaches this client, Fusion reapplies the spawner pose every tick and the
-        // Interaction SDK cannot pull the virus — it looks "stuck". Suppress NT only in that window.
         if (IsBeingGrabbed && !Object.HasStateAuthority)
             _networkTransform.enabled = false;
         else
@@ -177,6 +168,48 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     public override void FixedUpdateNetwork()
     {
+        // CHECK: Am I in a PetriDish?
+        PetriDish[] dishes = FindObjectsByType<PetriDish>(FindObjectsSortMode.None);
+        PetriDish myDish = null;
+
+        foreach (var dish in dishes)
+        {
+            if (dish.SnappedVirus == this)
+            {
+                myDish = dish;
+                break;
+            }
+        }
+
+        // HANDLE PHYSICS based on dish state
+        if (myDish != null && myDish.IsOccupied)
+        {
+            // I'm in a dish - disable physics and hover
+            if (_rb != null && !_rb.isKinematic)
+            {
+                _rb.linearVelocity = Vector3.zero;
+                _rb.angularVelocity = Vector3.zero;
+                _rb.isKinematic = true;
+                _rb.useGravity = false;
+            }
+
+            // Move to hover position
+            if (Object.HasStateAuthority)
+            {
+                transform.position = myDish.GetHoverPosition();
+                transform.rotation = Quaternion.identity;
+            }
+        }
+        else
+        {
+            // I'm NOT in a dish - enable physics
+            if (_rb != null && _rb.isKinematic && !IsBeingGrabbed)
+            {
+                _rb.isKinematic = false;
+                _rb.useGravity = true;
+            }
+        }
+
         if (_pendingGrab && Object.HasStateAuthority)
         {
             _pendingGrab = false;
@@ -197,25 +230,27 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             CurrentHolder = PlayerRef.None;
         }
 
-        if (!Object.HasStateAuthority) return;
-        if (_roundResolved) return;
-        if (!_fuseTimer.IsRunning) return;
-
-        if (_fuseTimer.Expired(Runner))
+        if (Object.HasStateAuthority && _fuseTimer.IsRunning)
         {
-            _eliminatedPlayer = CurrentHolder != PlayerRef.None
-                ? CurrentHolder
-                : _lastTouchedPlayer;
+            if (_fuseTimer.Expired(Runner))
+            {
+                _fuseTimer = TickTimer.None;
+                _eliminatedPlayer = _lastTouchedPlayer;
+                _roundResolved = true;
+                RoundResolved = true;
+                HasElimination = true;
+                UnityEngine.Debug.Log($"Fuse exploded! Player {_eliminatedPlayer} eliminated!");
+            }
+        }
 
-            _roundResolved = true;
-            RoundResolved = true;
-            HasElimination = true;
-            _fuseTimer = TickTimer.None;
-
-            if (_grabbable != null)
-                _grabbable.enabled = false;
-
-            UnityEngine.Debug.Log("BOOM! Eliminated: " + _eliminatedPlayer);
+        foreach (var change in _changeDetector.DetectChanges(this))
+        {
+            switch (change)
+            {
+                case nameof(_eliminatedPlayer):
+                    OnEliminatedPlayerChanged();
+                    break;
+            }
         }
     }
 
@@ -223,230 +258,137 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     private void OnPointerEvent(PointerEvent evt)
     {
+        if (!Object || !Object.IsValid) return;
+
+        if (!TryGetHandednessFromPointerEvent(evt, out Handedness handedness))
+            handedness = Handedness.Left;
+
+        int interactorId = evt.Identifier;
+
         switch (evt.Type)
         {
             case PointerEventType.Select:
-                IsBeingGrabbed = true;
-
-                if (_deferredReleaseAuthorityRoutine != null)
-                {
-                    StopCoroutine(_deferredReleaseAuthorityRoutine);
-                    _deferredReleaseAuthorityRoutine = null;
-                }
-
-                // Release from petri dish if snapped
-                PetriDish dish = FindObjectsByType<PetriDish>(FindObjectsSortMode.None)
-                    .FirstOrDefault(d => d.SnappedVirus == gameObject);
-                if (dish != null)
-                    dish.ReleaseVirus();
-
-                // Track which hand grabbed
-                if (TryGetHandednessFromPointerEvent(evt, out Handedness selectHand))
-                {
-                    _grabHandByInteractorId[evt.Identifier] = selectHand;
-                    _lastGrabInteractorId = evt.Identifier;
-                }
-
-                RefreshVirusSwipeSurfaceColor();
-                RPC_NotifyGrab(Runner.LocalPlayer);
-                Object.RequestStateAuthority();
-                _pendingGrab = true;
-                _pendingRelease = false;
+                _grabHandByInteractorId[interactorId] = handedness;
+                OnGrabStarted(interactorId, handedness);
                 break;
 
             case PointerEventType.Unselect:
-                IsBeingGrabbed = false;
-                _pendingRelease = true;
-                _pendingGrab = false;
-
-                _grabHandByInteractorId.Remove(evt.Identifier);
-                if (_lastGrabInteractorId == evt.Identifier)
-                    _lastGrabInteractorId = FirstInteractorIdOrMinusOne(_grabHandByInteractorId);
-
-                RefreshVirusSwipeSurfaceColor();
-
-                if (_grabHandByInteractorId.Count == 0)
-                    RPC_NotifyRelease();
-
-                if (releaseStateAuthorityOnUnselect)
-                    ScheduleDeferredReleaseStateAuthority();
+                if (_grabHandByInteractorId.ContainsKey(interactorId))
+                    _grabHandByInteractorId.Remove(interactorId);
+                OnGrabEnded();
                 break;
 
+            case PointerEventType.Hover:
+            case PointerEventType.Unhover:
+            case PointerEventType.Move:
             case PointerEventType.Cancel:
-                IsBeingGrabbed = false;
-                _grabHandByInteractorId.Remove(evt.Identifier);
-                if (_lastGrabInteractorId == evt.Identifier)
-                    _lastGrabInteractorId = FirstInteractorIdOrMinusOne(_grabHandByInteractorId);
-
-                RefreshVirusSwipeSurfaceColor();
-
-                if (_grabHandByInteractorId.Count == 0)
-                    RPC_NotifyRelease();
-
-                if (releaseStateAuthorityOnUnselect)
-                    ScheduleDeferredReleaseStateAuthority();
+            default:
                 break;
         }
     }
 
-    // ─── RPCs ─────────────────────────────────────────────────────────────
-
-    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    private void RPC_NotifyGrab(PlayerRef player)
+    private void OnGrabStarted(int interactorId, Handedness handedness)
     {
-        if (_roundResolved) return;
-        SpawnRestUnlocked = true;
-        CurrentHolder = player;
-        _lastTouchedPlayer = player;
+        IsBeingGrabbed = true;
+        _pendingGrab = true;
+
+        if (Object != null && !Object.HasStateAuthority)
+            Object.RequestStateAuthority();
+
+        _lastGrabInteractorId = interactorId;
+
+        if (Object.HasStateAuthority)
+            RefreshVirusSwipeSurfaceColor();
     }
 
-    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    private void RPC_NotifyRelease()
+    private void OnGrabEnded()
     {
-        if (_roundResolved) return;
-        CurrentHolder = PlayerRef.None;
+        IsBeingGrabbed = false;
+        _pendingRelease = true;
+
+        if (releaseStateAuthorityOnUnselect && Object != null && Object.HasStateAuthority)
+            ScheduleDeferredReleaseStateAuthority();
+
+        _lastGrabInteractorId = -1;
     }
 
-    // ─── Public API ───────────────────────────────────────────────────────
+    // ─── Elimination UI ───────────────────────────────────────────────────
 
-    public void ResetForNewRound()
+    private void OnEliminatedPlayerChanged()
     {
-        if (!Object.HasStateAuthority) return;
+        if (_eliminatedPlayer == PlayerRef.None) return;
+        if (eliminationMessageText == null) return;
 
-        CurrentHolder = PlayerRef.None;
-        _lastTouchedPlayer = PlayerRef.None;
-        _eliminatedPlayer = PlayerRef.None;
-        _roundResolved = false;
-        RoundResolved = false;
-        FuseStarted = false;
-        HasElimination = false;
-        SpawnRestUnlocked = false;
-        _fuseTimer = TickTimer.None;
-        _pendingGrab = false;
-        _pendingRelease = false;
-
-        if (_rb != null)
-        {
-            _rb.isKinematic = false;
-            _rb.useGravity = true;
-            _rb.linearVelocity = Vector3.zero;
-            _rb.constraints = RigidbodyConstraints.FreezeRotation;
-        }
-
-        if (_grabbable != null)
-            _grabbable.enabled = true;
+        eliminationMessageText.text = $"Player {_eliminatedPlayer.PlayerId} eliminated!";
+        eliminationMessageText.gameObject.SetActive(true);
     }
 
-    public void SetFuseDuration(float seconds)
-    {
-        fuseDurationSeconds = seconds;
-    }
-
-    // ─── Color Helpers ────────────────────────────────────────────────────
+    // ─── Color System ─────────────────────────────────────────────────────
 
     private void CachePersistedVirusColorFromMaterial()
     {
-        if (_virusMeshRenderer == null || _virusMeshRenderer.sharedMaterial == null)
+        if (_virusMeshRenderer == null) return;
+        Material mat = _virusMeshRenderer.sharedMaterial;
+        if (mat == null) return;
+
+        if (mat.HasProperty(_virusSwipeTintPropertyId))
         {
-            _persistedVirusSurfaceColor = Color.white;
+            _persistedVirusSurfaceColor = mat.GetColor(_virusSwipeTintPropertyId);
             return;
         }
 
-        Material sharedMat = _virusMeshRenderer.sharedMaterial;
+        if (mat.HasProperty(ShaderPropBaseColor))
+        {
+            _persistedVirusSurfaceColor = mat.GetColor(ShaderPropBaseColor);
+            return;
+        }
 
-        if (TryReadTintFromMaterial(sharedMat, _virusSwipeTintPropertyId, out Color configured))
-            _persistedVirusSurfaceColor = configured;
-        else if (TryReadTintFromMaterial(sharedMat, ShaderPropColor2Fallback, out configured))
-            _persistedVirusSurfaceColor = configured;
-        else if (sharedMat.HasProperty(ShaderPropBaseColor))
-            _persistedVirusSurfaceColor = sharedMat.GetColor(ShaderPropBaseColor);
-        else if (sharedMat.HasProperty(ShaderPropColor))
-            _persistedVirusSurfaceColor = sharedMat.GetColor(ShaderPropColor);
-        else
-            _persistedVirusSurfaceColor = Color.white;
-    }
-
-    private static bool TryReadTintFromMaterial(Material mat, int propertyId, out Color color)
-    {
-        color = default;
-        if (!mat.HasProperty(propertyId)) return false;
-        color = mat.GetColor(propertyId);
-        return true;
+        if (mat.HasProperty(ShaderPropColor))
+            _persistedVirusSurfaceColor = mat.GetColor(ShaderPropColor);
     }
 
     private void RefreshVirusSwipeSurfaceColor()
     {
-        if (_virusMeshRenderer == null) return;
-
-        Color targetColor = _persistedVirusSurfaceColor;
-
-        if (_grabHandByInteractorId.Count == 0)
+        if (_lastGrabInteractorId < 0)
         {
-            targetColor = _persistedVirusSurfaceColor;
-        }
-        else if (_grabHandByInteractorId.Count == 1)
-        {
-            foreach (Handedness h in _grabHandByInteractorId.Values)
-            {
-                targetColor = VirusSwipeColorForHandedness(h);
-                _persistedVirusSurfaceColor = targetColor;
-            }
-        }
-        else if (_lastGrabInteractorId >= 0 &&
-            _grabHandByInteractorId.TryGetValue(_lastGrabInteractorId, out Handedness lastHand))
-        {
-            targetColor = VirusSwipeColorForHandedness(lastHand);
-            _persistedVirusSurfaceColor = targetColor;
-        }
-        else
-        {
-            foreach (Handedness h in _grabHandByInteractorId.Values)
-            {
-                targetColor = VirusSwipeColorForHandedness(h);
-                _persistedVirusSurfaceColor = targetColor;
-                break;
-            }
+            ApplySurfaceColor(_persistedVirusSurfaceColor);
+            return;
         }
 
-        // ★★★ KEY CHANGE: Update NETWORKED property instead of just local visual! ★★★
+        if (!_grabHandByInteractorId.TryGetValue(_lastGrabInteractorId, out Handedness h))
+        {
+            ApplySurfaceColor(_persistedVirusSurfaceColor);
+            return;
+        }
+
+        Color targetColor = GetSwipeColorForHandedness(h);
+
         if (Object != null && Object.HasStateAuthority)
-        {
-            VirusColor = targetColor;  // This syncs to ALL players!
-        }
-        else
-        {
-            // If we don't have authority, just apply locally (will be overridden by network)
-            ApplySurfaceColor(targetColor);
-        }
+            VirusColor = targetColor;
     }
 
-    private void ApplySurfaceColor(Color color)
+    private void ApplySurfaceColor(Color c)
     {
-        if (_virusMeshRenderer == null) return;
+        if (_virusMeshRenderer == null || _virusColorMpb == null) return;
 
-        Material mat = _virusMeshRenderer.sharedMaterial;
-        _virusMeshRenderer.GetPropertyBlock(_virusColorMpb);
-
-        if (mat != null && mat.HasProperty(_virusSwipeTintPropertyId))
-            _virusColorMpb.SetColor(_virusSwipeTintPropertyId, color);
-        else if (mat != null && mat.HasProperty(ShaderPropColor2Fallback))
-            _virusColorMpb.SetColor(ShaderPropColor2Fallback, color);
-        else if (mat != null && mat.HasProperty(ShaderPropBaseColor))
-            _virusColorMpb.SetColor(ShaderPropBaseColor, color);
-        else if (mat != null && mat.HasProperty(ShaderPropColor))
-            _virusColorMpb.SetColor(ShaderPropColor, color);
-        else
-            _virusColorMpb.SetColor(_virusSwipeTintPropertyId, color);
+        if (_virusMeshRenderer.sharedMaterial.HasProperty(_virusSwipeTintPropertyId))
+        {
+            _virusColorMpb.SetColor(_virusSwipeTintPropertyId, c);
+        }
+        else if (_virusMeshRenderer.sharedMaterial.HasProperty(ShaderPropBaseColor))
+        {
+            _virusColorMpb.SetColor(ShaderPropBaseColor, c);
+        }
+        else if (_virusMeshRenderer.sharedMaterial.HasProperty(ShaderPropColor))
+        {
+            _virusColorMpb.SetColor(ShaderPropColor, c);
+        }
 
         _virusMeshRenderer.SetPropertyBlock(_virusColorMpb);
     }
 
-    private Color VirusSwipeColorForHandedness(Handedness handedness)
-    {
-        return handedness == Handedness.Left
-            ? virusColorAfterLeftSwipe
-            : virusColorAfterRightSwipe;
-    }
+    private Color GetSwipeColorForHandedness(Handedness h) =>
+        (h == Handedness.Left) ? virusColorAfterLeftSwipe : virusColorAfterRightSwipe;
 
     // ─── Handedness Detection ─────────────────────────────────────────────
 
@@ -512,12 +454,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         return false;
     }
 
-    private static int FirstInteractorIdOrMinusOne(Dictionary<int, Handedness> map)
-    {
-        foreach (int key in map.Keys) return key;
-        return -1;
-    }
-
     private void ApplyRigidbodyMassIfConfigured()
     {
         if (_rb == null || rigidbodyMass <= 0f) return;
@@ -550,52 +486,36 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             Object.ReleaseStateAuthority();
     }
 
-    // ─── Networked Visual Property Callbacks (SAME PATTERN AS CAR EXPLODE VIEW!) ────
+    // ─── Networked Visual Property Callbacks ────
 
-    /// <summary>
-    /// Called on ALL clients when VirusScale changes.
-    /// Same pattern as car's OnCatWalkObjectExplodeViewEnabled!
-    /// </summary>
     private void OnVirusScaleChanged()
     {
         if (!IsPulsating)
         {
             transform.localScale = Vector3.one * VirusScale;
         }
-        UnityEngine.Debug.Log($"Virus scale changed to {VirusScale} (synced across network!)");
+        UnityEngine.Debug.Log($"Virus scale changed to {VirusScale}");
     }
 
-    /// <summary>
-    /// Called on ALL clients when VirusColor changes.
-    /// </summary>
     private void OnVirusColorChanged()
     {
         ApplySurfaceColor(VirusColor);
         _persistedVirusSurfaceColor = VirusColor;
-        UnityEngine.Debug.Log($"Virus color changed to {VirusColor} (synced across network!)");
+        UnityEngine.Debug.Log($"Virus color changed to {VirusColor}");
     }
 
-    /// <summary>
-    /// Called on ALL clients when IsPulsating changes.
-    /// EXACTLY like car's OnCatWalkObjectExplodeViewEnabled!
-    /// </summary>
     private void OnVirusPulsateChanged()
     {
         _pulsateTime = 0f;
 
         if (!IsPulsating)
         {
-            // Reset to base scale when stopping
             transform.localScale = Vector3.one * VirusScale;
         }
 
-        UnityEngine.Debug.Log($"Virus pulsate toggled to {IsPulsating} (synced across network!)");
+        UnityEngine.Debug.Log($"Virus pulsate toggled to {IsPulsating}");
     }
 
-    /// <summary>
-    /// Public methods to modify virus properties (with authority check!)
-    /// Same pattern as car's ToggleExplodeView!
-    /// </summary>
     public void SetVirusScale(float newScale)
     {
         if (Object != null && Object.HasStateAuthority)
@@ -614,7 +534,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     public void TogglePulsate()
     {
-        // EXACTLY like car's ToggleExplodeView()!
         if (Object != null && Object.HasStateAuthority)
         {
             IsPulsating = !IsPulsating;
@@ -627,7 +546,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     {
         base.Render();
 
-        // Animate pulsation on ALL clients (like car animation!)
         if (IsPulsating)
         {
             _pulsateTime += Time.deltaTime * PULSATE_SPEED;
