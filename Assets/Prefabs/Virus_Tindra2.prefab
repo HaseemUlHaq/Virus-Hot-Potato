@@ -19,6 +19,13 @@ GameObject:
   - component: {fileID: 1381689035116568269}
   - component: {fileID: 6965427306927512859}
   - component: {fileID: 4905800850934895384}
+  - component: {fileID: -7422334918654651546}
+  - component: {fileID: -933810911031657331}
+  - component: {fileID: -2202350563873431255}
+  - component: {fileID: 7963275968349194443}
+  - component: {fileID: 7793585175934115953}
+  - component: {fileID: 7321827033630362553}
+  - component: {fileID: -4126049545299222493}
   m_Layer: 0
   m_Name: Virus_Tindra2
   m_TagString: Untagged
@@ -245,18 +252,18 @@ MonoBehaviour:
     XAxis:
       ConstrainAxis: 1
       AxisRange:
-        Min: 0.25
-        Max: 4
+        Min: 0.4
+        Max: 3
     YAxis:
       ConstrainAxis: 1
       AxisRange:
-        Min: 0.25
-        Max: 4
+        Min: 0.4
+        Max: 3
     ZAxis:
       ConstrainAxis: 1
       AxisRange:
-        Min: 0.25
-        Max: 4
+        Min: 0.4
+        Max: 3
   _resetScaleResponsivenessOnConstraintOvershoot: 0
 --- !u!114 &1381689035116568269
 MonoBehaviour:
@@ -309,6 +316,124 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Oculus.Interaction::Oculus.Interaction.Input.HandRef
   _hand: {fileID: 0}
+--- !u!114 &-7422334918654651546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2144216136471679737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 413bd4e9cbbc96b46ac5a1d62a4105d5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Meta.XR.MultiplayerBlocks.Shared::Meta.XR.MultiplayerBlocks.Shared.TransferOwnershipOnSelect
+  UseGravity: 0
+--- !u!114 &-933810911031657331
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2144216136471679737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 643291972
+  ObjectInterest: 1
+  Flags: 786433
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: -2202350563873431255}
+  - {fileID: 7963275968349194443}
+  - {fileID: 7793585175934115953}
+  - {fileID: 7321827033630362553}
+  ForceRemoteRenderTimeframe: 0
+--- !u!114 &-2202350563873431255
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2144216136471679737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b72e9ba2c21430c818f53e1079c2a93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Meta.XR.MultiplayerBlocks.Fusion::Meta.XR.MultiplayerBlocks.Fusion.TransferOwnershipFusion
+--- !u!114 &7963275968349194443
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2144216136471679737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 1
+--- !u!114 &7793585175934115953
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2144216136471679737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68ef5547c3fb877429eef323861e7c90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkGrabbableVirus
+  fuseDurationSeconds: 30
+  rigidbodyMass: 0
+  releaseStateAuthorityOnUnselect: 0
+  releaseStateAuthorityDelaySeconds: 0.35
+  swipeCycler: {fileID: 1381689035116568269}
+  eliminationMessageText: {fileID: 0}
+  _VirusScale: 1
+  _MaterialIndex: 1
+  _IsPulsating:
+    _value: 0
+  _petriDishDisablesNetworkTransform: 0
+--- !u!114 &7321827033630362553
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2144216136471679737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea76ecea5d8c9474ead25fa847de0d46, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GrabFreeTransformerNetworkBridge
+  grabFreeTransformer: {fileID: 8430350427795542559}
+  grabbable: {fileID: 3650917331126732225}
+  scaleChangedThreshold: 0.01
+--- !u!114 &-4126049545299222493
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2144216136471679737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 421e6ce0ee1e4de4380e28b55d1bb2eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Virushandconnector
+  leftHandRef: {fileID: 0}
+  rightHandRef: {fileID: 0}
+  leftHandOverride: {fileID: 0}
+  rightHandOverride: {fileID: 0}
 --- !u!1 &2578310240436922983
 GameObject:
   m_ObjectHideFlags: 0
