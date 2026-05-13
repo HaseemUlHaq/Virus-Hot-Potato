@@ -25,7 +25,8 @@ public class PetriDish : NetworkBehaviour
         if (!Object.HasStateAuthority) return;
 
         // Release if grabbed
-        if (IsOccupied && SnappedVirus != null && SnappedVirus.IsBeingGrabbed)
+        // Release if grabbed - USE CurrentHolder instead!
+        if (IsOccupied && SnappedVirus != null && SnappedVirus.CurrentHolder != PlayerRef.None)
         {
             SnappedVirus = null;
             IsOccupied = false;

@@ -202,8 +202,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         }
         else
         {
-            // I'm NOT in a dish - enable physics
-            if (_rb != null && _rb.isKinematic && !IsBeingGrabbed)
+            if (_rb != null && _rb.isKinematic && CurrentHolder == PlayerRef.None)  // ← Use CurrentHolder!
             {
                 _rb.isKinematic = false;
                 _rb.useGravity = true;
