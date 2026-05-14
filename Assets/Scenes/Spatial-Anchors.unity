@@ -318,6 +318,11 @@ Transform:
   - {fileID: 3563027675603439395}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &156447843 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1125734649379851871, guid: 740b5ee262c98df4381adba974c8f978, type: 3}
+  m_PrefabInstance: {fileID: 642521512}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &178560086
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1264,6 +1269,11 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &489741464 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1125734649379851871, guid: 740b5ee262c98df4381adba974c8f978, type: 3}
+  m_PrefabInstance: {fileID: 787200075}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &517786081
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1845,6 +1855,9 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1125734649379851871, guid: 740b5ee262c98df4381adba974c8f978, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1160863267}
     - targetCorrespondingSourceObject: {fileID: 5133105867921639812, guid: 740b5ee262c98df4381adba974c8f978, type: 3}
       insertIndex: -1
       addedObject: {fileID: 642521517}
@@ -1864,7 +1877,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1125734649379851866, guid: 740b5ee262c98df4381adba974c8f978, type: 3}
   m_PrefabInstance: {fileID: 642521512}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 156447843}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b14164f8f23faae4293baeb84485b3d6, type: 3}
@@ -1875,7 +1888,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1125734649379851869, guid: 740b5ee262c98df4381adba974c8f978, type: 3}
   m_PrefabInstance: {fileID: 642521512}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 156447843}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d2a8d5cf844b463aabaed6d6db3da8c0, type: 3}
@@ -2326,6 +2339,9 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1125734649379851871, guid: 740b5ee262c98df4381adba974c8f978, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 787200087}
     - targetCorrespondingSourceObject: {fileID: 5133105867921639812, guid: 740b5ee262c98df4381adba974c8f978, type: 3}
       insertIndex: -1
       addedObject: {fileID: 787200080}
@@ -2335,7 +2351,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1125734649379851869, guid: 740b5ee262c98df4381adba974c8f978, type: 3}
   m_PrefabInstance: {fileID: 787200075}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 489741464}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d2a8d5cf844b463aabaed6d6db3da8c0, type: 3}
@@ -2356,7 +2372,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1125734649379851866, guid: 740b5ee262c98df4381adba974c8f978, type: 3}
   m_PrefabInstance: {fileID: 787200075}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 489741464}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b14164f8f23faae4293baeb84485b3d6, type: 3}
@@ -2375,6 +2391,38 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _hand: {fileID: 787200079}
+--- !u!114 &787200087
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 489741464}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d2705674196dfc4da9c25fbacda72d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Oculus.Interaction::Oculus.Interaction.ActiveStateUnityEventWrapper
+  _activeState: {fileID: 787200076}
+  _whenActivated:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1374894894}
+        m_TargetAssemblyTypeName: VirusGestureRouter, Assembly-CSharp
+        m_MethodName: OnRightSwipe
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _whenDeactivated:
+    m_PersistentCalls:
+      m_Calls: []
+  _emitOnFirstUpdate: 1
 --- !u!1 &799655910
 GameObject:
   m_ObjectHideFlags: 0
@@ -3154,6 +3202,38 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3563027675777733493, guid: 5c5bdfbaa8a567543bf4fc14b6a70766, type: 3}
   m_PrefabInstance: {fileID: 1140071880}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1160863267
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 156447843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d2705674196dfc4da9c25fbacda72d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Oculus.Interaction::Oculus.Interaction.ActiveStateUnityEventWrapper
+  _activeState: {fileID: 642521516}
+  _whenActivated:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1374894894}
+        m_TargetAssemblyTypeName: VirusGestureRouter, Assembly-CSharp
+        m_MethodName: OnRightSwipe
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _whenDeactivated:
+    m_PersistentCalls:
+      m_Calls: []
+  _emitOnFirstUpdate: 1
 --- !u!1 &1186859603
 GameObject:
   m_ObjectHideFlags: 0
@@ -3521,6 +3601,50 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 1350363673}
   ForceRemoteRenderTimeframe: 0
+--- !u!1 &1374894893
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1374894895}
+  - component: {fileID: 1374894894}
+  m_Layer: 0
+  m_Name: VirusGestureDetector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1374894894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1374894893}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd1aee45832e0eb4fa0472fe5be7bb31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VirusGestureRouter
+--- !u!4 &1374894895
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1374894893}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.72871, y: -0.01, z: 0.32147}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1407393930
 GameObject:
   m_ObjectHideFlags: 0
@@ -6623,7 +6747,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &2144216136378741646
 GameObject:
   m_ObjectHideFlags: 0
@@ -6656,7 +6780,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &2578310240179029248
 GameObject:
   m_ObjectHideFlags: 0
@@ -9368,3 +9492,4 @@ SceneRoots:
   - {fileID: 2743579064040519685}
   - {fileID: 1436898482}
   - {fileID: 2743579064164529685}
+  - {fileID: 1374894895}
