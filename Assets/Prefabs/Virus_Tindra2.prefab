@@ -1151,7 +1151,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af496e475135e134aa6a3ad7e0109882, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _hand: {fileID: 4905800850934895384}
+  _hand: {fileID: 6965427306927512859}
   _entryColliders:
   - {fileID: 3490753622583705877}
   _exitColliders:
