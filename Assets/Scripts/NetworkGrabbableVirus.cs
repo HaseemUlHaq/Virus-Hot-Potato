@@ -78,6 +78,8 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     private PetriDish[] _cachedDishes;
     private float _lastDishCacheTime;
 
+    private PowerRoleSession _powerRoleSession;
+
     // ─── Debug Properties ─────────────────────────────────────────────────
     public float GetRemainingSeconds()
     {
@@ -133,6 +135,15 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         }
 
         _grabbable.WhenPointerEventRaised += OnPointerEvent;
+
+        RefreshPowerRoleSessionReference();
+    }
+
+    private void RefreshPowerRoleSessionReference()
+    {
+        _powerRoleSession = PowerRoleSession.Instance;
+        if (_powerRoleSession == null)
+            _powerRoleSession = FindFirstObjectByType<PowerRoleSession>(FindObjectsInactive.Include);
     }
 
     public void SetPetriDishSnapNetworkTransformDisabled(bool petriDishHoldsTransformOff)
@@ -327,6 +338,10 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         if (!_grabHandByInteractorId.TryGetValue(_lastGrabInteractorId, out Handedness h))
             return;
 
+        RefreshPowerRoleSessionReference();
+        if (_powerRoleSession != null && !_powerRoleSession.IsColorPlayer(Runner.LocalPlayer))
+            return;
+
         // Cycle material based on hand
         if (Object != null && Object.HasStateAuthority)
         {
@@ -477,6 +492,9 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     {
         if (Object != null && Object.HasStateAuthority)
         {
+            RefreshPowerRoleSessionReference();
+            if (_powerRoleSession != null && !_powerRoleSession.IsScalePlayer(Runner.LocalPlayer))
+                return;
             VirusScale = Mathf.Clamp(newScale, 0.5f, 3.0f);
         }
     }
@@ -485,6 +503,9 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     {
         if (Object != null && Object.HasStateAuthority)
         {
+            RefreshPowerRoleSessionReference();
+            if (_powerRoleSession != null && !_powerRoleSession.IsColorPlayer(Runner.LocalPlayer))
+                return;
             MaterialIndex = (MaterialIndex + 1) % 10;
         }
     }
@@ -493,6 +514,9 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     {
         if (Object != null && Object.HasStateAuthority)
         {
+            RefreshPowerRoleSessionReference();
+            if (_powerRoleSession != null && !_powerRoleSession.IsColorPlayer(Runner.LocalPlayer))
+                return;
             MaterialIndex = (MaterialIndex - 1 + 10) % 10;
         }
     }
@@ -503,6 +527,21 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         {
             IsPulsating = !IsPulsating;
         }
+    }
+
+    /// <summary>Wired from pulse tangible; forwards to state authority via RPC.</summary>
+    public void RequestTogglePulseFromTangible()
+    {
+        RPC_RequestTogglePulse();
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_RequestTogglePulse(RpcInfo info = default)
+    {
+        RefreshPowerRoleSessionReference();
+        if (_powerRoleSession == null || !_powerRoleSession.IsPulsePlayer(info.Source))
+            return;
+        TogglePulsate();
     }
 
     // ─── Render Loop (for pulsate animation) ─────────────────────────────

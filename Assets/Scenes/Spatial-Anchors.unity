@@ -5645,6 +5645,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VirusSpawner
   VirusPrefab: {fileID: -933810911031657331, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
+  PowerRoleSessionPrefab: {fileID: -8011111111111111111, guid: c1a2b3c4d5e6f708192a3b4c5d6e7f80, type: 3}
 --- !u!4 &2084592681
 Transform:
   m_ObjectHideFlags: 0

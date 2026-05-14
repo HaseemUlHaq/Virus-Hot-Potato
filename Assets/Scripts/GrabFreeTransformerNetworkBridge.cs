@@ -35,6 +35,36 @@ public class GrabFreeTransformerNetworkBridge : NetworkBehaviour
         _lastSyncedScale = transform.localScale;
     }
 
+    /// <summary>
+    /// Interaction SDK often re-enables GrabFreeTransformer during grabs (after Render).
+    /// Re-apply the role gate every LateUpdate so non–scale-role players cannot keep scaling.
+    /// </summary>
+    private void LateUpdate()
+    {
+        if (grabFreeTransformer == null)
+            return;
+
+        bool allowFreeScale;
+        if (Runner == null)
+            allowFreeScale = true;
+        else
+        {
+            var session = PowerRoleSession.Instance
+                          ?? FindFirstObjectByType<PowerRoleSession>(FindObjectsInactive.Include);
+            allowFreeScale = session == null || session.IsScalePlayer(Runner.LocalPlayer);
+        }
+
+        grabFreeTransformer.enabled = allowFreeScale;
+
+        if (!allowFreeScale && _networkVirus != null && _networkVirus.Object != null &&
+            _networkVirus.Object.HasStateAuthority && !_networkVirus.IsPulsating)
+        {
+            float vs = _networkVirus.VirusScale;
+            transform.localScale = Vector3.one * vs;
+            _lastSyncedScale = transform.localScale;
+        }
+    }
+
     // Use FixedUpdateNetwork instead of Update - syncs with Fusion tick rate!
     public override void FixedUpdateNetwork()
     {
@@ -53,7 +83,10 @@ public class GrabFreeTransformerNetworkBridge : NetworkBehaviour
 
             if (_networkVirus != null)
             {
-                _networkVirus.SetVirusScale(averageScale);
+                var session = PowerRoleSession.Instance
+                              ?? FindFirstObjectByType<PowerRoleSession>(FindObjectsInactive.Include);
+                if (session == null || session.IsScalePlayer(Runner.LocalPlayer))
+                    _networkVirus.SetVirusScale(averageScale);
             }
 
             _lastSyncedScale = currentScale;
