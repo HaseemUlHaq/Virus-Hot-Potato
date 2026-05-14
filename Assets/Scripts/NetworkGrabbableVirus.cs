@@ -301,9 +301,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             Object.RequestStateAuthority();
 
         _lastGrabInteractorId = interactorId;
-
-        if (Object.HasStateAuthority)
-            RefreshVirusSwipeMaterial();
     }
 
     private void OnGrabEnded()
