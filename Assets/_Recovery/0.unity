@@ -332,7 +332,7 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 1036320196
+  SortKey: 1188983740
   ObjectInterest: 1
   Flags: 1
   NestedObjects:
@@ -1453,7 +1453,7 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 1483169469
+  SortKey: 1635833013
   ObjectInterest: 1
   Flags: 786433
   NestedObjects: []
@@ -2073,7 +2073,7 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 618779825
+  SortKey: 771443369
   ObjectInterest: 1
   Flags: 786433
   NestedObjects: []
@@ -3251,7 +3251,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1d2705674196dfc4da9c25fbacda72d8, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Oculus.Interaction::Oculus.Interaction.ActiveStateUnityEventWrapper
   _activeState: {fileID: 642521516}
   _whenActivated:
@@ -3259,7 +3259,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1374894894}
         m_TargetAssemblyTypeName: VirusGestureRouter, Assembly-CSharp
-        m_MethodName: OnLeftSwipe
+        m_MethodName: OnRightSwipe
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3633,7 +3633,7 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 2293683614
+  SortKey: 2446347158
   ObjectInterest: 1
   Flags: 786433
   NestedObjects: []
@@ -3758,8 +3758,7 @@ MonoBehaviour:
     - {fileID: 5618556046422172173, guid: 1550cf68ffa5a344e881275021bc3ffe, type: 3}
     - {fileID: 5618556046422172173, guid: 31818101cde292945ab80af5d14bec54, type: 3}
     - {fileID: 5618556046422172173, guid: c2bd5595e9fe2493a92d4bc0bb264603, type: 3}
-    SceneJsons:
-    - {fileID: 0}
+    SceneJsons: []
     LoadSceneOnStartup: 1
     EnableHighFidelityScene: 0
     SeatWidth: 0.6
@@ -3769,19 +3768,7 @@ MonoBehaviour:
       <QRCodeTrackingEnabled>k__BackingField: 1
     <TrackableAdded>k__BackingField:
       m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: 
-          m_MethodName: 
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: 
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
+        m_Calls: []
     <TrackableRemoved>k__BackingField:
       m_PersistentCalls:
         m_Calls: []
@@ -4326,7 +4313,7 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 256448470
+  SortKey: 409112014
   ObjectInterest: 1
   Flags: 786433
   NestedObjects: []
@@ -5821,7 +5808,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VirusSpawner
   VirusPrefab: {fileID: -933810911031657331, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
-  PowerRoleSessionPrefab: {fileID: -8011111111111111111, guid: c1a2b3c4d5e6f708192a3b4c5d6e7f80, type: 3}
 --- !u!4 &2084592681
 Transform:
   m_ObjectHideFlags: 0
@@ -6740,7 +6726,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2696754867889545436, guid: e59523bcdfed4b3448b5309d0c1bfdbe, type: 3}
       propertyPath: SortKey
-      value: 1268401654
+      value: 1421065198
       objectReference: {fileID: 0}
     - target: {fileID: 3650740090481109954, guid: e59523bcdfed4b3448b5309d0c1bfdbe, type: 3}
       propertyPath: m_LocalPosition.x
@@ -9258,7 +9244,7 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 811896604
+  SortKey: 964560148
   ObjectInterest: 1
   Flags: 786433
   NestedObjects: []
@@ -9557,8 +9543,8 @@ SceneRoots:
   - {fileID: 731950341}
   - {fileID: 852832057}
   - {fileID: 857894820}
-  - {fileID: 1977987381}
   - {fileID: 2743579064040519685}
   - {fileID: 1436898482}
   - {fileID: 2743579064164529685}
   - {fileID: 1374894895}
+  - {fileID: 1977987381}

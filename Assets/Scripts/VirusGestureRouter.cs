@@ -2,15 +2,9 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Lives in the SCENE (not on the virus prefab) so Meta gesture components
-/// can have their HandRef scene references assigned in the Inspector.
-///
-/// Setup:
-///   1. Create a scene GameObject "VirusGestureDetectors".
-///   2. Add this script to it (or to a child "VirusGestureRouter").
-///   3. In each ActiveStateUnityEventWrapper:
-///        Left swipe  → VirusGestureRouter.OnLeftSwipe()
-///        Right swipe → VirusGestureRouter.OnRightSwipe()
+/// Lives in the SCENE on VirusGestureDetectors.
+/// Receives swipe events from HandSwipeGestureLeft/Right (scene-level ActiveStateUnityEventWrapper)
+/// and forwards them to the spawned virus.
 /// </summary>
 public class VirusGestureRouter : MonoBehaviour
 {
@@ -44,35 +38,44 @@ public class VirusGestureRouter : MonoBehaviour
     // Called by LEFT hand swipe ActiveStateUnityEventWrapper → When Activated
     public void OnLeftSwipe()
     {
-        if (_virus == null)
-        {
-            Debug.LogWarning("[VirusGestureRouter] OnLeftSwipe: no virus found yet.");
-            return;
-        }
-
-        EnsureStateAuthority();
-        _virus.CycleMaterialPrevious();
+        Debug.Log("[VirusGestureRouter] OnLeftSwipe called");
+        if (_virus == null) { Debug.LogWarning("[VirusGestureRouter] No virus found"); return; }
+        StartCoroutine(CycleWithAuthority(false));
     }
 
     // Called by RIGHT hand swipe ActiveStateUnityEventWrapper → When Activated
     public void OnRightSwipe()
     {
-        if (_virus == null)
-        {
-            Debug.LogWarning("[VirusGestureRouter] OnRightSwipe: no virus found yet.");
-            return;
-        }
-
-        EnsureStateAuthority();
-        _virus.CycleMaterialNext();
+        Debug.Log("[VirusGestureRouter] OnRightSwipe called");
+        if (_virus == null) { Debug.LogWarning("[VirusGestureRouter] No virus found"); return; }
+        StartCoroutine(CycleWithAuthority(true));
     }
 
-    // Request state authority if this client doesn't already have it.
-    // CycleMaterialNext/Previous both guard on HasStateAuthority, so without
-    // this the swipe would silently no-op when the virus is held by another player.
-    private void EnsureStateAuthority()
+    private IEnumerator CycleWithAuthority(bool next)
     {
-        if (_virus.Object != null && !_virus.Object.HasStateAuthority)
+        if (_virus.Object == null) yield break;
+
+        if (!_virus.Object.HasStateAuthority)
+        {
+            Debug.Log("[VirusGestureRouter] Requesting state authority...");
             _virus.Object.RequestStateAuthority();
+
+            float timeout = 1f;
+            while (!_virus.Object.HasStateAuthority && timeout > 0f)
+            {
+                timeout -= Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        if (!_virus.Object.HasStateAuthority)
+        {
+            Debug.LogWarning("[VirusGestureRouter] Could not get state authority — cycle skipped");
+            yield break;
+        }
+
+        Debug.Log($"[VirusGestureRouter] Cycling {(next ? "next" : "previous")}");
+        if (next) _virus.CycleMaterialNext();
+        else _virus.CycleMaterialPrevious();
     }
 }

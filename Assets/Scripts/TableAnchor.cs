@@ -4,7 +4,7 @@ using Meta.XR.MRUtilityKit;
 public class TableAnchor : MonoBehaviour
 {
     [Header("Assign in Inspector")]
-    [SerializeField] private GameObject virtualTable;
+    [SerializeField] private NetworkedTableAnchor networkedTable;
     [SerializeField] private VirusSpawner virusSpawner;
 
     [Header("QR Code Settings")]
@@ -48,12 +48,13 @@ public class TableAnchor : MonoBehaviour
 
         Debug.Log($"Table QR code found: {qrCodePayload}");
 
-        // Snap virtual table to QR code position
-        virtualTable.transform.position = trackable.transform.position;
-
-        // Apply rotation
+        // Compute final table transform
         Quaternion baseRotation = trackable.transform.rotation * Quaternion.Euler(90, 0, 0);
-        virtualTable.transform.rotation = baseRotation * Quaternion.Euler(0, yRotationOffset, 0);
+        Quaternion finalRotation = baseRotation * Quaternion.Euler(0, yRotationOffset, 0);
+
+        // Only master positions the table; NetworkedTableAnchor syncs it to all clients
+        if (networkedTable != null)
+            networkedTable.RequestPlacement(trackable.transform.position, finalRotation);
 
         // Store for other scripts
         TableSurfacePosition = trackable.transform.position;
