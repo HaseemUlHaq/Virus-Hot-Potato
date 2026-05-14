@@ -173,6 +173,27 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             _lastDishCacheTime = Time.time;
         }
 
+        // Apply grab/release on authority before physics so CurrentHolder matches this tick.
+        if (_pendingGrab && Object.HasStateAuthority)
+        {
+            _pendingGrab = false;
+            CurrentHolder = Runner.LocalPlayer;
+            _lastTouchedPlayer = Runner.LocalPlayer;
+
+            if (!_fuseTimer.IsRunning && !_roundResolved)
+            {
+                _fuseTimer = TickTimer.CreateFromSeconds(Runner, fuseDurationSeconds);
+                FuseStarted = true;
+                UnityEngine.Debug.Log("Fuse started! " + fuseDurationSeconds + "s");
+            }
+        }
+
+        if (_pendingRelease && Object.HasStateAuthority)
+        {
+            _pendingRelease = false;
+            CurrentHolder = PlayerRef.None;
+        }
+
         PetriDish myDish = null;
         foreach (var dish in _cachedDishes)
         {
@@ -204,33 +225,24 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         }
         else
         {
-            // I'm NOT in a dish - enable physics (unless being grabbed)
-            if (_rb != null && _rb.isKinematic && CurrentHolder == PlayerRef.None)
+            // Not in dish: on proxies only, freeze RB while someone holds so NetworkTransform
+            // pose is not fought by local physics (fixes remote jitter). Do not force kinematic
+            // on state authority — Interaction SDK must own RB during hover/grab on the holder.
+            if (CurrentHolder != PlayerRef.None && !Object.HasStateAuthority)
+            {
+                if (_rb != null && !_rb.isKinematic)
+                {
+                    _rb.linearVelocity = Vector3.zero;
+                    _rb.angularVelocity = Vector3.zero;
+                    _rb.isKinematic = true;
+                    _rb.useGravity = false;
+                }
+            }
+            else if (_rb != null && _rb.isKinematic && CurrentHolder == PlayerRef.None)
             {
                 _rb.isKinematic = false;
                 _rb.useGravity = true;
             }
-        }
-
-        // Handle grab state
-        if (_pendingGrab && Object.HasStateAuthority)
-        {
-            _pendingGrab = false;
-            CurrentHolder = Runner.LocalPlayer;
-            _lastTouchedPlayer = Runner.LocalPlayer;
-
-            if (!_fuseTimer.IsRunning && !_roundResolved)
-            {
-                _fuseTimer = TickTimer.CreateFromSeconds(Runner, fuseDurationSeconds);
-                FuseStarted = true;
-                UnityEngine.Debug.Log("Fuse started! " + fuseDurationSeconds + "s");
-            }
-        }
-
-        if (_pendingRelease && Object.HasStateAuthority)
-        {
-            _pendingRelease = false;
-            CurrentHolder = PlayerRef.None;
         }
 
         // Handle fuse timer
