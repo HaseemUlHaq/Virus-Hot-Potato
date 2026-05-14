@@ -25,7 +25,7 @@ GameObject:
   - component: {fileID: 7963275968349194443}
   - component: {fileID: 7793585175934115953}
   - component: {fileID: 7321827033630362553}
-  - component: {fileID: -4126049545299222493}
+  - component: {fileID: 7721203966171748277}
   m_Layer: 0
   m_Name: Virus_Tindra2
   m_TagString: Untagged
@@ -297,7 +297,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2144216136471679737}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b14164f8f23faae4293baeb84485b3d6, type: 3}
   m_Name: 
@@ -310,7 +310,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2144216136471679737}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b14164f8f23faae4293baeb84485b3d6, type: 3}
   m_Name: 
@@ -418,22 +418,18 @@ MonoBehaviour:
   grabFreeTransformer: {fileID: 8430350427795542559}
   grabbable: {fileID: 3650917331126732225}
   scaleChangedThreshold: 0.01
---- !u!114 &-4126049545299222493
+--- !u!114 &7721203966171748277
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2144216136471679737}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 421e6ce0ee1e4de4380e28b55d1bb2eb, type: 3}
+  m_Script: {fileID: 11500000, guid: 9817e266f30cddc4a8c93357868efdc5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Virushandconnector
-  leftHandRef: {fileID: 0}
-  rightHandRef: {fileID: 0}
-  leftHandOverride: {fileID: 0}
-  rightHandOverride: {fileID: 0}
+  m_EditorClassIdentifier: Assembly-CSharp::VirusRuntimeConnector
 --- !u!1 &2578310240436922983
 GameObject:
   m_ObjectHideFlags: 0
@@ -451,7 +447,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6492252392855499189
 Transform:
   m_ObjectHideFlags: 0
@@ -627,7 +623,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1477321739689365958
 Transform:
   m_ObjectHideFlags: 0
