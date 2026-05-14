@@ -9,8 +9,11 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
     [Header("Assign in Inspector")]
     public NetworkObject VirusPrefab;
+    [Tooltip("Spawned once by shared-mode master so power roles exist before or with first player.")]
+    public NetworkObject PowerRoleSessionPrefab;
 
     private bool _virusSpawned = false;
+    private bool _powerRoleSessionSpawned = false;
     private bool _positionReady = false;
     private Vector3 _spawnPosition = Vector3.zero;
 
@@ -35,6 +38,7 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
         _spawnPosition = tablePosition + Vector3.up * 0.15f;
         _positionReady = true;
         UnityEngine.Debug.Log("Table position set. Spawn at: " + _spawnPosition);
+        TrySpawnPowerRoleSession();
         TrySpawnVirus();
     }
 
@@ -43,6 +47,7 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
         _spawnPosition = position;
         _positionReady = true;
         UnityEngine.Debug.Log("QR spawn position set: " + _spawnPosition);
+        TrySpawnPowerRoleSession();
         TrySpawnVirus();
     }
 
@@ -50,7 +55,48 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
     {
         _virusSpawned = false;
         _positionReady = false;
+        _powerRoleSessionSpawned = false;
         UnityEngine.Debug.Log("VirusSpawner reset");
+    }
+
+    private void TrySpawnPowerRoleSession()
+    {
+        if (_powerRoleSessionSpawned)
+            return;
+        if (PowerRoleSessionPrefab == null)
+            return;
+        if (FindFirstObjectByType<PowerRoleSession>(FindObjectsInactive.Include) != null)
+        {
+            _powerRoleSessionSpawned = true;
+            return;
+        }
+
+        NetworkRunner masterRunner = null;
+        foreach (var runner in _registeredRunners)
+        {
+            if (runner != null &&
+                runner.IsRunning &&
+                runner.IsSharedModeMasterClient)
+            {
+                masterRunner = runner;
+                break;
+            }
+        }
+
+        if (masterRunner == null)
+            return;
+
+        NetworkObject spawned = masterRunner.Spawn(
+            PowerRoleSessionPrefab,
+            Vector3.zero,
+            Quaternion.identity
+        );
+
+        if (spawned != null)
+        {
+            _powerRoleSessionSpawned = true;
+            UnityEngine.Debug.Log("PowerRoleSession spawned.");
+        }
     }
 
     private void TrySpawnVirus()
@@ -81,6 +127,8 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
             return;
         }
 
+        TrySpawnPowerRoleSession();
+
         NetworkObject spawned = masterRunner.Spawn(
             VirusPrefab,
             _spawnPosition,
@@ -97,12 +145,14 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         if (!runner.IsSharedModeMasterClient) return;
+        TrySpawnPowerRoleSession();
         TrySpawnVirus();
     }
 
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
     {
         _virusSpawned = false;
+        _powerRoleSessionSpawned = false;
     }
 
     private IEnumerator DiscoverRunnersRoutine()
@@ -123,6 +173,8 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
                 continue;
             runner.AddCallbacks(this);
             _registeredRunners.Add(runner);
+            TrySpawnPowerRoleSession();
+            TrySpawnVirus();
         }
     }
 
