@@ -273,8 +273,8 @@ PlayerSettings:
   AndroidAllowedArchitectures: -13
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
-  AndroidKeystoreName: C:/Users/loli6917/Documents/DCDC/user.keystore
-  AndroidKeyaliasName: name of the game + group nr
+  AndroidKeystoreName: '{inproject}: user.keystore'
+  AndroidKeyaliasName: virus5
   AndroidEnableArmv9SecurityFeatures: 0
   AndroidEnableArm64MTE: 0
   AndroidBuildApkPerCpuArchitecture: 0
@@ -534,8 +534,12 @@ PlayerSettings:
   m_BuildTargetGraphicsJobs:
   - m_BuildTarget: AndroidPlayer
     m_GraphicsJobs: 1
+  - m_BuildTarget: MacStandaloneSupport
+    m_GraphicsJobs: 1
   m_BuildTargetGraphicsJobMode:
   - m_BuildTarget: AndroidPlayer
+    m_GraphicsJobMode: 1
+  - m_BuildTarget: MacStandaloneSupport
     m_GraphicsJobMode: 1
   m_BuildTargetGraphicsAPIs:
   - m_BuildTarget: iOSSupport
@@ -839,7 +843,7 @@ PlayerSettings:
   webEnableSubmoduleStrippingCompatibility: 0
   scriptingDefineSymbols:
     Android: OVR_DISABLE_HAND_PINCH_BUTTON_MAPPING;USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS;FUSION_LOGLEVEL_INFO;FUSION_WEAVER;FUSION2;FUSION_2;FUSION_2_0;FUSION_2_0_12;FUSION_2_OR_NEWER;FUSION_2_0_OR_NEWER
-    Standalone: OVR_DISABLE_HAND_PINCH_BUTTON_MAPPING;USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS
+    Standalone: OVR_DISABLE_HAND_PINCH_BUTTON_MAPPING;USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS;FUSION_WEAVER;FUSION2;FUSION_2;FUSION_2_0;FUSION_2_0_12;FUSION_2_OR_NEWER;FUSION_2_0_OR_NEWER;FUSION_LOGLEVEL_INFO
     Windows Store Apps: USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS
   additionalCompilerArguments: {}
   platformArchitecture: {}
