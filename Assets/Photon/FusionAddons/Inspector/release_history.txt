@@ -1,0 +1,23 @@
+Photon Fusion Inspector Addon - Release History
+
+Last tested with Fusion SDK 2.0.9 Stable 1566
+
+Version 2.0.2
+- Forward compatibility with Fusion 2.1.
+
+Version 2.0.1
+- Added NetworkBehaviour component count to [Scene Objects] and [Prefabs].
+- Added version of Fusion DLLs to footer.
+- Added player count to footer (play mode).
+- Added session time to footer (play mode).
+- Added tick rate to footer (play mode).
+- Footer is now displayed permanently.
+- Scene objects and prefabs can now be selected (Control and Shift modifiers supported).
+- New window appears for selected objects and shows more details - state size of components (edit mode) and state changes (play mode).
+- Network state is now compared on a byte-level while tracking state changes. Bit-level comparison is possible using FUSION_INSPECTOR_TRACK_BITS script define symbol.
+- Reduced Frame-by-frame allocations while in play mode.
+- GameObject.name is cached once while in play mode.
+- Added profiler markers.
+
+Version 2.0.0
+- Initial release.
