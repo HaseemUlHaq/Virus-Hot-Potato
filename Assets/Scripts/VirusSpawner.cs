@@ -5,8 +5,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Spawns networked session pieces on the shared-mode master. Master syncs spawn pose from replicated
+/// <see cref="NetworkedTableAnchor"/> (QR from any peer).
+///
+/// Phase 1 device regression: non-master scans QR first (table + spawn); master scans QR; color-power swipe
+/// changes materials; grab/throw; UDP pulse on <see cref="NetworkGrabbableVirus.RPC_TriggerPulse"/>.
+/// </summary>
 public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
+    [Header("Table / anchor (Fusion)")]
+    [Tooltip("Used on the master client to mirror QR placement replicated from NetworkedTableAnchor. Assign the scene anchor.")]
+    [SerializeField] private NetworkedTableAnchor networkedTableAnchor;
+    /// <summary>Last PlacementVersion consumed from anchor; cleared on round reset so respawn still runs when table stays placed.</summary>
+    private int _lastAppliedPlacementVersion = -1;
+
     [Header("Assign in Inspector")]
     public NetworkObject VirusPrefab;
     [Tooltip("Optional second virus (e.g. alternate mesh). Spawned beside the primary using Second Virus Spawn Offset.")]
@@ -24,6 +37,45 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     private readonly List<NetworkRunner> _registeredRunners = new List<NetworkRunner>();
     private Coroutine _runnerDiscoveryRoutine;
+
+    private void Update()
+    {
+        TrySyncSpawnFromNetworkedTableAnchor();
+    }
+
+    /// <summary>
+    /// Master only: derive virus spawn pose from replicated table anchor after any client placed via RPC.
+    /// </summary>
+    private void TrySyncSpawnFromNetworkedTableAnchor()
+    {
+        if (networkedTableAnchor == null) return;
+
+        NetworkObject anchorObj = networkedTableAnchor.Object;
+        if (anchorObj == null || !anchorObj.IsValid) return;
+        if (!networkedTableAnchor.IsTablePlaced) return;
+
+        NetworkRunner masterRunner = null;
+        foreach (NetworkRunner runner in _registeredRunners)
+        {
+            if (runner != null && runner.IsRunning && runner.IsSharedModeMasterClient)
+            {
+                masterRunner = runner;
+                break;
+            }
+        }
+        if (masterRunner == null) return;
+
+        int version = networkedTableAnchor.CurrentPlacementVersion;
+        if (version == _lastAppliedPlacementVersion) return;
+
+        Vector3 surfacePosition = networkedTableAnchor.PlacedSurfacePosition;
+        _spawnPosition = surfacePosition + Vector3.up * 0.15f;
+        _positionReady = true;
+        _lastAppliedPlacementVersion = version;
+        UnityEngine.Debug.Log("[VirusSpawner] Spawn pose synced from NetworkedTableAnchor at: " + _spawnPosition);
+        TrySpawnPowerRoleSession();
+        TrySpawnViruses();
+    }
 
     private void OnEnable()
     {
@@ -62,6 +114,7 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
         _secondarySpawned = false;
         _positionReady = false;
         _powerRoleSessionSpawned = false;
+        _lastAppliedPlacementVersion = -1;
         UnityEngine.Debug.Log("VirusSpawner reset");
     }
 
@@ -184,6 +237,7 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
         _primarySpawned = false;
         _secondarySpawned = false;
         _powerRoleSessionSpawned = false;
+        _lastAppliedPlacementVersion = -1;
     }
 
     private IEnumerator DiscoverRunnersRoutine()

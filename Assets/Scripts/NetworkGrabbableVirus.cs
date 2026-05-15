@@ -65,6 +65,13 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     private Coroutine _deferredReleaseAuthorityRoutine;
     public bool _petriDishDisablesNetworkTransform;
 
+    [Header("Collaborative MR (Petri sync)")]
+    [Tooltip(
+        "When snapped, reposition this virus each LateUpdate onto each player's local dish hover pose. "+
+        "Prevents MR collocation drift from showing the virus seated on dish for host but floating/in-hand for peers.")]
+    [SerializeField]
+    private bool bindVisualToPetriSnapOnAllPeers = true;
+
     // ─── Pulse Scale Memory ───────────────────────────────────────────────
     private float _preBeforeScale = 1f;
 
@@ -137,6 +144,16 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         RefreshPowerRoleSessionReference();
     }
 
+    /// <summary>Refreshes the Petri lookup used by simulation and visuals.</summary>
+    private void EnsurePetriDishesCached()
+    {
+        if (_cachedDishes == null || Time.time - _lastDishCacheTime > 1f)
+        {
+            _cachedDishes = FindObjectsByType<PetriDish>(FindObjectsSortMode.None);
+            _lastDishCacheTime = Time.time;
+        }
+    }
+
     private void RefreshPowerRoleSessionReference()
     {
         _powerRoleSession = PowerRoleSession.Instance;
@@ -164,11 +181,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     public override void FixedUpdateNetwork()
     {
-        if (_cachedDishes == null || Time.time - _lastDishCacheTime > 1f)
-        {
-            _cachedDishes = FindObjectsByType<PetriDish>(FindObjectsSortMode.None);
-            _lastDishCacheTime = Time.time;
-        }
+        EnsurePetriDishesCached();
 
         // Apply grab/release on authority before physics so CurrentHolder matches this tick.
         if (_pendingGrab && Object.HasStateAuthority)
@@ -192,12 +205,15 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         }
 
         PetriDish myDish = null;
-        foreach (var dish in _cachedDishes)
+        if (_cachedDishes != null)
         {
-            if (dish != null && dish.SnappedVirus == this)
+            foreach (var dish in _cachedDishes)
             {
-                myDish = dish;
-                break;
+                if (dish != null && dish.SnappedVirus == this)
+                {
+                    myDish = dish;
+                    break;
+                }
             }
         }
 
@@ -261,6 +277,29 @@ public class NetworkGrabbableVirus : NetworkBehaviour
                     OnEliminatedPlayerChanged();
                     break;
             }
+        }
+    }
+
+    /// <summary>
+    /// During Fusion Render(), glue snapped viruses to each viewer&apos;s local dish hover pose so MR/colocation drift
+    /// does not separate mesh from networked hover snapshots.
+    /// </summary>
+    private void ApplyPetriSnapVisualForRender()
+    {
+        if (!bindVisualToPetriSnapOnAllPeers || Object == null || !Object.IsValid)
+            return;
+
+        EnsurePetriDishesCached();
+
+        if (_cachedDishes == null) return;
+
+        foreach (PetriDish dish in _cachedDishes)
+        {
+            if (dish == null || dish.Object == null || !dish.Object.IsValid) continue;
+            if (!dish.IsOccupied || dish.SnappedVirus != this) continue;
+
+            transform.SetPositionAndRotation(dish.GetHoverPosition(), Quaternion.identity);
+            return;
         }
     }
 
@@ -518,6 +557,25 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         RPC_RequestTogglePulse();
     }
 
+    /// <summary>Gestures must use this path (RPC to authority); validates color role via <paramref name="info"/>.Source.</summary>
+    public void RequestCycleMaterialFromGesture(bool nextMaterial)
+    {
+        RPC_RequestCycleMaterial(nextMaterial);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_RequestCycleMaterial(bool nextMaterial, RpcInfo info = default)
+    {
+        RefreshPowerRoleSessionReference();
+        if (_powerRoleSession != null && !_powerRoleSession.IsColorPlayer(info.Source))
+            return;
+
+        if (nextMaterial)
+            MaterialIndex = (MaterialIndex + 1) % 10;
+        else
+            MaterialIndex = (MaterialIndex - 1 + 10) % 10;
+    }
+
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     public void RPC_RequestTogglePulse(RpcInfo info = default)
     {
@@ -549,6 +607,8 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     public override void Render()
     {
         base.Render();
+        ApplyPetriSnapVisualForRender();
+
         if (IsPulsating)
         {
             _pulsateTime += Time.deltaTime * PULSATE_SPEED;

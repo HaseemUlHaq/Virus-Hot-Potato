@@ -1,4 +1,3 @@
-using System.Collections;
 using Oculus.Interaction.Input;
 using UnityEngine;
 
@@ -24,11 +23,6 @@ public class VirusGestureRouter : MonoBehaviour
         TryFindHands();
     }
 
-    private void OnDisable()
-    {
-        StopAllCoroutines();
-    }
-
     private void TryFindHands()
     {
         if (leftHand != null && rightHand != null) return;
@@ -50,7 +44,9 @@ public class VirusGestureRouter : MonoBehaviour
         TryFindHands();
         NetworkGrabbableVirus virus = ResolveVirusForHand(leftHand, Handedness.Left);
         if (virus == null) { Debug.LogWarning("[VirusGestureRouter] No virus in range"); return; }
-        StartCoroutine(CycleWithAuthority(false, virus));
+        if (virus.Object == null || !virus.Object.IsValid) return;
+        Debug.Log($"[VirusGestureRouter] Cycle previous via RPC on {virus.name}");
+        virus.RequestCycleMaterialFromGesture(nextMaterial: false);
     }
 
     // Called by RIGHT hand swipe ActiveStateUnityEventWrapper → When Activated
@@ -60,7 +56,9 @@ public class VirusGestureRouter : MonoBehaviour
         TryFindHands();
         NetworkGrabbableVirus virus = ResolveVirusForHand(rightHand, Handedness.Right);
         if (virus == null) { Debug.LogWarning("[VirusGestureRouter] No virus in range"); return; }
-        StartCoroutine(CycleWithAuthority(true, virus));
+        if (virus.Object == null || !virus.Object.IsValid) return;
+        Debug.Log($"[VirusGestureRouter] Cycle next via RPC on {virus.name}");
+        virus.RequestCycleMaterialFromGesture(nextMaterial: true);
     }
 
     private NetworkGrabbableVirus ResolveVirusForHand(Hand hand, Handedness side)
@@ -80,7 +78,7 @@ public class VirusGestureRouter : MonoBehaviour
         foreach (var v in FindObjectsByType<NetworkGrabbableVirus>(FindObjectsSortMode.None))
         {
             if (v == null) continue;
-            float d = Vector3.Distance(fromPosition, v.transform.position);
+            float d = Vector3.Distance(v.transform.position, fromPosition);
             if (d <= bestDist)
             {
                 bestDist = d;
@@ -89,33 +87,5 @@ public class VirusGestureRouter : MonoBehaviour
         }
 
         return best;
-    }
-
-    private IEnumerator CycleWithAuthority(bool next, NetworkGrabbableVirus virus)
-    {
-        if (virus == null || virus.Object == null) yield break;
-
-        if (!virus.Object.HasStateAuthority)
-        {
-            Debug.Log("[VirusGestureRouter] Requesting state authority...");
-            virus.Object.RequestStateAuthority();
-
-            float timeout = 1f;
-            while (!virus.Object.HasStateAuthority && timeout > 0f)
-            {
-                timeout -= Time.deltaTime;
-                yield return null;
-            }
-        }
-
-        if (!virus.Object.HasStateAuthority)
-        {
-            Debug.LogWarning("[VirusGestureRouter] Could not get state authority — cycle skipped");
-            yield break;
-        }
-
-        Debug.Log($"[VirusGestureRouter] Cycling {(next ? "next" : "previous")} on {virus.name}");
-        if (next) virus.CycleMaterialNext();
-        else virus.CycleMaterialPrevious();
     }
 }

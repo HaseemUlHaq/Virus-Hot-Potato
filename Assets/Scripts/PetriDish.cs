@@ -120,7 +120,9 @@ public class PetriDish : NetworkBehaviour
             if (virus == null) continue;
             // Avoid excluding valid networked viruses — IsValid can be false on some peers/ticks in Shared mode.
             if (virus.Object == null) continue;
-            if (virus.IsBeingGrabbed) continue;
+            // Networked holder (all peers agree). IsBeingGrabbed is local-only and MUST NOT gate snap —
+            // the dish authority client's view would ignore other players' grabs.
+            if (virus.CurrentHolder != PlayerRef.None) continue;
             if (IsVirusHeldElsewhere(virus)) continue;
 
             float dist = GetDistanceVirusToSnapPoint(virus, center);

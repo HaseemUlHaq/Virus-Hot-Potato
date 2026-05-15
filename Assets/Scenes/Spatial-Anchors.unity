@@ -1528,7 +1528,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 521681371}
-  - component: {fileID: 521681372}
+  - component: {fileID: 521681374}
   - component: {fileID: 521681373}
   m_Layer: 0
   m_Name: PetriDish_p1
@@ -1553,25 +1553,6 @@ Transform:
   - {fileID: 576440441}
   m_Father: {fileID: 152540251}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &521681372
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 521681370}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: db8f28004cef82848b94d667abddfdd9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PetriDish
-  virusHoverHeight: 0.06
-  snapDelay: 0.35
-  snapOverlapRadius: 0.4
-  dishRenderer: {fileID: 576440443}
-  _SnappedVirus: {fileID: 0}
-  _IsOccupied:
-    _value: 0
 --- !u!114 &521681373
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1589,8 +1570,27 @@ MonoBehaviour:
   Flags: 786433
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 521681372}
+  - {fileID: 521681374}
   ForceRemoteRenderTimeframe: 0
+--- !u!114 &521681374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 521681370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db8f28004cef82848b94d667abddfdd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PetriDish
+  virusHoverHeight: 0.06
+  snapDelay: 0.1
+  snapOverlapRadius: 0.01
+  dishRenderer: {fileID: 576440443}
+  _SnappedVirus: {fileID: 0}
+  _IsOccupied:
+    _value: 0
 --- !u!1 &525433235
 GameObject:
   m_ObjectHideFlags: 0
@@ -1735,7 +1735,7 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
@@ -1849,7 +1849,7 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
@@ -1963,7 +1963,7 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
@@ -3125,7 +3125,7 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
@@ -4412,7 +4412,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1350363672}
-  - component: {fileID: 1350363673}
+  - component: {fileID: 1350363675}
   - component: {fileID: 1350363674}
   m_Layer: 0
   m_Name: PetriDish_p3
@@ -4437,25 +4437,6 @@ Transform:
   - {fileID: 602430038}
   m_Father: {fileID: 152540251}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1350363673
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1350363671}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: db8f28004cef82848b94d667abddfdd9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PetriDish
-  virusHoverHeight: 0.06
-  snapDelay: 0.35
-  snapOverlapRadius: 0.4
-  dishRenderer: {fileID: 602430040}
-  _SnappedVirus: {fileID: 0}
-  _IsOccupied:
-    _value: 0
 --- !u!114 &1350363674
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4473,8 +4454,27 @@ MonoBehaviour:
   Flags: 786433
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 1350363673}
+  - {fileID: 1350363675}
   ForceRemoteRenderTimeframe: 0
+--- !u!114 &1350363675
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1350363671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db8f28004cef82848b94d667abddfdd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PetriDish
+  virusHoverHeight: 0.06
+  snapDelay: 0.1
+  snapOverlapRadius: 0.01
+  dishRenderer: {fileID: 602430040}
+  _SnappedVirus: {fileID: 0}
+  _IsOccupied:
+    _value: 0
 --- !u!1 &1374894893
 GameObject:
   m_ObjectHideFlags: 0
@@ -4588,8 +4588,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PetriDish
   virusHoverHeight: 0.06
-  snapDelay: 0.35
-  snapOverlapRadius: 0.4
+  snapDelay: 0.1
+  snapOverlapRadius: 0.01
   dishRenderer: {fileID: 626874184}
   _SnappedVirus: {fileID: 0}
   _IsOccupied:
@@ -6676,6 +6676,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 359ca2430dd48094da6896a6d601f8f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VirusSpawner
+  networkedTableAnchor: {fileID: 152540253}
   VirusPrefab: {fileID: -933810911031657331, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
   SecondVirusPrefab: {fileID: -933810911031657331, guid: 62cf69041fdb4004f92bb8505f541c44, type: 3}
   secondVirusSpawnOffset: {x: 0.22, y: 0, z: 0}
@@ -7106,8 +7107,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PetriDish
   virusHoverHeight: 0.06
-  snapDelay: 0.35
-  snapOverlapRadius: 0.4
+  snapDelay: 0.1
+  snapOverlapRadius: 0.01
   dishRenderer: {fileID: 946154854}
   _SnappedVirus: {fileID: 0}
   _IsOccupied:
@@ -9851,6 +9852,7 @@ MonoBehaviour:
   _IsPulsating:
     _value: 1
   _petriDishDisablesNetworkTransform: 0
+  bindVisualToPetriSnapOnAllPeers: 1
 --- !u!114 &7801827490705811516
 MonoBehaviour:
   m_ObjectHideFlags: 0

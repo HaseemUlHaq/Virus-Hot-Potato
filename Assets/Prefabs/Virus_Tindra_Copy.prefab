@@ -201,7 +201,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.045
+  m_Radius: 0.015
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &8430350427795542559
 MonoBehaviour:
@@ -405,6 +405,7 @@ MonoBehaviour:
   _IsPulsating:
     _value: 0
   _petriDishDisablesNetworkTransform: 0
+  bindVisualToPetriSnapOnAllPeers: 1
 --- !u!114 &7321827033630362553
 MonoBehaviour:
   m_ObjectHideFlags: 0
