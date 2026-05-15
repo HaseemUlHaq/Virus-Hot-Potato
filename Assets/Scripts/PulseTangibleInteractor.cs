@@ -10,9 +10,16 @@ public class PulseTangibleInteractor : MonoBehaviour
 
     public void OnPulseTangibleActivated()
     {
-        if (virus == null)
-            virus = FindFirstObjectByType<NetworkGrabbableVirus>();
         if (virus != null)
+        {
             virus.RequestTogglePulseFromTangible();
+            return;
+        }
+
+        foreach (var v in FindObjectsByType<NetworkGrabbableVirus>(FindObjectsSortMode.None))
+        {
+            if (v != null)
+                v.RequestTogglePulseFromTangible();
+        }
     }
 }

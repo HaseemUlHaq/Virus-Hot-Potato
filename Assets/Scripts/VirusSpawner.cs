@@ -9,10 +9,15 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
     [Header("Assign in Inspector")]
     public NetworkObject VirusPrefab;
+    [Tooltip("Optional second virus (e.g. alternate mesh). Spawned beside the primary using Second Virus Spawn Offset.")]
+    public NetworkObject SecondVirusPrefab;
+    [Tooltip("Applied on top of table spawn position for the second virus only.")]
+    [SerializeField] private Vector3 secondVirusSpawnOffset = new Vector3(0.2f, 0f, 0f);
     [Tooltip("Spawned once by shared-mode master so power roles exist before or with first player.")]
     public NetworkObject PowerRoleSessionPrefab;
 
-    private bool _virusSpawned = false;
+    private bool _primarySpawned;
+    private bool _secondarySpawned;
     private bool _powerRoleSessionSpawned = false;
     private bool _positionReady = false;
     private Vector3 _spawnPosition = Vector3.zero;
@@ -39,7 +44,7 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
         _positionReady = true;
         UnityEngine.Debug.Log("Table position set. Spawn at: " + _spawnPosition);
         TrySpawnPowerRoleSession();
-        TrySpawnVirus();
+        TrySpawnViruses();
     }
 
     public void SetSpawnPosition(Vector3 position)
@@ -48,15 +53,23 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
         _positionReady = true;
         UnityEngine.Debug.Log("QR spawn position set: " + _spawnPosition);
         TrySpawnPowerRoleSession();
-        TrySpawnVirus();
+        TrySpawnViruses();
     }
 
     public void ResetForNewRound()
     {
-        _virusSpawned = false;
+        _primarySpawned = false;
+        _secondarySpawned = false;
         _positionReady = false;
         _powerRoleSessionSpawned = false;
         UnityEngine.Debug.Log("VirusSpawner reset");
+    }
+
+    private bool AllRequestedVirusesSpawned()
+    {
+        bool wantsPrimary = VirusPrefab != null;
+        bool wantsSecondary = SecondVirusPrefab != null;
+        return (!wantsPrimary || _primarySpawned) && (!wantsSecondary || _secondarySpawned);
     }
 
     private void TrySpawnPowerRoleSession()
@@ -99,13 +112,13 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
         }
     }
 
-    private void TrySpawnVirus()
+    private void TrySpawnViruses()
     {
-        if (_virusSpawned) return;
+        if (AllRequestedVirusesSpawned()) return;
         if (!_positionReady) return;
-        if (VirusPrefab == null)
+        if (VirusPrefab == null && SecondVirusPrefab == null)
         {
-            UnityEngine.Debug.LogWarning("Virus prefab not assigned");
+            UnityEngine.Debug.LogWarning("VirusSpawner: no virus prefabs assigned");
             return;
         }
 
@@ -129,16 +142,33 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
         TrySpawnPowerRoleSession();
 
-        NetworkObject spawned = masterRunner.Spawn(
-            VirusPrefab,
-            _spawnPosition,
-            Quaternion.identity
-        );
-
-        if (spawned != null)
+        if (VirusPrefab != null && !_primarySpawned)
         {
-            _virusSpawned = true;
-            UnityEngine.Debug.Log("Virus spawned at: " + _spawnPosition);
+            NetworkObject spawned = masterRunner.Spawn(
+                VirusPrefab,
+                _spawnPosition,
+                Quaternion.identity
+            );
+            if (spawned != null)
+            {
+                _primarySpawned = true;
+                UnityEngine.Debug.Log("Primary virus spawned at: " + _spawnPosition);
+            }
+        }
+
+        if (SecondVirusPrefab != null && !_secondarySpawned)
+        {
+            Vector3 p2 = _spawnPosition + secondVirusSpawnOffset;
+            NetworkObject spawned2 = masterRunner.Spawn(
+                SecondVirusPrefab,
+                p2,
+                Quaternion.identity
+            );
+            if (spawned2 != null)
+            {
+                _secondarySpawned = true;
+                UnityEngine.Debug.Log("Second virus spawned at: " + p2);
+            }
         }
     }
 
@@ -146,12 +176,13 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
     {
         if (!runner.IsSharedModeMasterClient) return;
         TrySpawnPowerRoleSession();
-        TrySpawnVirus();
+        TrySpawnViruses();
     }
 
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
     {
-        _virusSpawned = false;
+        _primarySpawned = false;
+        _secondarySpawned = false;
         _powerRoleSessionSpawned = false;
     }
 
@@ -174,7 +205,7 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
             runner.AddCallbacks(this);
             _registeredRunners.Add(runner);
             TrySpawnPowerRoleSession();
-            TrySpawnVirus();
+            TrySpawnViruses();
         }
     }
 

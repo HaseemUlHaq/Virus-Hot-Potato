@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -8,13 +9,9 @@ using UnityEngine;
 ///   1. Add this script to the virus prefab.
 ///   2. Assign the 10 material variants in the inspector (ordered Virus 1 … Virus 10).
 ///   3. Set Default Material Index to the index of Virus 2 (i.e. 1 if zero-indexed).
-///   4. Assign the MeshRenderer (or leave empty to auto-find on this GameObject).
+///   4. Assign the MeshRenderer, or enable Apply To Child Renderers for skinned meshes.
 ///   5. In your Select object's ActiveStateUnityEventWrapper, wire the
 ///      "When Activated" event to call VirusSwipeCycler.CycleNext.
-/// 
-/// Networking note:
-///   This script is visual-only and does not touch any networked state.
-///   Your colleague can add [Networked] material index sync later if needed.
 /// </summary>
 public class VirusSwipeCycler : MonoBehaviour
 {
@@ -26,17 +23,21 @@ public class VirusSwipeCycler : MonoBehaviour
     [SerializeField] private int defaultMaterialIndex = 1;
 
     [Header("Renderer")]
-    [Tooltip("The MeshRenderer whose material will be swapped. Auto-found if left empty.")]
+    [Tooltip("Single MeshRenderer for simple virus meshes. Ignored when Apply To Child Renderers is on.")]
     [SerializeField] private MeshRenderer targetRenderer;
 
+    [Tooltip("Apply material variants to all Mesh/Skinned renderers under this object (e.g. Virus 3).")]
+    [SerializeField] private bool applyToChildRenderers;
+
+    private Renderer[] _targetRenderers = System.Array.Empty<Renderer>();
     private int _currentIndex;
 
     private void Awake()
     {
-        if (targetRenderer == null)
-            targetRenderer = GetComponent<MeshRenderer>();
-
-        _currentIndex = Mathf.Clamp(defaultMaterialIndex, 0, materialVariants.Length - 1);
+        CacheTargetRenderers();
+        _currentIndex = materialVariants != null && materialVariants.Length > 0
+            ? Mathf.Clamp(defaultMaterialIndex, 0, materialVariants.Length - 1)
+            : defaultMaterialIndex;
     }
 
     private void OnEnable()
@@ -83,13 +84,38 @@ public class VirusSwipeCycler : MonoBehaviour
 
     // ── Internal ────────────────────────────────────────────────────────
 
+    private void CacheTargetRenderers()
+    {
+        if (applyToChildRenderers)
+        {
+            _targetRenderers = GetComponentsInChildren<Renderer>(true)
+                .Where(r => r != null && r.gameObject != gameObject)
+                .ToArray();
+            return;
+        }
+
+        if (targetRenderer == null)
+            targetRenderer = GetComponent<MeshRenderer>();
+
+        _targetRenderers = targetRenderer != null
+            ? new Renderer[] { targetRenderer }
+            : System.Array.Empty<Renderer>();
+    }
+
     private void ApplyCurrentMaterial()
     {
-        if (targetRenderer == null || materialVariants == null || materialVariants.Length == 0)
+        if (_targetRenderers == null || _targetRenderers.Length == 0
+            || materialVariants == null || materialVariants.Length == 0)
             return;
 
         Material mat = materialVariants[_currentIndex];
-        if (mat != null)
-            targetRenderer.material = mat;
+        if (mat == null)
+            return;
+
+        foreach (Renderer renderer in _targetRenderers)
+        {
+            if (renderer != null)
+                renderer.material = mat;
+        }
     }
 }
