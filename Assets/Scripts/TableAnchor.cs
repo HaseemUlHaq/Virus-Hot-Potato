@@ -1,3 +1,4 @@
+using Fusion;
 using UnityEngine;
 using Meta.XR.MRUtilityKit;
 
@@ -89,6 +90,13 @@ public class TableAnchor : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Applies QR pose to the networked anchor (RPC to state authority when needed).
+    /// Authoritative virus spawn pose on the shared-mode master is driven by replicated
+    /// <see cref="NetworkedTableAnchor"/> on that client's VirusSpawner.
+    /// <see cref="VirusSpawner.SetTablePosition"/> is only called here when this machine is the master
+    /// (immediate path); non-master headsets rely solely on replicated anchor state.
+    /// </summary>
     private void ApplyPlacement(Vector3 position, Quaternion rotation)
     {
         if (networkedTable != null)
@@ -97,7 +105,11 @@ public class TableAnchor : MonoBehaviour
         TableSurfacePosition = position;
         TableFound = true;
 
-        if (virusSpawner != null)
+        NetworkRunner runner = networkedTable != null ? networkedTable.Runner : null;
+        bool localClientIsMaster = runner != null && runner.IsRunning && runner.IsSharedModeMasterClient;
+
+        // Non-master: authoritative spawn pose comes only from networked anchor replication on master's VirusSpawner.
+        if (virusSpawner != null && localClientIsMaster)
             virusSpawner.SetTablePosition(position);
 
         Debug.Log($"[TableAnchor] Table placed at {position}");

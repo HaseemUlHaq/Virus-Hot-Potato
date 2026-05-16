@@ -3,6 +3,9 @@ using Fusion;
 
 public class PetriDish : NetworkBehaviour
 {
+    private static PetriDish[] s_dishesCache;
+    private static float s_dishesCacheTime;
+
     [SerializeField] private float virusHoverHeight = 0.08f;
     [SerializeField] private float snapDelay = 0.25f;
     [SerializeField] private float snapOverlapRadius = 0.4f;
@@ -33,14 +36,14 @@ public class PetriDish : NetworkBehaviour
             return;
         }
 
-        // Try to snap nearby virus
+        // Try to snap nearby virus (closest candidate; supports multiple viruses in the scene)
         if (!IsOccupied)
         {
-            NetworkGrabbableVirus virus = FindFirstObjectByType<NetworkGrabbableVirus>();
-            if (virus != null && !virus.IsBeingGrabbed)
+            NetworkGrabbableVirus virus = FindBestVirusForSnap();
+            if (virus != null)
             {
                 Vector3 center = GetHoverPosition();
-                float dist = Vector3.Distance(virus.transform.position, center);
+                float dist = GetDistanceVirusToSnapPoint(virus, center);
 
                 if (dist <= snapOverlapRadius)
                 {
@@ -59,6 +62,77 @@ public class PetriDish : NetworkBehaviour
                     _snapDwellStart = -1f;
                 }
             }
+            else
+            {
+                _snapDwellStart = -1f;
+            }
         }
+    }
+
+    private static PetriDish[] GetCachedDishes()
+    {
+        if (s_dishesCache == null || Time.time - s_dishesCacheTime > 1f)
+        {
+            s_dishesCache = FindObjectsByType<PetriDish>(FindObjectsSortMode.None);
+            s_dishesCacheTime = Time.time;
+        }
+        return s_dishesCache ?? System.Array.Empty<PetriDish>();
+    }
+
+    /// <summary>
+    /// Distance from snap target to virus: use collider if present so offset meshes /
+    /// child-heavy prefabs still overlap the dish correctly.
+    /// </summary>
+    private static float GetDistanceVirusToSnapPoint(NetworkGrabbableVirus virus, Vector3 snapPoint)
+    {
+        if (virus == null) return float.MaxValue;
+        Collider col = virus.GetComponent<Collider>();
+        if (col != null && col.enabled)
+        {
+            Vector3 closest = col.ClosestPoint(snapPoint);
+            return Vector3.Distance(closest, snapPoint);
+        }
+        return Vector3.Distance(virus.transform.position, snapPoint);
+    }
+
+    /// <summary>True if another petri dish already holds this virus.</summary>
+    private bool IsVirusHeldElsewhere(NetworkGrabbableVirus virus)
+    {
+        if (virus == null) return true;
+        foreach (var dish in GetCachedDishes())
+        {
+            if (dish == null || ReferenceEquals(dish, this)) continue;
+            if (!dish) continue;
+            if (dish.IsOccupied && dish.SnappedVirus == virus)
+                return true;
+        }
+        return false;
+    }
+
+    private NetworkGrabbableVirus FindBestVirusForSnap()
+    {
+        Vector3 center = GetHoverPosition();
+        NetworkGrabbableVirus best = null;
+        float bestDist = float.MaxValue;
+
+        foreach (var virus in FindObjectsByType<NetworkGrabbableVirus>(FindObjectsSortMode.None))
+        {
+            if (virus == null) continue;
+            // Avoid excluding valid networked viruses — IsValid can be false on some peers/ticks in Shared mode.
+            if (virus.Object == null) continue;
+            // Networked holder (all peers agree). IsBeingGrabbed is local-only and MUST NOT gate snap —
+            // the dish authority client's view would ignore other players' grabs.
+            if (virus.CurrentHolder != PlayerRef.None) continue;
+            if (IsVirusHeldElsewhere(virus)) continue;
+
+            float dist = GetDistanceVirusToSnapPoint(virus, center);
+            if (dist <= snapOverlapRadius && dist < bestDist)
+            {
+                bestDist = dist;
+                best = virus;
+            }
+        }
+
+        return best;
     }
 }

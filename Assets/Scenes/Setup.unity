@@ -2933,6 +2933,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 359ca2430dd48094da6896a6d601f8f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VirusSpawner
+  networkedTableAnchor: {fileID: 0}
   VirusPrefab: {fileID: 7645413214548881538, guid: fbec6627f6ff8884d8a9229a44e2b578, type: 3}
   spawnPosition: {x: 0, y: 0.05, z: 0}
 --- !u!4 &2084592681
