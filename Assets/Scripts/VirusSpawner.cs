@@ -245,6 +245,14 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
         while (true)
         {
             RegisterToActiveRunners();
+            // Stop once we have a master runner and all viruses are spawned — OnPlayerJoined handles the rest.
+            bool hasMaster = false;
+            foreach (var r in _registeredRunners)
+            {
+                if (r != null && r.IsRunning && r.IsSharedModeMasterClient) { hasMaster = true; break; }
+            }
+            if (hasMaster && AllRequestedVirusesSpawned())
+                yield break;
             yield return new WaitForSeconds(1f);
         }
     }

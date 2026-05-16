@@ -62,7 +62,15 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     public bool IsBeingGrabbed { get; private set; } = false;
     private bool _pendingGrab = false;
     private bool _pendingRelease = false;
+    private Handedness _pendingHandedness = Handedness.Left;
+
+    // ─── Ghost Hand Snap ──────────────────────────────────────────────────
+    [Networked] private NetworkBool _holderUsesLeftHand { get; set; }
+    private NetworkedHandSimple _cachedHolderHand;
+    private PlayerRef _cachedHolderHandFor = PlayerRef.None;
     private Coroutine _deferredReleaseAuthorityRoutine;
+    private Coroutine _stopPulsateRoutine;
+    private bool _networkTransformEnabled = true;
     public bool _petriDishDisablesNetworkTransform;
 
     [Header("Collaborative MR (Petri sync)")]
@@ -171,10 +179,12 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         if (_networkTransform == null) return;
         if (_petriDishDisablesNetworkTransform) return;
 
-        if (IsBeingGrabbed && !Object.HasStateAuthority)
-            _networkTransform.enabled = false;
-        else
-            _networkTransform.enabled = true;
+        bool wantEnabled = !(IsBeingGrabbed && !Object.HasStateAuthority);
+        if (wantEnabled != _networkTransformEnabled)
+        {
+            _networkTransformEnabled = wantEnabled;
+            _networkTransform.enabled = wantEnabled;
+        }
     }
 
     // ─── Network Tick ─────────────────────────────────────────────────────
@@ -189,6 +199,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             _pendingGrab = false;
             CurrentHolder = Runner.LocalPlayer;
             _lastTouchedPlayer = Runner.LocalPlayer;
+            _holderUsesLeftHand = (_pendingHandedness == Handedness.Left);
 
             if (!_fuseTimer.IsRunning && !_roundResolved)
             {
@@ -340,6 +351,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     {
         IsBeingGrabbed = true;
         _pendingGrab = true;
+        _pendingHandedness = handedness;
 
         if (Object != null && !Object.HasStateAuthority)
             Object.RequestStateAuthority();
@@ -493,14 +505,12 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     {
         if (!IsPulsating)
             transform.localScale = Vector3.one * VirusScale;
-        UnityEngine.Debug.Log($"Virus scale changed to {VirusScale}");
     }
 
     private void OnMaterialIndexChanged()
     {
         if (swipeCycler != null)
             swipeCycler.SetMaterialIndex(MaterialIndex);
-        UnityEngine.Debug.Log($"Virus material changed to index {MaterialIndex}");
     }
 
     private void OnVirusPulsateChanged()
@@ -508,7 +518,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         _pulsateTime = 0f;
         if (!IsPulsating)
             transform.localScale = Vector3.one * VirusScale;
-        UnityEngine.Debug.Log($"Virus pulsate toggled to {IsPulsating}");
     }
 
     // ─── Public API ───────────────────────────────────────────────────────
@@ -592,14 +601,42 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     {
         _preBeforeScale = VirusScale;
         IsPulsating = true;
-        StartCoroutine(StopPulsateNetwork());
+        if (_stopPulsateRoutine != null) StopCoroutine(_stopPulsateRoutine);
+        _stopPulsateRoutine = StartCoroutine(StopPulsateNetwork());
     }
 
     IEnumerator StopPulsateNetwork()
     {
         yield return new WaitForSeconds(1f);
+        _stopPulsateRoutine = null;
         IsPulsating = false;
         VirusScale = _preBeforeScale;
+    }
+
+    // ─── Ghost Hand Snap ──────────────────────────────────────────────────
+
+    private void LateUpdate()
+    {
+        if (Runner == null || Object == null || !Object.IsValid) return;
+        if (CurrentHolder == PlayerRef.None || Object.HasStateAuthority) return;
+        if (_petriDishDisablesNetworkTransform) return;
+
+        if (_cachedHolderHandFor != CurrentHolder)
+        {
+            _cachedHolderHandFor = CurrentHolder;
+            _cachedHolderHand = null;
+            foreach (var hand in FindObjectsByType<NetworkedHandSimple>(FindObjectsSortMode.None))
+            {
+                if (hand.Object == null || !hand.Object.IsValid) continue;
+                if (hand.Object.StateAuthority != CurrentHolder) continue;
+                if (hand.IsLeftHand != _holderUsesLeftHand) continue;
+                _cachedHolderHand = hand;
+                break;
+            }
+        }
+
+        if (_cachedHolderHand != null && _cachedHolderHand.Object != null && _cachedHolderHand.Object.IsValid)
+            transform.position = _cachedHolderHand.GetPalmPosition();
     }
 
     // ─── Render Loop ─────────────────────────────────────────────────────
@@ -625,6 +662,12 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         {
             StopCoroutine(_deferredReleaseAuthorityRoutine);
             _deferredReleaseAuthorityRoutine = null;
+        }
+
+        if (_stopPulsateRoutine != null)
+        {
+            StopCoroutine(_stopPulsateRoutine);
+            _stopPulsateRoutine = null;
         }
 
         if (_grabbable != null)
