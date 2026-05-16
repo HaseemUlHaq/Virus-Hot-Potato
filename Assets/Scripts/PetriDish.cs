@@ -5,6 +5,8 @@ public class PetriDish : NetworkBehaviour
 {
     private static PetriDish[] s_dishesCache;
     private static float s_dishesCacheTime;
+    private static NetworkGrabbableVirus[] s_virusCache;
+    private static float s_virusCacheTime;
 
     [SerializeField] private float virusHoverHeight = 0.08f;
     [SerializeField] private float snapDelay = 0.25f;
@@ -79,6 +81,16 @@ public class PetriDish : NetworkBehaviour
         return s_dishesCache ?? System.Array.Empty<PetriDish>();
     }
 
+    private static NetworkGrabbableVirus[] GetCachedViruses()
+    {
+        if (s_virusCache == null || Time.time - s_virusCacheTime > 1f)
+        {
+            s_virusCache = FindObjectsByType<NetworkGrabbableVirus>(FindObjectsSortMode.None);
+            s_virusCacheTime = Time.time;
+        }
+        return s_virusCache ?? System.Array.Empty<NetworkGrabbableVirus>();
+    }
+
     /// <summary>
     /// Distance from snap target to virus: use collider if present so offset meshes /
     /// child-heavy prefabs still overlap the dish correctly.
@@ -115,7 +127,7 @@ public class PetriDish : NetworkBehaviour
         NetworkGrabbableVirus best = null;
         float bestDist = float.MaxValue;
 
-        foreach (var virus in FindObjectsByType<NetworkGrabbableVirus>(FindObjectsSortMode.None))
+        foreach (var virus in GetCachedViruses())
         {
             if (virus == null) continue;
             // Avoid excluding valid networked viruses — IsValid can be false on some peers/ticks in Shared mode.
