@@ -534,6 +534,8 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     {
         if (shapeCycler != null)
             shapeCycler.SetShapeIndex(ShapeVariantIndex);
+        if (swipeCycler != null)
+            swipeCycler.RefreshAfterShapeChange();
     }
 
     // ─── Public API ───────────────────────────────────────────────────────

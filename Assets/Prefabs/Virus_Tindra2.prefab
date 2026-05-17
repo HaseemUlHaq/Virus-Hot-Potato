@@ -65,7 +65,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Meta.XR.BuildingBlocks::Meta.XR.BuildingBlocks.BuildingBlock
   blockId: e9b4b64f-1c7e-4dff-8f3c-ce409bdc3951
-  instanceId: b775981a-473b-4b00-93bd-5a432dec95fa
+  instanceId: b8706d5d-c591-461f-96b6-f9224a7e6678
   version: 1
   installationRoutineCheckpoint:
     _installationRoutineId: 54548176-30f4-4a4a-8057-340a383c6102
@@ -277,20 +277,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd850fdebe2d1d049a3a4b00dc48aa58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VirusSwipeCycler
-  materialVariants:
-  - {fileID: 2100000, guid: b7208c3a2f0d17c4382f38fd5d54ea43, type: 2}
-  - {fileID: 2100000, guid: 323327467956eca46aedab41f4a599c8, type: 2}
-  - {fileID: 2100000, guid: 15bd91361a9308345afe2d8631688653, type: 2}
-  - {fileID: 2100000, guid: 7e0f61646e2cba5488cee5d344cf7589, type: 2}
-  - {fileID: 2100000, guid: a133ffc495e154046a06507527730cb9, type: 2}
-  - {fileID: 2100000, guid: 197ec7a3dce39724f82999c47af868da, type: 2}
-  - {fileID: 2100000, guid: 840842f1ebec2e4499e6ed9a3ff163bf, type: 2}
-  - {fileID: 2100000, guid: 02db5a1f5689d634a9eb2d1eed8622a7, type: 2}
-  - {fileID: 2100000, guid: bd25290b509edd0478387cabc1677dbd, type: 2}
-  - {fileID: 2100000, guid: 87a613b3c9c4e2d4f88bba6b3fe80a37, type: 2}
-  defaultMaterialIndex: 1
+  colorThemes:
+  - bodyColor: {r: 0.028660158, g: 0.14150941, b: 0, a: 0}
+    spikeColor: {r: 0.063651726, g: 0.31132078, b: 0, a: 0}
+    veinGlowColor: {r: 0.06301003, g: 0.30946895, b: 0, a: 1}
+    glowIntensity: 0.46
+  - bodyColor: {r: 0, g: 0.12156863, b: 0.11352913, a: 0}
+    spikeColor: {r: 0.058823522, g: 0.41568628, b: 0.3935271, a: 0}
+    veinGlowColor: {r: 0.4509804, g: 0.14654893, b: 0, a: 1}
+    glowIntensity: 5
+  - bodyColor: {r: 0.12156863, g: 0, b: 0.017805237, a: 0}
+    spikeColor: {r: 0.41568628, g: 0.058823522, b: 0.23010524, a: 0}
+    veinGlowColor: {r: 0.509434, g: 0.035438888, b: 0, a: 1}
+    glowIntensity: 3
+  - bodyColor: {r: 0.02336241, g: 0.23584908, b: 0.066462465, a: 0}
+    spikeColor: {r: 0.15886435, g: 0.24410476, b: 0.3207547, a: 0}
+    veinGlowColor: {r: 0.038047355, g: 0.1792453, b: 0.16355662, a: 1}
+    glowIntensity: 2
+  - bodyColor: {r: 0.23584908, g: 0.23584908, b: 0.23584908, a: 0}
+    spikeColor: {r: 0.16037738, g: 0.14067905, b: 0.12784801, a: 0}
+    veinGlowColor: {r: 0.012682453, g: 0.013984072, b: 0.028301895, a: 1}
+    glowIntensity: 3
+  - bodyColor: {r: 0.23584908, g: 0.23584908, b: 0.23584908, a: 0}
+    spikeColor: {r: 0.4716981, g: 0.4716981, b: 0.4716981, a: 0}
+    veinGlowColor: {r: 0, g: 0.12550883, b: 0.18867922, a: 1}
+    glowIntensity: 3
+  - bodyColor: {r: 0.2035867, g: 0.45129985, b: 0.5754717, a: 0}
+    spikeColor: {r: 0.045637216, g: 0.015129937, b: 0.6415094, a: 0}
+    veinGlowColor: {r: 0.13479866, g: 0, b: 0.1882353, a: 1}
+    glowIntensity: 3
+  - bodyColor: {r: 1, g: 1, b: 1, a: 0}
+    spikeColor: {r: 0.28152037, g: 0.41568628, b: 0.058823522, a: 0}
+    veinGlowColor: {r: 0.10083229, g: 0.24528301, b: 0.0011569981, a: 1}
+    glowIntensity: 5
+  - bodyColor: {r: 0.1509434, g: 0.1509434, b: 0.1509434, a: 0}
+    spikeColor: {r: 0.36320752, g: 0.68658733, b: 1, a: 0}
+    veinGlowColor: {r: 0.01886791, g: 0.018266967, b: 0.018244913, a: 1}
+    glowIntensity: 6
+  - bodyColor: {r: 0.3207547, g: 0.0015129976, b: 0.10462699, a: 0}
+    spikeColor: {r: 0.41568628, g: 0.058823522, b: 0.23010524, a: 0}
+    veinGlowColor: {r: 0.16668683, g: 0, b: 0.4245283, a: 1}
+    glowIntensity: 3
+  defaultThemeIndex: 1
   targetRenderer: {fileID: 6198457664840306716}
-  applyToChildRenderers: 0
+  applyToChildRenderers: 1
 --- !u!114 &6965427306927512859
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -398,11 +428,13 @@ MonoBehaviour:
   releaseStateAuthorityOnUnselect: 0
   releaseStateAuthorityDelaySeconds: 0.35
   swipeCycler: {fileID: 1381689035116568269}
+  shapeCycler: {fileID: 0}
   eliminationMessageText: {fileID: 0}
   _VirusScale: 1
   _MaterialIndex: 1
   _IsPulsating:
     _value: 0
+  _ShapeVariantIndex: 0
   _petriDishDisablesNetworkTransform: 0
   bindVisualToPetriSnapOnAllPeers: 1
 --- !u!114 &7321827033630362553
@@ -1224,7 +1256,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Meta.XR.BuildingBlocks::Meta.XR.BuildingBlocks.BuildingBlock
   blockId: f8766c17-aaf8-4b55-9431-de8deea83842
-  instanceId: f02ba37c-9308-4745-82c0-a67a65933f26
+  instanceId: 4e890160-1d5a-4e7e-bbc2-4627f430c90e
   version: 1
   installationRoutineCheckpoint:
     _installationRoutineId: f8338144-8280-4ff6-9455-ae2bb9c20fe8
