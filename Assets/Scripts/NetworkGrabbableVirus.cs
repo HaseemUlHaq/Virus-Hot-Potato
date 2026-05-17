@@ -34,6 +34,9 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     [Header("Material Cycling")]
     [SerializeField] private VirusSwipeCycler swipeCycler;
 
+    [Header("Shape Cycling")]
+    [SerializeField] private VirusShapeCycler shapeCycler;
+
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI eliminationMessageText;
 
@@ -57,6 +60,9 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     [Networked, OnChangedRender(nameof(OnVirusPulsateChanged))]
     public NetworkBool IsPulsating { get; set; } = false;
+
+    [Networked, OnChangedRender(nameof(OnShapeVariantChanged))]
+    public int ShapeVariantIndex { get; set; } = 0;
 
     // ─── Local State ──────────────────────────────────────────────────────
     public bool IsBeingGrabbed { get; private set; } = false;
@@ -146,7 +152,11 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             VirusScale = 1.0f;
             MaterialIndex = 1;
             IsPulsating = false;
+            ShapeVariantIndex = 0;
         }
+
+        if (shapeCycler != null)
+            shapeCycler.SetShapeIndex(0);
 
         _grabbable.WhenPointerEventRaised += OnPointerEvent;
         RefreshPowerRoleSessionReference();
@@ -518,6 +528,12 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         _pulsateTime = 0f;
         if (!IsPulsating)
             transform.localScale = Vector3.one * VirusScale;
+    }
+
+    private void OnShapeVariantChanged()
+    {
+        if (shapeCycler != null)
+            shapeCycler.SetShapeIndex(ShapeVariantIndex);
     }
 
     // ─── Public API ───────────────────────────────────────────────────────

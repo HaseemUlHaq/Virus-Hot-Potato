@@ -4276,15 +4276,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5799459514361745869, guid: c4ea2eeab9b81b544a63b9eee6458588, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.527
+      value: -0.6117
       objectReference: {fileID: 0}
     - target: {fileID: 5799459514361745869, guid: c4ea2eeab9b81b544a63b9eee6458588, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.05
+      value: -0.01
       objectReference: {fileID: 0}
     - target: {fileID: 5799459514361745869, guid: c4ea2eeab9b81b544a63b9eee6458588, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.186
+      value: 0.1852
       objectReference: {fileID: 0}
     - target: {fileID: 5799459514361745869, guid: c4ea2eeab9b81b544a63b9eee6458588, type: 3}
       propertyPath: m_LocalRotation.w
@@ -6413,7 +6413,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7041200180461378597, guid: 78827750274df7b4cb5c0ea42254bf77, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.6
+      value: 0.6247
       objectReference: {fileID: 0}
     - target: {fileID: 7041200180461378597, guid: 78827750274df7b4cb5c0ea42254bf77, type: 3}
       propertyPath: m_LocalPosition.y
@@ -6421,7 +6421,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7041200180461378597, guid: 78827750274df7b4cb5c0ea42254bf77, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.187
+      value: -0.1778
       objectReference: {fileID: 0}
     - target: {fileID: 7041200180461378597, guid: 78827750274df7b4cb5c0ea42254bf77, type: 3}
       propertyPath: m_LocalRotation.w
@@ -6554,7 +6554,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2082799607}
   m_LocalRotation: {x: -0, y: -0.00000008940697, z: -0, w: -1}
-  m_LocalPosition: {x: 0, y: 0, z: -25}
+  m_LocalPosition: {x: 0, y: 0, z: -1}
   m_LocalScale: {x: 26.666666, y: 26.666666, z: 26.666666}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -6562,8 +6562,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: -18.496, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -252, y: 322}
-  m_SizeDelta: {x: 20, y: 5}
+  m_AnchoredPosition: {x: -183, y: 333}
+  m_SizeDelta: {x: 39.3, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2082799609
 MonoBehaviour:
@@ -6622,14 +6622,14 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 28
-  m_fontSizeBase: 28
+  m_fontSize: 25
+  m_fontSizeBase: 25
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -6729,6 +6729,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2084592681}
   - component: {fileID: 2084592680}
+  - component: {fileID: 2084592682}
   m_Layer: 0
   m_Name: VirusSpawner
   m_TagString: Untagged
@@ -6749,8 +6750,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VirusSpawner
   networkedTableAnchor: {fileID: 152540253}
-  VirusPrefab: {fileID: -933810911031657331, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
-  SecondVirusPrefab: {fileID: -933810911031657331, guid: 62cf69041fdb4004f92bb8505f541c44, type: 3}
+  formationManager: {fileID: 2084592682}
+  VirusPrefab: {fileID: 0}
+  SecondVirusPrefab: {fileID: 0}
   secondVirusSpawnOffset: {x: 0.22, y: 0, z: 0}
   PowerRoleSessionPrefab: {fileID: -8011111111111111111, guid: c1a2b3c4d5e6f708192a3b4c5d6e7f80, type: 3}
 --- !u!4 &2084592681
@@ -6768,6 +6770,26 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2084592682
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2084592679}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d92b77ce0e7548468e8b552f0e7f80c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FormationManager
+  exampleFormationPrefab: {fileID: 6250050097418037432, guid: 338f31eea55de5643a836b90cc1f4b74, type: 3}
+  placeholderFormationPrefab: {fileID: 8608431204928259347, guid: 09fb7914ab284894080177caab417b86, type: 3}
+  virusWorkPrefab: {fileID: -933810911031657331, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
+  formationData: {fileID: 11400000, guid: 3651782c59044cc4f99b788f50cff043, type: 2}
+  exampleOffset: {x: 0.6, y: 0.4, z: 0}
+  placeholderOffset: {x: 0, y: 0.3, z: 0}
+  workVirusBaseOffset: {x: -0.3, y: 0.15, z: 0}
+  workVirusSpacing: {x: 0.15, y: 0, z: 0}
 --- !u!1 &2091405065
 GameObject:
   m_ObjectHideFlags: 0
@@ -9930,11 +9952,13 @@ MonoBehaviour:
   releaseStateAuthorityOnUnselect: 0
   releaseStateAuthorityDelaySeconds: 0.35
   swipeCycler: {fileID: 1381689035560402874}
+  shapeCycler: {fileID: 0}
   eliminationMessageText: {fileID: 0}
   _VirusScale: 1
   _MaterialIndex: 1
   _IsPulsating:
     _value: 1
+  _ShapeVariantIndex: 0
   _petriDishDisablesNetworkTransform: 0
   bindVisualToPetriSnapOnAllPeers: 1
 --- !u!114 &7801827490705811516
@@ -10510,7 +10534,6 @@ SceneRoots:
   - {fileID: 1209228699}
   - {fileID: 1064510443}
   - {fileID: 152540251}
-  - {fileID: 2084592681}
   - {fileID: 1459040474}
   - {fileID: 1977987381}
   - {fileID: 1374894895}
@@ -10518,3 +10541,4 @@ SceneRoots:
   - {fileID: 1784483086}
   - {fileID: 51445509}
   - {fileID: 1757354799}
+  - {fileID: 2084592681}

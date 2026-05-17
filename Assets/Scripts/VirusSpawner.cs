@@ -20,6 +20,9 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
     /// <summary>Last PlacementVersion consumed from anchor; cleared on round reset so respawn still runs when table stays placed.</summary>
     private int _lastAppliedPlacementVersion = -1;
 
+    [Header("Formation")]
+    [SerializeField] private FormationManager formationManager;
+
     [Header("Assign in Inspector")]
     public NetworkObject VirusPrefab;
     [Tooltip("Optional second virus (e.g. alternate mesh). Spawned beside the primary using Second Virus Spawn Offset.")]
@@ -115,6 +118,7 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
         _positionReady = false;
         _powerRoleSessionSpawned = false;
         _lastAppliedPlacementVersion = -1;
+        formationManager?.ResetForNewRound();
         UnityEngine.Debug.Log("VirusSpawner reset");
     }
 
@@ -223,6 +227,8 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
                 UnityEngine.Debug.Log("Second virus spawned at: " + p2);
             }
         }
+
+        formationManager?.TrySpawnFormations(masterRunner, _spawnPosition);
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
