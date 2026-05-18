@@ -2,6 +2,7 @@ using Fusion;
 using UnityEngine;
 
 // Root of the placeholder formation. Checks every tick if all slots are correctly filled and fires OnIsCompleteChanged when the puzzle is solved.
+[DefaultExecutionOrder(-50)]
 public class PlaceholderFormation : NetworkBehaviour
 {
     [Header("Formation")]
