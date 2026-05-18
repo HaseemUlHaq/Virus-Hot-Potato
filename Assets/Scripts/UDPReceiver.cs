@@ -16,6 +16,7 @@ public class UDPReceiver : MonoBehaviour
     private static UDPReceiver instance;
 
     public static bool triggerPulse = false;
+    public static bool triggerBlow = false;
 
     void Awake()
     {
@@ -40,6 +41,11 @@ public class UDPReceiver : MonoBehaviour
         {
             triggerPulse = false;
             TryPulse();
+        }
+        if (triggerBlow)
+        {
+            triggerBlow = false;
+            TrySpikeBurst();
         }
     }
 
@@ -68,6 +74,21 @@ public class UDPReceiver : MonoBehaviour
         if (netVirus != null)
         {
             Debug.Log("[UDP] ✓ Sending RPC_TriggerPulse to all headsets!");
+            netVirus.RPC_TriggerPulse();
+        }
+        else
+        {
+            Debug.LogWarning("[UDP] NetworkGrabbableVirus not found in scene!");
+        }
+    }
+
+    void TrySpikeBurst()
+    {
+        NetworkGrabbableVirus netVirus = FindFirstObjectByType<NetworkGrabbableVirus>();
+        Debug.Log("[UDP] Virus found for SpikeBurst: " + (netVirus != null));
+        if (netVirus != null)
+        {
+            Debug.Log("[UDP] ✓ Sending RPC_TriggerSpikeBurst to all headsets!");
             netVirus.RPC_TriggerPulse();
         }
         else
@@ -107,6 +128,11 @@ public class UDPReceiver : MonoBehaviour
                 {
                     Debug.Log("[UDP] Setting triggerPulse = true");
                     triggerPulse = true;
+                }
+                else if (message == "BLOW")
+                {
+                    Debug.Log("[UDP] Setting triggerBlow = true");
+                    triggerBlow = true;
                 }
             }
             catch (Exception e)

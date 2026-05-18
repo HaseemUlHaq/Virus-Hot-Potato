@@ -58,6 +58,12 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     [Networked, OnChangedRender(nameof(OnVirusPulsateChanged))]
     public NetworkBool IsPulsating { get; set; } = false;
 
+    [Networked, OnChangedRender(nameof(OnSpikeBurstChanged))]
+    public float SpikeBurst { get; set; } = 0f;
+
+    [Networked, OnChangedRender(nameof(OnIsSpikingChanged))]
+    public NetworkBool IsSpiking { get; set; } = false;
+
     // ─── Local State ──────────────────────────────────────────────────────
     public bool IsBeingGrabbed { get; private set; } = false;
     private bool _pendingGrab = false;
@@ -67,9 +73,13 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     // ─── Pulse Scale Memory ───────────────────────────────────────────────
     private float _preBeforeScale = 1f;
+    private bool _isPlayingSpikeBurst = false;
 
     // ─── Pulsate Animation State ──────────────────────────────────────────
     private float _pulsateTime = 0f;
+    private float _spikeBurstTime = 0f;
+    private bool _isAnimatingSpikeBurst = false;
+    private float _spikeBurstRenderTime = 0f;
     private const float PULSATE_SPEED = 2f;
     private const float PULSATE_AMOUNT = 0.2f;
 
@@ -131,6 +141,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             VirusScale = 1.0f;
             MaterialIndex = 1;
             IsPulsating = false;
+            IsSpiking = false;
         }
 
         _grabbable.WhenPointerEventRaised += OnPointerEvent;
@@ -472,6 +483,22 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         UnityEngine.Debug.Log($"Virus pulsate toggled to {IsPulsating}");
     }
 
+    private void OnSpikeBurstChanged()
+    {
+        if (SpikeBurst >= 0.9f)
+        {
+            _spikeBurstTime = 0f;
+            _isAnimatingSpikeBurst = true;
+            UnityEngine.Debug.Log("[SpikeBurst] Starting render animation");
+        }
+    }
+
+    private void OnIsSpikingChanged()
+    {
+        _spikeBurstTime = 0f;
+        UnityEngine.Debug.Log($"[SpikeBurst] IsSpiking changed to {IsSpiking}");
+    }
+
     // ─── Public API ───────────────────────────────────────────────────────
 
     public void SetVirusScale(float newScale)
@@ -518,6 +545,11 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         RPC_RequestTogglePulse();
     }
 
+    public void RequestSpikeBurstFromTangible()
+    {
+        RPC_TriggerSpikeBurst();
+    }
+
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     public void RPC_RequestTogglePulse(RpcInfo info = default)
     {
@@ -544,6 +576,54 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         VirusScale = _preBeforeScale;
     }
 
+    IEnumerator StopSpikingNetwork()
+    {
+        yield return new WaitForSeconds(1f);
+        IsSpiking = false;
+        VirusScale = _preBeforeScale;
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_TriggerSpikeBurst()
+    {
+        _preBeforeScale = VirusScale;
+        IsSpiking = true;
+        StartCoroutine(StopSpikingNetwork());
+    }
+
+    IEnumerator DecaySpikeBurst()
+    {
+        float elapsed = 0f;
+        while (elapsed < 0.8f)
+        {
+            elapsed += Time.deltaTime;
+            SpikeBurst = Mathf.Lerp(1f, 0f, elapsed / 0.8f);
+            yield return null;
+        }
+        SpikeBurst = 0f;
+    }
+
+    IEnumerator AnimateSpikeBurstLocal()
+    {
+        _isPlayingSpikeBurst = true;
+        _spikeBurstRenderTime = 0f;
+        float duration = 0.8f;
+        UnityEngine.Debug.Log($"[SpikeBurst] Animating VirusScale={VirusScale}");
+        yield return new WaitForEndOfFrame();
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float burst = 1f + Mathf.Sin((elapsed / duration) * Mathf.PI) * 2.0f;
+            transform.localScale = Vector3.one * VirusScale * burst;
+            UnityEngine.Debug.Log($"[SpikeBurst] scale={transform.localScale.x:F2}");
+            yield return new WaitForEndOfFrame();
+        }
+        transform.localScale = Vector3.one * VirusScale;
+        _isPlayingSpikeBurst = false;
+        UnityEngine.Debug.Log("[SpikeBurst] Animation complete");
+    }
+
     // ─── Render Loop ─────────────────────────────────────────────────────
 
     public override void Render()
@@ -554,6 +634,30 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             _pulsateTime += Time.deltaTime * PULSATE_SPEED;
             float pulse = 1f + Mathf.Sin(_pulsateTime) * PULSATE_AMOUNT;
             transform.localScale = Vector3.one * VirusScale * pulse;
+        }
+        else if (IsSpiking)
+        {
+            _spikeBurstTime += Time.deltaTime;
+            float burst = 1f + Mathf.Sin((_spikeBurstTime / 1f) * Mathf.PI) * 2.0f;
+            transform.localScale = Vector3.one * VirusScale * burst;
+        }
+        else if (_isAnimatingSpikeBurst)
+        {
+            _spikeBurstTime += Time.deltaTime;
+            float duration = 0.8f;
+            if (_spikeBurstTime >= duration)
+            {
+                _isAnimatingSpikeBurst = false;
+                _spikeBurstTime = 0f;
+                transform.localScale = Vector3.one * VirusScale;
+                UnityEngine.Debug.Log("[SpikeBurst] Render animation complete");
+            }
+            else
+            {
+                float burst = 1f + Mathf.Sin((_spikeBurstTime / duration) * Mathf.PI) * 2.0f;
+                transform.localScale = Vector3.one * VirusScale * burst;
+                UnityEngine.Debug.Log($"[SpikeBurst] VirusScale={VirusScale} burst={burst:F2} finalScale={transform.localScale.x:F2}");
+            }
         }
     }
 
