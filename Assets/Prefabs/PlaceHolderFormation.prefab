@@ -47,8 +47,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlaceholderSlot
   virusHoverHeight: 0.08
-  snapDelay: 0.25
-  snapOverlapRadius: 0.4
+  snapDelay: 0.01
+  snapOverlapRadius: 0.02
   dishRenderer: {fileID: 2410359316494942622}
   _SnappedVirus: {fileID: 0}
   _IsOccupied:
@@ -168,9 +168,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlaceholderSlot
   virusHoverHeight: 0.08
-  snapDelay: 0.25
-  snapOverlapRadius: 0.4
-  dishRenderer: {fileID: 2410359316494942622}
+  snapDelay: 0.01
+  snapOverlapRadius: 0.02
+  dishRenderer: {fileID: 6037442220276127392}
   _SnappedVirus: {fileID: 0}
   _IsOccupied:
     _value: 0
@@ -179,7 +179,7 @@ MonoBehaviour:
   RequiredIsPulsating: 0
   RequiredShapeVariantIndex: 0
   scaleTolerance: 0.15
-  slotRenderer: {fileID: 2410359316494942622}
+  slotRenderer: {fileID: 6037442220276127392}
   emptyMaterial: {fileID: 2100000, guid: 54a5256866bd2014b8f4d20d091a5b25, type: 2}
   correctMaterial: {fileID: 2100000, guid: 275b2c99765ede142919b05d8a0a22b0, type: 2}
   wrongMaterial: {fileID: 2100000, guid: fadf4ab759020d549bdc810492267a97, type: 2}
@@ -389,8 +389,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlaceholderSlot
   virusHoverHeight: 0.08
-  snapDelay: 0.25
-  snapOverlapRadius: 0.4
+  snapDelay: 0.01
+  snapOverlapRadius: 0.02
   dishRenderer: {fileID: 1903393628767421219}
   _SnappedVirus: {fileID: 0}
   _IsOccupied:
@@ -510,9 +510,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlaceholderSlot
   virusHoverHeight: 0.08
-  snapDelay: 0.25
-  snapOverlapRadius: 0.4
-  dishRenderer: {fileID: 2410359316494942622}
+  snapDelay: 0.01
+  snapOverlapRadius: 0.02
+  dishRenderer: {fileID: 387773168477655753}
   _SnappedVirus: {fileID: 0}
   _IsOccupied:
     _value: 0
@@ -521,7 +521,7 @@ MonoBehaviour:
   RequiredIsPulsating: 0
   RequiredShapeVariantIndex: 0
   scaleTolerance: 0.15
-  slotRenderer: {fileID: 2410359316494942622}
+  slotRenderer: {fileID: 387773168477655753}
   emptyMaterial: {fileID: 2100000, guid: 54a5256866bd2014b8f4d20d091a5b25, type: 2}
   correctMaterial: {fileID: 2100000, guid: 275b2c99765ede142919b05d8a0a22b0, type: 2}
   wrongMaterial: {fileID: 2100000, guid: fadf4ab759020d549bdc810492267a97, type: 2}

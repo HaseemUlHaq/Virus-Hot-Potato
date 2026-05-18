@@ -5076,7 +5076,7 @@ MonoBehaviour:
   virusSpawner: {fileID: 2084592680}
   qrCodePayload: virus_puck_1
   yRotationOffset: 90
-  skipColocationGate: 0
+  skipColocationGate: 1
 --- !u!4 &1459040474
 Transform:
   m_ObjectHideFlags: 0
