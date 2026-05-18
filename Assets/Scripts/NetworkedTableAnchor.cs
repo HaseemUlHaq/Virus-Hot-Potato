@@ -12,24 +12,18 @@ public class NetworkedTableAnchor : NetworkBehaviour
     [Networked] private Vector3 SyncedPosition { get; set; }
     [Networked] private Quaternion SyncedRotation { get; set; }
     [Networked] private NetworkBool IsPlaced { get; set; }
+    [Networked] private int PlacementVersion { get; set; }
 
-    private Vector3 _pendingPosition;
-    private Quaternion _pendingRotation;
-    private bool _hasPending;
+    public bool IsTablePlaced => IsPlaced;
+    public Quaternion PlacedRotation => SyncedRotation;
+    public Vector3 PlacedSurfacePosition => SyncedPosition;
+    /// <summary>Increments whenever state authority commits a new placement; spawners use this to resync after round reset.</summary>
+    public int CurrentPlacementVersion => PlacementVersion;
 
     public override void Spawned()
     {
         if (Runner.IsSharedModeMasterClient && !Object.HasStateAuthority)
             Object.RequestStateAuthority();
-    }
-
-    private void Update()
-    {
-        if (!_hasPending) return;
-        if (Object == null || !Object.HasStateAuthority) return;
-
-        PlaceNow(_pendingPosition, _pendingRotation);
-        _hasPending = false;
     }
 
     // Render() runs every visual frame on all clients.
@@ -46,20 +40,23 @@ public class NetworkedTableAnchor : NetworkBehaviour
 
     /// <summary>
     /// Called by TableAnchor when QR code is detected on any client.
-    /// Only the master (state authority) commits — others store pending and discard it.
+    /// State authority commits immediately; everyone else forwards via RPC.
     /// </summary>
     public void RequestPlacement(Vector3 position, Quaternion rotation)
     {
-        if (Object != null && Object.HasStateAuthority)
-        {
+        if (Object == null || !Object.IsValid)
+            return;
+
+        if (Object.HasStateAuthority)
             PlaceNow(position, rotation);
-        }
         else
-        {
-            _pendingPosition = position;
-            _pendingRotation = rotation;
-            _hasPending = true;
-        }
+            RPC_RequestPlacement(position, rotation);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_RequestPlacement(Vector3 position, Quaternion rotation, RpcInfo info = default)
+    {
+        PlaceNow(position, rotation);
     }
 
     private void PlaceNow(Vector3 position, Quaternion rotation)
@@ -67,6 +64,7 @@ public class NetworkedTableAnchor : NetworkBehaviour
         SyncedPosition = position;
         SyncedRotation = rotation;
         IsPlaced = true;
-        Debug.Log($"[NetworkedTableAnchor] Master placed table at {position}");
+        PlacementVersion++;
+        Debug.Log($"[NetworkedTableAnchor] Table placed at {position} (version {PlacementVersion})");
     }
 }

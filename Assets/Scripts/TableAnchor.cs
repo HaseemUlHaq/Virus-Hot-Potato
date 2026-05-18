@@ -1,3 +1,4 @@
+using Fusion;
 using UnityEngine;
 using Meta.XR.MRUtilityKit;
 
@@ -12,6 +13,10 @@ public class TableAnchor : MonoBehaviour
 
     [Header("Tune these in Inspector")]
     [SerializeField] private float yRotationOffset = 0f;
+
+    [Header("Testing")]
+    [Tooltip("Skip the colocation gate so QR placement works in solo / Meta Quest Link testing (single device). Disable before shipping.")]
+    [SerializeField] private bool skipColocationGate = false;
 
     public static Vector3 TableSurfacePosition { get; private set; }
     public static bool TableFound { get; private set; } = false;
@@ -35,6 +40,9 @@ public class TableAnchor : MonoBehaviour
         MRUK.Instance.SceneSettings.TrackerConfiguration = config;
 
         MRUK.Instance.SceneSettings.TrackableAdded.AddListener(OnTrackableAdded);
+
+        if (skipColocationGate)
+            OnColocationReady();
     }
 
     // ─── Called by ColocationController.ColocationReadyCallbacks ─────────
@@ -89,6 +97,13 @@ public class TableAnchor : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Applies QR pose to the networked anchor (RPC to state authority when needed).
+    /// Authoritative virus spawn pose on the shared-mode master is driven by replicated
+    /// <see cref="NetworkedTableAnchor"/> on that client's VirusSpawner.
+    /// <see cref="VirusSpawner.SetTablePosition"/> is only called here when this machine is the master
+    /// (immediate path); non-master headsets rely solely on replicated anchor state.
+    /// </summary>
     private void ApplyPlacement(Vector3 position, Quaternion rotation)
     {
         if (networkedTable != null)
@@ -97,6 +112,9 @@ public class TableAnchor : MonoBehaviour
         TableSurfacePosition = position;
         TableFound = true;
 
+        // Always tell VirusSpawner the table position. VirusSpawner gates the actual
+        // spawn on having a master runner, so non-masters and early calls are safe —
+        // the position is stored and TrySpawnViruses() retries on OnPlayerJoined.
         if (virusSpawner != null)
             virusSpawner.SetTablePosition(position);
 

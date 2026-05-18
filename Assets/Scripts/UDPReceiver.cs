@@ -59,20 +59,22 @@ public class UDPReceiver : MonoBehaviour
 
     void TryPulse()
     {
-        // Find by component - works regardless of object name or clone suffix
-        NetworkGrabbableVirus netVirus =
-            FindFirstObjectByType<NetworkGrabbableVirus>();
+        var viruses = FindObjectsByType<NetworkGrabbableVirus>(FindObjectsSortMode.None);
+        Debug.Log($"[UDP] Viruses found: {viruses.Length}");
 
-        Debug.Log("[UDP] Virus found: " + (netVirus != null));
-
-        if (netVirus != null)
-        {
-            Debug.Log("[UDP] ✓ Sending RPC_TriggerPulse to all headsets!");
-            netVirus.RPC_TriggerPulse();
-        }
-        else
+        if (viruses.Length == 0)
         {
             Debug.LogWarning("[UDP] NetworkGrabbableVirus not found in scene!");
+            return;
+        }
+
+        foreach (var netVirus in viruses)
+        {
+            if (netVirus != null)
+            {
+                Debug.Log($"[UDP] ✓ RPC_TriggerPulse → {netVirus.name}");
+                netVirus.RPC_TriggerPulse();
+            }
         }
     }
 

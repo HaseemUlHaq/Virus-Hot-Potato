@@ -1,18 +1,16 @@
-using System.Collections;
 using Oculus.Interaction.Input;
 using UnityEngine;
 
 /// <summary>
 /// Lives in the SCENE on VirusGestureDetectors.
 /// Receives swipe events from HandSwipeGestureLeft/Right (scene-level ActiveStateUnityEventWrapper)
-/// and forwards them to the spawned virus — but only when the swiping hand is within
-/// maxSwipeDistance of the virus (proximity gate).
+/// and forwards them to the virus closest to the swiping hand (proximity gate).
 /// </summary>
 public class VirusGestureRouter : MonoBehaviour
 {
     // ─── Proximity Gate ───────────────────────────────────────────────────
     [Header("Proximity Gate")]
-    [Tooltip("Max distance (metres) the hand must be from the virus centre for a swipe to register.")]
+    [Tooltip("Max distance (metres) the hand must be from a virus centre for a swipe to register.")]
     [SerializeField] private float maxSwipeDistance = 0.35f;
 
     // ─── Hand References (auto-found if left empty) ───────────────────────
@@ -20,18 +18,9 @@ public class VirusGestureRouter : MonoBehaviour
     [SerializeField] private Hand leftHand;
     [SerializeField] private Hand rightHand;
 
-    private NetworkGrabbableVirus _virus;
-
     private void OnEnable()
     {
-        StartCoroutine(FindVirusRoutine());
         TryFindHands();
-    }
-
-    private void OnDisable()
-    {
-        StopAllCoroutines();
-        _virus = null;
     }
 
     private void TryFindHands()
@@ -48,95 +37,55 @@ public class VirusGestureRouter : MonoBehaviour
         }
     }
 
-    private IEnumerator FindVirusRoutine()
-    {
-        while (true)
-        {
-            _virus = FindFirstObjectByType<NetworkGrabbableVirus>();
-            if (_virus != null)
-            {
-                Debug.Log("[VirusGestureRouter] Found virus.");
-                yield break;
-            }
-            yield return new WaitForSeconds(0.5f);
-        }
-    }
-
     // Called by LEFT hand swipe ActiveStateUnityEventWrapper → When Activated
     public void OnLeftSwipe()
     {
         Debug.Log("[VirusGestureRouter] OnLeftSwipe called");
-        if (_virus == null) { Debug.LogWarning("[VirusGestureRouter] No virus found"); return; }
-        if (!IsHandNearVirus(leftHand, Handedness.Left)) return;
-        StartCoroutine(CycleWithAuthority(false));
+        TryFindHands();
+        NetworkGrabbableVirus virus = ResolveVirusForHand(leftHand, Handedness.Left);
+        if (virus == null) { Debug.LogWarning("[VirusGestureRouter] No virus in range"); return; }
+        if (virus.Object == null || !virus.Object.IsValid) return;
+        Debug.Log($"[VirusGestureRouter] Cycle previous via RPC on {virus.name}");
+        virus.RequestCycleMaterialFromGesture(nextMaterial: false);
     }
 
     // Called by RIGHT hand swipe ActiveStateUnityEventWrapper → When Activated
     public void OnRightSwipe()
     {
         Debug.Log("[VirusGestureRouter] OnRightSwipe called");
-        if (_virus == null) { Debug.LogWarning("[VirusGestureRouter] No virus found"); return; }
-        if (!IsHandNearVirus(rightHand, Handedness.Right)) return;
-        StartCoroutine(CycleWithAuthority(true));
+        TryFindHands();
+        NetworkGrabbableVirus virus = ResolveVirusForHand(rightHand, Handedness.Right);
+        if (virus == null) { Debug.LogWarning("[VirusGestureRouter] No virus in range"); return; }
+        if (virus.Object == null || !virus.Object.IsValid) return;
+        Debug.Log($"[VirusGestureRouter] Cycle next via RPC on {virus.name}");
+        virus.RequestCycleMaterialFromGesture(nextMaterial: true);
     }
 
-    // Returns true when the hand is close enough to the virus (or when hand tracking
-    // is unavailable, so the gate is transparent in that edge case).
-    private bool IsHandNearVirus(Hand hand, Handedness side)
+    private NetworkGrabbableVirus ResolveVirusForHand(Hand hand, Handedness side)
     {
-        // Lazy-find in case hands weren't ready during OnEnable
-        if (hand == null)
-        {
-            TryFindHands();
-            hand = side == Handedness.Left ? leftHand : rightHand;
-        }
+        if (hand != null && hand.GetRootPose(out Pose pose))
+            return FindClosestVirus(pose.position, maxSwipeDistance);
 
-        if (hand == null)
-        {
-            Debug.LogWarning($"[VirusGestureRouter] {side} Hand reference missing — swipe proximity check skipped");
-            return true; // fail-open so the game still works without hand tracking setup
-        }
-
-        if (!hand.GetRootPose(out Pose pose))
-        {
-            Debug.LogWarning($"[VirusGestureRouter] {side} hand pose unavailable — swipe proximity check skipped");
-            return true;
-        }
-
-        float dist = Vector3.Distance(pose.position, _virus.transform.position);
-        bool near = dist <= maxSwipeDistance;
-
-        if (!near)
-            Debug.Log($"[VirusGestureRouter] {side} hand {dist:F2}m from virus (max {maxSwipeDistance}m) — swipe ignored");
-
-        return near;
+        Debug.LogWarning($"[VirusGestureRouter] {side} hand pose unavailable — using first virus in scene (fallback)");
+        return FindFirstObjectByType<NetworkGrabbableVirus>();
     }
 
-    private IEnumerator CycleWithAuthority(bool next)
+    private static NetworkGrabbableVirus FindClosestVirus(Vector3 fromPosition, float maxDistance)
     {
-        if (_virus.Object == null) yield break;
+        NetworkGrabbableVirus best = null;
+        float bestDist = maxDistance;
 
-        if (!_virus.Object.HasStateAuthority)
+        foreach (var v in FindObjectsByType<NetworkGrabbableVirus>(FindObjectsSortMode.None))
         {
-            Debug.Log("[VirusGestureRouter] Requesting state authority...");
-            _virus.Object.RequestStateAuthority();
-
-            float timeout = 1f;
-            while (!_virus.Object.HasStateAuthority && timeout > 0f)
+            if (v == null) continue;
+            float d = Vector3.Distance(v.transform.position, fromPosition);
+            if (d <= bestDist)
             {
-                timeout -= Time.deltaTime;
-                yield return null;
+                bestDist = d;
+                best = v;
             }
         }
 
-        if (!_virus.Object.HasStateAuthority)
-        {
-            Debug.LogWarning("[VirusGestureRouter] Could not get state authority — cycle skipped");
-            yield break;
-        }
-
-        Debug.Log($"[VirusGestureRouter] Cycling {(next ? "next" : "previous")}");
-        if (next) _virus.CycleMaterialNext();
-        else _virus.CycleMaterialPrevious();
+        return best;
     }
 }
