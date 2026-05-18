@@ -4,7 +4,10 @@ using UnityEngine;
 // Root of the placeholder formation. Checks every tick if all slots are correctly filled and fires OnIsCompleteChanged when the puzzle is solved.
 public class PlaceholderFormation : NetworkBehaviour
 {
-    [Header("Slots (children, same order as VirusFormationData.slots)")]
+    [Header("Formation")]
+    [SerializeField] private Transform formationRoot;
+
+    [Header("Slots (children of FormationRoot, same order as VirusFormationData.slots)")]
     [SerializeField] private PlaceholderSlot[] slots;
 
     [Header("Formation Data (assign in prefab — applied on all clients in Spawned)")]
@@ -13,8 +16,16 @@ public class PlaceholderFormation : NetworkBehaviour
     [Header("Connection Lines (optional visual links between slots)")]
     [SerializeField] private LineRenderer[] connectionLines;
 
+    [Header("Rotation")]
+    [SerializeField] private float rotationSensitivity = 1f;
+
+    [Networked] private float _rotationY { get; set; }
+
     [Networked, OnChangedRender(nameof(OnIsCompleteChanged))]
     public NetworkBool IsComplete { get; private set; }
+
+    public Transform FormationRoot => formationRoot;
+    public float RotationSensitivity => rotationSensitivity;
 
     public override void Spawned()
     {
@@ -25,6 +36,8 @@ public class PlaceholderFormation : NetworkBehaviour
 
     public override void FixedUpdateNetwork()
     {
+        ApplyRotation();
+
         if (!Object.HasStateAuthority) return;
 
         bool complete = slots != null && slots.Length > 0;
@@ -43,7 +56,28 @@ public class PlaceholderFormation : NetworkBehaviour
     public override void Render()
     {
         base.Render();
+        ApplyRotation();
         RefreshConnectionLines();
+    }
+
+    /// <summary>Normalized input (e.g. degrees / sensitivity). Synced for all players.</summary>
+    public void RequestRotate(float normalizedDelta)
+    {
+        if (!Object || !Object.IsValid) return;
+        RPC_Rotate(normalizedDelta * rotationSensitivity);
+    }
+
+    /// <summary>Degrees to add to networked Y rotation.</summary>
+    public void AddRotationDegrees(float deltaDegrees)
+    {
+        if (!Object || !Object.IsValid) return;
+        RPC_Rotate(deltaDegrees);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void RPC_Rotate(float deltaDegrees)
+    {
+        _rotationY += deltaDegrees;
     }
 
     /// <summary>Called by FormationManager after spawn.</summary>
@@ -60,19 +94,24 @@ public class PlaceholderFormation : NetworkBehaviour
     public int SlotCount => slots != null ? slots.Length : 0;
     public PlaceholderSlot GetSlot(int index) => (slots != null && index < slots.Length) ? slots[index] : null;
 
+    private void ApplyRotation()
+    {
+        Transform root = formationRoot != null ? formationRoot : transform;
+        root.localRotation = Quaternion.Euler(0f, _rotationY, 0f);
+    }
+
     private void OnIsCompleteChanged()
     {
         if (IsComplete)
             Debug.Log("[PlaceholderFormation] All slots correctly filled — formation complete!");
-        // TODO: hook into round manager / trigger victory VFX
     }
 
     private void RefreshConnectionLines()
     {
+        if (connectionLines == null) return;
         for (int i = 0; i < connectionLines.Length; i++)
         {
-            var line = connectionLines[i];
-            if (line == null) continue;
+            if (connectionLines[i] == null) continue;
         }
     }
 }
