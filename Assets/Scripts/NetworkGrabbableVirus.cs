@@ -155,8 +155,13 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             ShapeVariantIndex = 0;
         }
 
+        // Apply initial visual state on all clients — [OnChangedRender] won't fire if the
+        // networked value matches its default, so we push it explicitly once at spawn.
+        transform.localScale = Vector3.one * VirusScale;
+        if (swipeCycler != null)
+            swipeCycler.SetMaterialIndex(MaterialIndex);
         if (shapeCycler != null)
-            shapeCycler.SetShapeIndex(0);
+            shapeCycler.SetShapeIndex(ShapeVariantIndex);
 
         _grabbable.WhenPointerEventRaised += OnPointerEvent;
         RefreshPowerRoleSessionReference();

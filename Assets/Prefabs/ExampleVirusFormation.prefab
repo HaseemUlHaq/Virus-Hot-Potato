@@ -1476,6 +1476,7 @@ GameObject:
   - component: {fileID: 2033586774111263417}
   - component: {fileID: 6250050097418037432}
   - component: {fileID: 8810002970114735044}
+  - component: {fileID: 6117613004175823363}
   m_Layer: 0
   m_Name: ExampleVirusFormation
   m_TagString: Untagged
@@ -1492,7 +1493,7 @@ Transform:
   m_GameObject: {fileID: 7870462813608344463}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.6724074, y: 0.756, z: -1.068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1513,10 +1514,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
   SortKey: 3177113224
   ObjectInterest: 1
-  Flags: 262145
+  Flags: 131073
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 8810002970114735044}
+  - {fileID: 6117613004175823363}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &8810002970114735044
 MonoBehaviour:
@@ -1539,6 +1541,23 @@ MonoBehaviour:
   connectionLines: []
   preassignedFormationData: {fileID: 11400000, guid: 3651782c59044cc4f99b788f50cff043, type: 2}
   rotationSensitivity: 90
+--- !u!114 &6117613004175823363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7870462813608344463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &8023800184979711830
 GameObject:
   m_ObjectHideFlags: 0
