@@ -2443,8 +2443,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.6036019, y: 0.091118865, z: 1.8348305}
-  m_Center: {x: 0.39783454, y: -0.00055943057, z: 0.15378463}
+  m_Size: {x: 1.6036019, y: 0.03, z: 1.8348305}
+  m_Center: {x: 0.39783454, y: 0.03, z: 0.15378463}
 --- !u!1 &731950337
 GameObject:
   m_ObjectHideFlags: 0
@@ -3232,7 +3232,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0.5, y: 0.5, z: 0.5, w: 0.5}
   m_LocalPosition: {x: 0.40501994, y: 0.055480003, z: -0.74181}
-  m_LocalScale: {x: 0.010049132, y: 1.6613299, z: 0.18316501}
+  m_LocalScale: {x: -0.010049132, y: 1.6613299, z: 0.18316501}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 640257106}
@@ -3597,7 +3597,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0.5, y: 0.5, z: 0.5, w: 0.5}
   m_LocalPosition: {x: 0.40901995, y: 0.055480003, z: 1.06419}
-  m_LocalScale: {x: 0.010049132, y: 1.6274701, z: 0.18316501}
+  m_LocalScale: {x: -0.010049132, y: 1.6274701, z: 0.18316501}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 640257106}
@@ -4804,7 +4804,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.7071068, z: 0.7071068, w: 0}
   m_LocalPosition: {x: -0.393, y: 0.055480003, z: 0.15819}
-  m_LocalScale: {x: 0.010049129, y: 1.8057197, z: 0.18316498}
+  m_LocalScale: {x: -0.010049129, y: 1.8057197, z: 0.18316498}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 640257106}
@@ -5072,7 +5072,7 @@ MonoBehaviour:
   virusSpawner: {fileID: 2084592680}
   qrCodePayload: virus_puck_1
   yRotationOffset: 90
-  skipColocationGate: 0
+  skipColocationGate: 1
 --- !u!4 &1459040474
 Transform:
   m_ObjectHideFlags: 0
@@ -6108,7 +6108,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.7071068, z: 0.7071068, w: 0}
   m_LocalPosition: {x: 1.203, y: 0.055480003, z: 0.16119}
-  m_LocalScale: {x: 0.010049129, y: 1.803519, z: 0.18316498}
+  m_LocalScale: {x: -0.010049129, y: 1.803519, z: 0.18316498}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 640257106}

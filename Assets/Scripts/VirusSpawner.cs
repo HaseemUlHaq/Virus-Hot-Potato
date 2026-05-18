@@ -171,13 +171,7 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     private void TrySpawnViruses()
     {
-        if (AllRequestedVirusesSpawned()) return;
         if (!_positionReady) return;
-        if (VirusPrefab == null && SecondVirusPrefab == null)
-        {
-            UnityEngine.Debug.LogWarning("VirusSpawner: no virus prefabs assigned");
-            return;
-        }
 
         NetworkRunner masterRunner = null;
         foreach (var runner in _registeredRunners)
@@ -257,7 +251,7 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
             {
                 if (r != null && r.IsRunning && r.IsSharedModeMasterClient) { hasMaster = true; break; }
             }
-            if (hasMaster && AllRequestedVirusesSpawned())
+            if (hasMaster && AllRequestedVirusesSpawned() && (formationManager == null || formationManager.HasSpawned))
                 yield break;
             yield return new WaitForSeconds(1f);
         }

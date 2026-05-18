@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"c:\\\\Users\\\\loli6917\\\\Documents\\\\GitHub\\\\Virus-Hot-Potato\" && grep -c \"SlotConfig\\\\|materialIndex\\\\|isPulsating\\\\|shapeVariantIndex\" \"Assets/Assets/VirusFormationData_01.asset\")",
+      "Read(//c/Users/loli6917/Documents/GitHub/Virus-Hot-Potato/**)"
+    ]
+  }
+}

@@ -7,11 +7,21 @@ public class PlaceholderFormation : NetworkBehaviour
     [Header("Slots (children, same order as VirusFormationData.slots)")]
     [SerializeField] private PlaceholderSlot[] slots;
 
+    [Header("Formation Data (assign in prefab — applied on all clients in Spawned)")]
+    [SerializeField] private VirusFormationData preassignedFormationData;
+
     [Header("Connection Lines (optional visual links between slots)")]
     [SerializeField] private LineRenderer[] connectionLines;
 
     [Networked, OnChangedRender(nameof(OnIsCompleteChanged))]
     public NetworkBool IsComplete { get; private set; }
+
+    public override void Spawned()
+    {
+        base.Spawned();
+        if (preassignedFormationData != null)
+            ConfigureSlots(preassignedFormationData);
+    }
 
     public override void FixedUpdateNetwork()
     {

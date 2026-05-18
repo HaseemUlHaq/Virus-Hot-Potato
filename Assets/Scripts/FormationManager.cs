@@ -13,16 +13,17 @@ public class FormationManager : MonoBehaviour
     [SerializeField] private VirusFormationData formationData;
 
     [Header("Offsets from table surface position")]
-    [Tooltip("Where the example formation appears — beside/above the table for easy viewing.")]
-    [SerializeField] private Vector3 exampleOffset = new Vector3(0.6f, 0.4f, 0f);
-    [Tooltip("Where the placeholder formation hovers — directly above the work area.")]
-    [SerializeField] private Vector3 placeholderOffset = new Vector3(0f, 0.3f, 0f);
+    [Tooltip("Where the example formation appears — to the side of the table, elevated for easy viewing.")]
+    [SerializeField] private Vector3 exampleOffset = new Vector3(0.6724f, 0.756f, -1.068f);
+    [Tooltip("Where the placeholder formation hovers — above the centre of the work area.")]
+    [SerializeField] private Vector3 placeholderOffset = new Vector3(0.1f, 0.35f, 0.2f);
     [Tooltip("Base spawn position for work viruses on the table surface.")]
-    [SerializeField] private Vector3 workVirusBaseOffset = new Vector3(-0.3f, 0.15f, 0f);
+    [SerializeField] private Vector3 workVirusBaseOffset = new Vector3(-0.1f, 0.15f, 0f);
     [Tooltip("Spacing between spawned work viruses.")]
-    [SerializeField] private Vector3 workVirusSpacing = new Vector3(0.15f, 0f, 0f);
+    [SerializeField] private Vector3 workVirusSpacing = new Vector3(0.1f, 0f, 0f);
 
     private bool _spawned;
+    public bool HasSpawned => _spawned;
 
     public void TrySpawnFormations(NetworkRunner masterRunner, Vector3 tablePosition)
     {

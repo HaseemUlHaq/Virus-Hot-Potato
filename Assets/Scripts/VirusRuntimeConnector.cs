@@ -33,8 +33,12 @@ public class VirusRuntimeConnector : MonoBehaviour
 
         foreach (var hand in sceneHands)
         {
-            if (hand.Handedness == Handedness.Left && leftHand == null) leftHand = hand;
-            else if (hand.Handedness == Handedness.Right && rightHand == null) rightHand = hand;
+            try
+            {
+                if (hand.Handedness == Handedness.Left && leftHand == null) leftHand = hand;
+                else if (hand.Handedness == Handedness.Right && rightHand == null) rightHand = hand;
+            }
+            catch { }
         }
 
         if (handRefs.Length > 0 && leftHand != null)

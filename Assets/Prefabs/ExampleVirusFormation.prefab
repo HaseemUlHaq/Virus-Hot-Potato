@@ -140,18 +140,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd850fdebe2d1d049a3a4b00dc48aa58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VirusSwipeCycler
-  materialVariants:
-  - {fileID: 2100000, guid: b7208c3a2f0d17c4382f38fd5d54ea43, type: 2}
-  - {fileID: 2100000, guid: 323327467956eca46aedab41f4a599c8, type: 2}
-  - {fileID: 2100000, guid: 15bd91361a9308345afe2d8631688653, type: 2}
-  - {fileID: 2100000, guid: 7e0f61646e2cba5488cee5d344cf7589, type: 2}
-  - {fileID: 2100000, guid: a133ffc495e154046a06507527730cb9, type: 2}
-  - {fileID: 2100000, guid: 197ec7a3dce39724f82999c47af868da, type: 2}
-  - {fileID: 2100000, guid: 840842f1ebec2e4499e6ed9a3ff163bf, type: 2}
-  - {fileID: 2100000, guid: 02db5a1f5689d634a9eb2d1eed8622a7, type: 2}
-  - {fileID: 2100000, guid: bd25290b509edd0478387cabc1677dbd, type: 2}
-  - {fileID: 2100000, guid: 87a613b3c9c4e2d4f88bba6b3fe80a37, type: 2}
-  defaultMaterialIndex: 1
+  colorThemes: []
+  defaultThemeIndex: 1
   targetRenderer: {fileID: 0}
   applyToChildRenderers: 1
 --- !u!114 &42308025356452992
@@ -955,18 +945,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd850fdebe2d1d049a3a4b00dc48aa58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VirusSwipeCycler
-  materialVariants:
-  - {fileID: 2100000, guid: b7208c3a2f0d17c4382f38fd5d54ea43, type: 2}
-  - {fileID: 2100000, guid: 323327467956eca46aedab41f4a599c8, type: 2}
-  - {fileID: 2100000, guid: 15bd91361a9308345afe2d8631688653, type: 2}
-  - {fileID: 2100000, guid: 7e0f61646e2cba5488cee5d344cf7589, type: 2}
-  - {fileID: 2100000, guid: a133ffc495e154046a06507527730cb9, type: 2}
-  - {fileID: 2100000, guid: 197ec7a3dce39724f82999c47af868da, type: 2}
-  - {fileID: 2100000, guid: 840842f1ebec2e4499e6ed9a3ff163bf, type: 2}
-  - {fileID: 2100000, guid: 02db5a1f5689d634a9eb2d1eed8622a7, type: 2}
-  - {fileID: 2100000, guid: bd25290b509edd0478387cabc1677dbd, type: 2}
-  - {fileID: 2100000, guid: 87a613b3c9c4e2d4f88bba6b3fe80a37, type: 2}
-  defaultMaterialIndex: 1
+  colorThemes: []
+  defaultThemeIndex: 1
   targetRenderer: {fileID: 0}
   applyToChildRenderers: 1
 --- !u!114 &8850859427020670386
@@ -1512,7 +1492,7 @@ Transform:
   m_GameObject: {fileID: 7870462813608344463}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.6724074, y: 0.756, z: -1.068}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1557,6 +1537,7 @@ MonoBehaviour:
   - {fileID: 1351663018763623707}
   - {fileID: 42308025356452992}
   connectionLines: []
+  preassignedFormationData: {fileID: 11400000, guid: 3651782c59044cc4f99b788f50cff043, type: 2}
   rotationSensitivity: 90
 --- !u!1 &8023800184979711830
 GameObject:
@@ -1608,18 +1589,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd850fdebe2d1d049a3a4b00dc48aa58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VirusSwipeCycler
-  materialVariants:
-  - {fileID: 2100000, guid: b7208c3a2f0d17c4382f38fd5d54ea43, type: 2}
-  - {fileID: 2100000, guid: 323327467956eca46aedab41f4a599c8, type: 2}
-  - {fileID: 2100000, guid: 15bd91361a9308345afe2d8631688653, type: 2}
-  - {fileID: 2100000, guid: 7e0f61646e2cba5488cee5d344cf7589, type: 2}
-  - {fileID: 2100000, guid: a133ffc495e154046a06507527730cb9, type: 2}
-  - {fileID: 2100000, guid: 197ec7a3dce39724f82999c47af868da, type: 2}
-  - {fileID: 2100000, guid: 840842f1ebec2e4499e6ed9a3ff163bf, type: 2}
-  - {fileID: 2100000, guid: 02db5a1f5689d634a9eb2d1eed8622a7, type: 2}
-  - {fileID: 2100000, guid: bd25290b509edd0478387cabc1677dbd, type: 2}
-  - {fileID: 2100000, guid: 87a613b3c9c4e2d4f88bba6b3fe80a37, type: 2}
-  defaultMaterialIndex: 1
+  colorThemes: []
+  defaultThemeIndex: 1
   targetRenderer: {fileID: 0}
   applyToChildRenderers: 1
 --- !u!114 &1351663018763623707
@@ -1793,18 +1764,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd850fdebe2d1d049a3a4b00dc48aa58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VirusSwipeCycler
-  materialVariants:
-  - {fileID: 2100000, guid: b7208c3a2f0d17c4382f38fd5d54ea43, type: 2}
-  - {fileID: 2100000, guid: 323327467956eca46aedab41f4a599c8, type: 2}
-  - {fileID: 2100000, guid: 15bd91361a9308345afe2d8631688653, type: 2}
-  - {fileID: 2100000, guid: 7e0f61646e2cba5488cee5d344cf7589, type: 2}
-  - {fileID: 2100000, guid: a133ffc495e154046a06507527730cb9, type: 2}
-  - {fileID: 2100000, guid: 197ec7a3dce39724f82999c47af868da, type: 2}
-  - {fileID: 2100000, guid: 840842f1ebec2e4499e6ed9a3ff163bf, type: 2}
-  - {fileID: 2100000, guid: 02db5a1f5689d634a9eb2d1eed8622a7, type: 2}
-  - {fileID: 2100000, guid: bd25290b509edd0478387cabc1677dbd, type: 2}
-  - {fileID: 2100000, guid: 87a613b3c9c4e2d4f88bba6b3fe80a37, type: 2}
-  defaultMaterialIndex: 1
+  colorThemes: []
+  defaultThemeIndex: 1
   targetRenderer: {fileID: 0}
   applyToChildRenderers: 1
 --- !u!114 &3395000445986967718

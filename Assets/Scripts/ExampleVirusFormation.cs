@@ -9,10 +9,20 @@ public class ExampleVirusFormation : NetworkBehaviour
     [SerializeField] private LockedVirusDisplay[] displayViruses;
     [SerializeField] private LineRenderer[] connectionLines;
 
+    [Header("Formation Data (assign in prefab — applied on all clients in Spawned)")]
+    [SerializeField] private VirusFormationData preassignedFormationData;
+
     [Header("Rotation")]
     [SerializeField] private float rotationSensitivity = 90f;
 
     [Networked] private float _rotationY { get; set; }
+
+    public override void Spawned()
+    {
+        base.Spawned();
+        if (preassignedFormationData != null)
+            ApplyFormationData(preassignedFormationData);
+    }
 
     public override void Render()
     {

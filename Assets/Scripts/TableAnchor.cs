@@ -14,6 +14,10 @@ public class TableAnchor : MonoBehaviour
     [Header("Tune these in Inspector")]
     [SerializeField] private float yRotationOffset = 0f;
 
+    [Header("Testing")]
+    [Tooltip("Skip the colocation gate so QR placement works in solo / Meta Quest Link testing (single device). Disable before shipping.")]
+    [SerializeField] private bool skipColocationGate = false;
+
     public static Vector3 TableSurfacePosition { get; private set; }
     public static bool TableFound { get; private set; } = false;
 
@@ -36,6 +40,9 @@ public class TableAnchor : MonoBehaviour
         MRUK.Instance.SceneSettings.TrackerConfiguration = config;
 
         MRUK.Instance.SceneSettings.TrackableAdded.AddListener(OnTrackableAdded);
+
+        if (skipColocationGate)
+            OnColocationReady();
     }
 
     // ─── Called by ColocationController.ColocationReadyCallbacks ─────────
@@ -105,11 +112,10 @@ public class TableAnchor : MonoBehaviour
         TableSurfacePosition = position;
         TableFound = true;
 
-        NetworkRunner runner = networkedTable != null ? networkedTable.Runner : null;
-        bool localClientIsMaster = runner != null && runner.IsRunning && runner.IsSharedModeMasterClient;
-
-        // Non-master: authoritative spawn pose comes only from networked anchor replication on master's VirusSpawner.
-        if (virusSpawner != null && localClientIsMaster)
+        // Always tell VirusSpawner the table position. VirusSpawner gates the actual
+        // spawn on having a master runner, so non-masters and early calls are safe —
+        // the position is stored and TrySpawnViruses() retries on OnPlayerJoined.
+        if (virusSpawner != null)
             virusSpawner.SetTablePosition(position);
 
         Debug.Log($"[TableAnchor] Table placed at {position}");

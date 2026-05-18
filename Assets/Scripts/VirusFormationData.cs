@@ -8,7 +8,7 @@ public class VirusFormationData : ScriptableObject
     public class SlotConfig
     {
         [Range(0, 9)] public int materialIndex;
-        [Range(0.5f, 3.0f)] public float scale = 1f;
+        [Range(0.05f, 3.0f)] public float scale = 1f;
         public bool isPulsating;
         public int shapeVariantIndex;
         public Vector3 localPosition;

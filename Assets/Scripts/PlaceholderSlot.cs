@@ -7,7 +7,7 @@ public class PlaceholderSlot : PetriDish
     [Header("Required Virus Properties")]
     [Tooltip("Set by FormationManager at runtime from VirusFormationData.")]
     public int RequiredMaterialIndex;
-    [Range(0.5f, 3.0f)] public float RequiredScale = 1f;
+    [Range(0.05f, 3.0f)] public float RequiredScale = 1f;
     public bool RequiredIsPulsating;
     public int RequiredShapeVariantIndex;
 
@@ -63,6 +63,6 @@ public class PlaceholderSlot : PetriDish
             target = IsFilledCorrectly ? correctMaterial : wrongMaterial;
 
         if (slotRenderer.sharedMaterial != target)
-            slotRenderer.material = target;
+            slotRenderer.sharedMaterial = target;
     }
 }

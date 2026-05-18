@@ -319,6 +319,7 @@ MonoBehaviour:
   - {fileID: 9164535885061055390}
   - {fileID: 5873374176409054994}
   - {fileID: 7003311430639629199}
+  preassignedFormationData: {fileID: 11400000, guid: 3651782c59044cc4f99b788f50cff043, type: 2}
   connectionLines: []
   _IsComplete:
     _value: 0
