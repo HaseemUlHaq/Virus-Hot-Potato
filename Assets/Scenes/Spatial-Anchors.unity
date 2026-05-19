@@ -1399,6 +1399,46 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1381689035116568269, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
+      propertyPath: colorThemes.Array.data[4].bodyColor.b
+      value: 0.23584908
+      objectReference: {fileID: 0}
+    - target: {fileID: 1381689035116568269, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
+      propertyPath: colorThemes.Array.data[4].bodyColor.g
+      value: 0.23584908
+      objectReference: {fileID: 0}
+    - target: {fileID: 1381689035116568269, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
+      propertyPath: colorThemes.Array.data[4].bodyColor.r
+      value: 0.23584908
+      objectReference: {fileID: 0}
+    - target: {fileID: 1381689035116568269, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
+      propertyPath: colorThemes.Array.data[5].bodyColor.b
+      value: 0.23584908
+      objectReference: {fileID: 0}
+    - target: {fileID: 1381689035116568269, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
+      propertyPath: colorThemes.Array.data[5].bodyColor.g
+      value: 0.23584908
+      objectReference: {fileID: 0}
+    - target: {fileID: 1381689035116568269, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
+      propertyPath: colorThemes.Array.data[5].bodyColor.r
+      value: 0.23584908
+      objectReference: {fileID: 0}
+    - target: {fileID: 1381689035116568269, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
+      propertyPath: colorThemes.Array.data[4].spikeColor.b
+      value: 0.12784801
+      objectReference: {fileID: 0}
+    - target: {fileID: 1381689035116568269, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
+      propertyPath: colorThemes.Array.data[4].spikeColor.g
+      value: 0.14067905
+      objectReference: {fileID: 0}
+    - target: {fileID: 1381689035116568269, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
+      propertyPath: colorThemes.Array.data[4].spikeColor.r
+      value: 0.16037738
+      objectReference: {fileID: 0}
+    - target: {fileID: 1381689035116568269, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
+      propertyPath: colorThemes.Array.data[4].glowIntensity
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 2144216136471679737, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
       propertyPath: m_Name
       value: Virus_Tindra2 (1)
@@ -7879,8 +7919,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VirusSwipeCycler
   colorThemes: []
   defaultThemeIndex: 1
-  spikePulseColor: {r: 2, g: 4, b: 2, a: 1}
-  spikePulseMaxIntensity: 4
+  spikePulseMaxDisplacement: 0.05
   spikePulseSpeed: 5
   targetRenderer: {fileID: 6198457665165442939}
   applyToChildRenderers: 0
@@ -7898,8 +7937,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VirusSwipeCycler
   colorThemes: []
   defaultThemeIndex: 1
-  spikePulseColor: {r: 2, g: 4, b: 2, a: 1}
-  spikePulseMaxIntensity: 4
+  spikePulseMaxDisplacement: 0.05
   spikePulseSpeed: 5
   targetRenderer: {fileID: 6198457665284698475}
   applyToChildRenderers: 0
@@ -8305,8 +8343,7 @@ MonoBehaviour:
     veinGlowColor: {r: 0.16668683, g: 0, b: 0.4245283, a: 1}
     glowIntensity: 3
   defaultThemeIndex: 1
-  spikePulseColor: {r: 2, g: 4, b: 2, a: 1}
-  spikePulseMaxIntensity: 4
+  spikePulseMaxDisplacement: 0.05
   spikePulseSpeed: 5
   targetRenderer: {fileID: 7022109464295447671}
   applyToChildRenderers: 1
