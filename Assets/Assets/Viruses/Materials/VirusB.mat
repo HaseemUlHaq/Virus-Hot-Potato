@@ -50,7 +50,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ColorMask:
-        m_Texture: {fileID: 2800000, guid: d47d2f6d38455ff49ab491503b5202fe, type: 3}
+        m_Texture: {fileID: 2800000, guid: 20c37e445e5b4324ba68292b03e113a2, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -140,6 +140,7 @@ Material:
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
+    - _SpikeDisplacement: 0
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
@@ -149,8 +150,8 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _Color_1: {r: 0.11949676, g: 0.006388183, b: 0.09687507, a: 1}
-    - _Color_3_Overlay: {r: 0, g: 0.27058825, b: 0.23993625, a: 1}
+    - _Color_1: {r: 0, g: 0, b: 0, a: 1}
+    - _Color_3_Overlay: {r: 0.05834418, g: 0.31446534, b: 0.28477013, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []

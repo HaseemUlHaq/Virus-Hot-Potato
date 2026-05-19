@@ -77,6 +77,26 @@ public class VirusSwipeCycler : MonoBehaviour
 
     private void OnEnable() => ApplyTheme(_currentIndex);
 
+    [ContextMenu("Preview Spike Displacement")]
+    private void PreviewSpikeDisplacement()
+    {
+        if (_block == null) _block = new MaterialPropertyBlock();
+        CacheAllRenderers();
+        _spikeGlow = spikePulseMaxDisplacement;
+        _block.SetFloat(PropSpikeDisplace, _spikeGlow);
+        foreach (var r in _allRenderers)
+            if (r != null) r.SetPropertyBlock(_block);
+    }
+
+    [ContextMenu("Reset Spike Displacement")]
+    private void ResetSpikeDisplacement()
+    {
+        _spikeGlow = 0f;
+        _block.SetFloat(PropSpikeDisplace, 0f);
+        foreach (var r in _allRenderers)
+            if (r != null) r.SetPropertyBlock(_block);
+    }
+
     private void Update()
     {
         bool pulsating = _virus != null && _virus.IsPulsating;

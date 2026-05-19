@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// TEMP test script — press S (keyboard) or B button (right controller) to cycle shape.
@@ -9,10 +10,21 @@ public class ShapeTestDriver : MonoBehaviour
 {
     private void Update()
     {
-        bool triggered = Input.GetKeyDown(KeyCode.S)
-            || OVRInput.GetDown(OVRInput.Button.Two);
-        if (!triggered) return;
-        CycleShape();
+        var kb = Keyboard.current;
+        if ((kb != null && kb.sKey.wasPressedThisFrame) || OVRInput.GetDown(OVRInput.Button.Two))
+            CycleShape();
+
+        if (kb != null && kb.pKey.wasPressedThisFrame)
+            TriggerPulse();
+    }
+
+    [ContextMenu("TriggerPulse")]
+    public void TriggerPulse()
+    {
+        var virus = FindAnyObjectByType<NetworkGrabbableVirus>();
+        if (virus == null) { Debug.Log("[ShapeTest] No NetworkGrabbableVirus found"); return; }
+        virus.RPC_TriggerPulse();
+        Debug.Log("[ShapeTest] Pulse triggered");
     }
 
     [ContextMenu("CycleShape")]

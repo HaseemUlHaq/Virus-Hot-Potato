@@ -555,9 +555,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     {
         if (Object != null && Object.HasStateAuthority)
         {
-            RefreshPowerRoleSessionReference();
-            if (_powerRoleSession != null && !_powerRoleSession.IsScalePlayer(Runner.LocalPlayer))
-                return;
             VirusScale = Mathf.Clamp(newScale, 0.5f, 3.0f);
         }
     }
@@ -646,8 +643,12 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     // ─── NEW: UDP Button Pulse RPC ────────────────────────────────────────
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    public void RPC_TriggerPulse()
+    public void RPC_TriggerPulse(RpcInfo info = default)
     {
+        RefreshPowerRoleSessionReference();
+        if (_powerRoleSession != null && !_powerRoleSession.IsPulsePlayer(info.Source))
+            return;
+
         _preBeforeScale = VirusScale;
         IsPulsating = true;
         if (_stopPulsateRoutine != null) StopCoroutine(_stopPulsateRoutine);
