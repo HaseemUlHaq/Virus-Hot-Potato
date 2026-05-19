@@ -89,11 +89,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     // ─── Pulse Scale Memory ───────────────────────────────────────────────
     private float _preBeforeScale = 1f;
 
-    // ─── Pulsate Animation State ──────────────────────────────────────────
-    private float _pulsateTime = 0f;
-    private const float PULSATE_SPEED = 2f;
-    private const float PULSATE_AMOUNT = 0.2f;
-
     // ─── Handedness Detection ─────────────────────────────────────────────
     private readonly Dictionary<int, Handedness> _grabHandByInteractorId = new();
     private int _lastGrabInteractorId = -1;
@@ -536,7 +531,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     private void OnVirusPulsateChanged()
     {
-        _pulsateTime = 0f;
+        Debug.Log($"[4-Network] OnVirusPulsateChanged → IsPulsating:{IsPulsating}");
         if (!IsPulsating)
             transform.localScale = Vector3.one * VirusScale;
     }
@@ -590,6 +585,22 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     public void RequestTogglePulseFromTangible()
     {
         RPC_RequestTogglePulse();
+    }
+
+    public void RequestSpikeBurstFromTangible()
+    {
+        if (Object == null || !Object.IsValid)
+        {
+            Debug.LogWarning("[Pulse] RequestSpikeBurstFromTangible — NetworkObject not valid yet");
+            return;
+        }
+        if (Runner == null)
+        {
+            Debug.LogWarning("[Pulse] RequestSpikeBurstFromTangible — Runner is null");
+            return;
+        }
+        Debug.Log($"[Pulse] Sending RPC_TriggerPulse — HasStateAuthority:{Object.HasStateAuthority} LocalPlayer:{Runner.LocalPlayer}");
+        RPC_TriggerPulse();
     }
 
     /// <summary>Gestures must use this path (RPC to authority); validates color role via <paramref name="info"/>.Source.</summary>
@@ -647,8 +658,12 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     {
         RefreshPowerRoleSessionReference();
         if (_powerRoleSession != null && !_powerRoleSession.IsPulsePlayer(info.Source))
+        {
+            Debug.LogWarning($"[Pulse] RPC_TriggerPulse rejected — sender {info.Source} is not PulsePowerPlayer ({_powerRoleSession.PulsePowerPlayer})");
             return;
+        }
 
+        Debug.Log("[Pulse] RPC_TriggerPulse accepted — IsPulsating = true");
         _preBeforeScale = VirusScale;
         IsPulsating = true;
         if (_stopPulsateRoutine != null) StopCoroutine(_stopPulsateRoutine);
@@ -698,13 +713,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     public override void Render()
     {
         base.Render();
-
-        if (IsPulsating)
-        {
-            _pulsateTime += Time.deltaTime * PULSATE_SPEED;
-            float pulse = 1f + Mathf.Sin(_pulsateTime) * PULSATE_AMOUNT;
-            transform.localScale = Vector3.one * VirusScale * pulse;
-        }
     }
 
     // ─── Cleanup ──────────────────────────────────────────────────────────

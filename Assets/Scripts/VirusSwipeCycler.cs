@@ -97,9 +97,18 @@ public class VirusSwipeCycler : MonoBehaviour
             if (r != null) r.SetPropertyBlock(_block);
     }
 
+    private bool _wasPulsating = false;
+
     private void Update()
     {
         bool pulsating = _virus != null && _virus.IsPulsating;
+
+        if (pulsating != _wasPulsating)
+        {
+            _wasPulsating = pulsating;
+            Debug.Log($"[5-Cycler] IsPulsating changed → {pulsating} | virus:{(_virus == null ? "NULL" : _virus.name)} | renderers:{_allRenderers.Length} | maxDisplace:{spikePulseMaxDisplacement}");
+        }
+
         float target = pulsating
             ? (0.5f + 0.5f * Mathf.Sin(Time.time * spikePulseSpeed)) * spikePulseMaxDisplacement
             : 0f;
