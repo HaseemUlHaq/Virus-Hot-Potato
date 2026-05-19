@@ -47,6 +47,7 @@ public class VirusGestureRouter : MonoBehaviour
         if (virus.Object == null || !virus.Object.IsValid) return;
         Debug.Log($"[VirusGestureRouter] Cycle previous via RPC on {virus.name}");
         virus.RequestCycleMaterialFromGesture(nextMaterial: false);
+        virus.RequestCycleShapeFromGesture(next: false);
     }
 
     // Called by RIGHT hand swipe ActiveStateUnityEventWrapper → When Activated
@@ -59,6 +60,7 @@ public class VirusGestureRouter : MonoBehaviour
         if (virus.Object == null || !virus.Object.IsValid) return;
         Debug.Log($"[VirusGestureRouter] Cycle next via RPC on {virus.name}");
         virus.RequestCycleMaterialFromGesture(nextMaterial: true);
+        virus.RequestCycleShapeFromGesture(next: true);
     }
 
     private NetworkGrabbableVirus ResolveVirusForHand(Hand hand, Handedness side)

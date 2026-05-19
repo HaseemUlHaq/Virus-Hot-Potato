@@ -614,6 +614,26 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             MaterialIndex = (MaterialIndex - 1 + 10) % 10;
     }
 
+    public void RequestCycleShapeFromGesture(bool next)
+    {
+        RPC_RequestCycleShape(next);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_RequestCycleShape(bool next, RpcInfo info = default)
+    {
+        RefreshPowerRoleSessionReference();
+        if (_powerRoleSession != null && !_powerRoleSession.IsShapePlayer(info.Source))
+            return;
+
+        if (shapeCycler == null) return;
+        int count = shapeCycler.ShapeCount;
+        if (count <= 1) return;
+        ShapeVariantIndex = next
+            ? (ShapeVariantIndex + 1) % count
+            : (ShapeVariantIndex - 1 + count) % count;
+    }
+
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     public void RPC_RequestTogglePulse(RpcInfo info = default)
     {

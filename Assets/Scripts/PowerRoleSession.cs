@@ -6,7 +6,7 @@ using Fusion.Sockets;
 using UnityEngine;
 
 /// <summary>
-/// Networked session: first three joiners get Power A (color), B (scale), C (pulse) in order.
+/// Networked session: joiners are assigned powers in the order defined by powerAssignmentOrder.
 /// Slots are never cleared/remapped on leave (fixed assignment for the session).
 /// </summary>
 [RequireComponent(typeof(NetworkObject))]
@@ -14,16 +14,53 @@ public class PowerRoleSession : NetworkBehaviour, INetworkRunnerCallbacks
 {
     public static PowerRoleSession Instance { get; private set; }
 
+    public enum PowerKind { Color, Scale, Shape, Pulse }
+
+    [Header("Power Assignment Order")]
+    [Tooltip("Which power each joiner receives, in order. 1st joiner = slot 0, 2nd = slot 1, etc.")]
+    [SerializeField] private PowerKind[] powerAssignmentOrder = { PowerKind.Color, PowerKind.Scale, PowerKind.Shape, PowerKind.Pulse };
+
     [Header("Debug")]
     [Tooltip("When enabled on this client, local gate checks act as if this client has all three powers.")]
     [SerializeField] private bool debugAllowAllPowersWhenUnassigned;
 
+    [Header("Manual Power Assignment (Play Mode)")]
+    [Tooltip("Enter the PlayerId shown in console as [Player:N]. 0 = skip. Then right-click → Apply Manual Assignments.")]
+    [SerializeField] private int manualColorPlayerId = 0;
+    [SerializeField] private int manualScalePlayerId = 0;
+    [SerializeField] private int manualShapePlayerId = 0;
+    [SerializeField] private int manualPulsePlayerId = 0;
+
+    [ContextMenu("Apply Manual Assignments")]
+    public void ApplyManualAssignments()
+    {
+        if (Runner == null || !Object.HasStateAuthority)
+        {
+            Debug.LogWarning("[PowerRoleSession] Must have state authority to apply assignments.");
+            return;
+        }
+        if (manualColorPlayerId > 0)  ColorPowerPlayer  = FindPlayerById(manualColorPlayerId);
+        if (manualScalePlayerId > 0)  ScalePowerPlayer  = FindPlayerById(manualScalePlayerId);
+        if (manualShapePlayerId > 0)  ShapeVariantPlayer = FindPlayerById(manualShapePlayerId);
+        if (manualPulsePlayerId > 0)  PulsePowerPlayer  = FindPlayerById(manualPulsePlayerId);
+        Debug.Log($"[PowerRoleSession] Assignments — Color:{ColorPowerPlayer} Scale:{ScalePowerPlayer} Shape:{ShapeVariantPlayer} Pulse:{PulsePowerPlayer}");
+    }
+
+    private PlayerRef FindPlayerById(int playerId)
+    {
+        foreach (var p in Runner.ActivePlayers)
+            if (p.PlayerId == playerId) return p;
+        Debug.LogWarning($"[PowerRoleSession] Player {playerId} not found.");
+        return PlayerRef.None;
+    }
+
     [Networked] public PlayerRef ColorPowerPlayer { get; set; }
     [Networked] public PlayerRef ScalePowerPlayer { get; set; }
+    [Networked] public PlayerRef ShapeVariantPlayer { get; set; }
     [Networked] public PlayerRef PulsePowerPlayer { get; set; }
 
     private bool _reconciledOnce;
-    private bool _loggedFourthPlayerFull;
+    private bool _loggedFifthPlayerFull;
 
     public bool DebugAllowAllPowersWhenUnassigned => debugAllowAllPowersWhenUnassigned;
 
@@ -77,32 +114,30 @@ public class PowerRoleSession : NetworkBehaviour, INetworkRunnerCallbacks
 
     private bool SlotContainsPlayer(PlayerRef p)
     {
-        return ColorPowerPlayer == p || ScalePowerPlayer == p || PulsePowerPlayer == p;
+        return ColorPowerPlayer == p || ScalePowerPlayer == p
+            || ShapeVariantPlayer == p || PulsePowerPlayer == p;
     }
 
     private void TryAssignPlayerToNextSlot(PlayerRef player)
     {
-        if (ColorPowerPlayer == PlayerRef.None)
+        foreach (var kind in powerAssignmentOrder)
         {
-            ColorPowerPlayer = player;
-            return;
+            switch (kind)
+            {
+                case PowerKind.Color when ColorPowerPlayer == PlayerRef.None:
+                    ColorPowerPlayer = player; return;
+                case PowerKind.Scale when ScalePowerPlayer == PlayerRef.None:
+                    ScalePowerPlayer = player; return;
+                case PowerKind.Shape when ShapeVariantPlayer == PlayerRef.None:
+                    ShapeVariantPlayer = player; return;
+                case PowerKind.Pulse when PulsePowerPlayer == PlayerRef.None:
+                    PulsePowerPlayer = player; return;
+            }
         }
 
-        if (ScalePowerPlayer == PlayerRef.None)
+        if (!_loggedFifthPlayerFull)
         {
-            ScalePowerPlayer = player;
-            return;
-        }
-
-        if (PulsePowerPlayer == PlayerRef.None)
-        {
-            PulsePowerPlayer = player;
-            return;
-        }
-
-        if (!_loggedFourthPlayerFull)
-        {
-            _loggedFourthPlayerFull = true;
+            _loggedFifthPlayerFull = true;
             Debug.Log("[PowerRoleSession] All power slots full — further joiners get no power role.");
         }
     }
@@ -150,6 +185,13 @@ public class PowerRoleSession : NetworkBehaviour, INetworkRunnerCallbacks
         return p != PlayerRef.None && ScalePowerPlayer == p;
     }
 
+    public bool IsShapePlayer(PlayerRef p)
+    {
+        if (debugAllowAllPowersWhenUnassigned)
+            return true;
+        return p != PlayerRef.None && ShapeVariantPlayer == p;
+    }
+
     public bool IsPulsePlayer(PlayerRef p)
     {
         if (debugAllowAllPowersWhenUnassigned)
@@ -170,23 +212,10 @@ public class PowerRoleSession : NetworkBehaviour, INetworkRunnerCallbacks
             return true;
         }
 
-        if (ColorPowerPlayer == lp)
-        {
-            kind = 'A';
-            return true;
-        }
-
-        if (ScalePowerPlayer == lp)
-        {
-            kind = 'B';
-            return true;
-        }
-
-        if (PulsePowerPlayer == lp)
-        {
-            kind = 'C';
-            return true;
-        }
+        if (ColorPowerPlayer == lp)  { kind = 'A'; return true; }
+        if (ScalePowerPlayer == lp)  { kind = 'B'; return true; }
+        if (ShapeVariantPlayer == lp){ kind = 'C'; return true; }
+        if (PulsePowerPlayer == lp)  { kind = 'D'; return true; }
 
         return false;
     }
