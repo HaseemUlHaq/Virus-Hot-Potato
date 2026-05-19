@@ -307,17 +307,21 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     }
 
     /// <summary>
-    /// During Fusion Render(), glue snapped viruses to each viewer&apos;s local dish hover pose so MR/colocation drift
-    /// does not separate mesh from networked hover snapshots.
+    /// Keeps snapped viruses on the dish hover point (world space). Called from LateUpdate so formation
+    /// rotation in Render runs first — no parenting, scale, or NetworkTransform changes.
     /// </summary>
-    private void ApplyPetriSnapVisualForRender()
+    /// <returns>True if this virus is snapped and pose was updated.</returns>
+    private bool ApplyPetriSnapFollowPose()
     {
         if (!bindVisualToPetriSnapOnAllPeers || Object == null || !Object.IsValid)
-            return;
+            return false;
+
+        if (CurrentHolder != PlayerRef.None)
+            return false;
 
         EnsurePetriDishesCached();
 
-        if (_cachedDishes == null) return;
+        if (_cachedDishes == null) return false;
 
         foreach (PetriDish dish in _cachedDishes)
         {
@@ -325,8 +329,10 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             if (!dish.IsOccupied || dish.SnappedVirus != this) continue;
 
             transform.SetPositionAndRotation(dish.GetHoverPosition(), Quaternion.identity);
-            return;
+            return true;
         }
+
+        return false;
     }
 
     // ─── Grab Events ──────────────────────────────────────────────────────
@@ -661,6 +667,10 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     private void LateUpdate()
     {
         if (Runner == null || Object == null || !Object.IsValid) return;
+
+        if (ApplyPetriSnapFollowPose())
+            return;
+
         if (CurrentHolder == PlayerRef.None || Object.HasStateAuthority) return;
         if (_petriDishDisablesNetworkTransform) return;
 
@@ -687,7 +697,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     public override void Render()
     {
         base.Render();
-        ApplyPetriSnapVisualForRender();
 
         if (IsPulsating)
         {
