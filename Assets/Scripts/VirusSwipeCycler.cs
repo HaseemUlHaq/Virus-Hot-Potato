@@ -29,10 +29,11 @@ public struct VirusColorTheme
 public class VirusSwipeCycler : MonoBehaviour
 {
     // ── Shader property IDs (cached once; avoids per-call string hashing) ──
-    private static readonly int PropBody      = Shader.PropertyToID("_Color_1");
-    private static readonly int PropSpike     = Shader.PropertyToID("_Color_2");
-    private static readonly int PropVein      = Shader.PropertyToID("_Color_3_Overlay");
-    private static readonly int PropGlowScale = Shader.PropertyToID("_Color3_Scale");
+    private static readonly int PropBody           = Shader.PropertyToID("_Color_1");
+    private static readonly int PropSpike          = Shader.PropertyToID("_Color_2");
+    private static readonly int PropVein           = Shader.PropertyToID("_Color_3_Overlay");
+    private static readonly int PropGlowScale      = Shader.PropertyToID("_Color3_Scale");
+    private static readonly int PropSpikeDisplace = Shader.PropertyToID("_SpikeDisplacement");
 
     [Header("Color Themes")]
     [Tooltip("10 visual variants. Index 0 = Virus 1, index 9 = Virus 10.")]
@@ -40,6 +41,12 @@ public class VirusSwipeCycler : MonoBehaviour
 
     [Tooltip("Which theme to show on first enable.")]
     [SerializeField] private int defaultThemeIndex = 1;
+
+    [Header("Spike Pulse")]
+    [Tooltip("How far spike vertices push outward (metres) at peak displacement.")]
+    [SerializeField] private float spikePulseMaxDisplacement = 0.05f;
+    [Tooltip("Oscillation speed of the spike displacement while pulsating.")]
+    [SerializeField] private float spikePulseSpeed = 5f;
 
     [Header("Renderer")]
     [Tooltip("The single MeshRenderer for simple virus meshes. Ignored when Apply To Child Renderers is on.")]
@@ -52,6 +59,8 @@ public class VirusSwipeCycler : MonoBehaviour
     private MaterialPropertyBlock _block;
     private Renderer[] _allRenderers = System.Array.Empty<Renderer>();
     private int _currentIndex;
+    private NetworkGrabbableVirus _virus;
+    private float _spikeGlow;
 
     // ── Unity lifecycle ──────────────────────────────────────────────────────
 
@@ -62,9 +71,25 @@ public class VirusSwipeCycler : MonoBehaviour
         _currentIndex = colorThemes != null && colorThemes.Length > 0
             ? Mathf.Clamp(defaultThemeIndex, 0, colorThemes.Length - 1)
             : 0;
+        _virus = GetComponent<NetworkGrabbableVirus>();
+        if (_virus == null) _virus = GetComponentInParent<NetworkGrabbableVirus>();
     }
 
     private void OnEnable() => ApplyTheme(_currentIndex);
+
+    private void Update()
+    {
+        bool pulsating = _virus != null && _virus.IsPulsating;
+        float target = pulsating
+            ? (0.5f + 0.5f * Mathf.Sin(Time.time * spikePulseSpeed)) * spikePulseMaxDisplacement
+            : 0f;
+
+        if (Mathf.Approximately(target, _spikeGlow)) return;
+        _spikeGlow = target;
+        _block.SetFloat(PropSpikeDisplace, _spikeGlow);
+        foreach (var r in _allRenderers)
+            if (r != null) r.SetPropertyBlock(_block);
+    }
 
     // ── Public API — wire these to gesture events or NetworkGrabbableVirus ──
 
@@ -138,10 +163,11 @@ public class VirusSwipeCycler : MonoBehaviour
         if (colorThemes == null || index < 0 || index >= colorThemes.Length) return;
 
         VirusColorTheme theme = colorThemes[index];
-        _block.SetColor(PropBody,      theme.bodyColor);
-        _block.SetColor(PropSpike,     theme.spikeColor);
-        _block.SetColor(PropVein,      theme.veinGlowColor);
-        _block.SetFloat(PropGlowScale, theme.glowIntensity);
+        _block.SetColor(PropBody,           theme.bodyColor);
+        _block.SetColor(PropSpike,          theme.spikeColor);
+        _block.SetColor(PropVein,           theme.veinGlowColor);
+        _block.SetFloat(PropGlowScale,      theme.glowIntensity);
+        _block.SetFloat(PropSpikeDisplace, _spikeGlow);
 
         foreach (Renderer r in _allRenderers)
         {

@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3355883277860676362
 Transform:
   m_ObjectHideFlags: 0
@@ -158,7 +158,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Meta.XR.BuildingBlocks::Meta.XR.BuildingBlocks.BuildingBlock
   blockId: e9b4b64f-1c7e-4dff-8f3c-ce409bdc3951
-  instanceId: b8706d5d-c591-461f-96b6-f9224a7e6678
+  instanceId: f4807fdb-6039-456e-a023-b4fd0af685a9
   version: 1
   installationRoutineCheckpoint:
     _installationRoutineId: 54548176-30f4-4a4a-8057-340a383c6102
@@ -1454,7 +1454,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Meta.XR.BuildingBlocks::Meta.XR.BuildingBlocks.BuildingBlock
   blockId: f8766c17-aaf8-4b55-9431-de8deea83842
-  instanceId: 4e890160-1d5a-4e7e-bbc2-4627f430c90e
+  instanceId: 437e5f78-8208-43b6-971d-b4c27309faae
   version: 1
   installationRoutineCheckpoint:
     _installationRoutineId: f8338144-8280-4ff6-9455-ae2bb9c20fe8

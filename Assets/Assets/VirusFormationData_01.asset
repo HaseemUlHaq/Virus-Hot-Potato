@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: VirusFormationData_01
   m_EditorClassIdentifier: Assembly-CSharp::VirusFormationData
   slots:
-  - materialIndex: 1
+  - materialIndex: 3
     scale: 0.1
     isPulsating: 1
     shapeVariantIndex: 0
