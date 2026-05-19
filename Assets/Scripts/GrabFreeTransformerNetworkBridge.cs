@@ -44,25 +44,7 @@ public class GrabFreeTransformerNetworkBridge : NetworkBehaviour
         if (grabFreeTransformer == null)
             return;
 
-        bool allowFreeScale;
-        if (Runner == null)
-            allowFreeScale = true;
-        else
-        {
-            var session = PowerRoleSession.Instance
-                          ?? FindFirstObjectByType<PowerRoleSession>(FindObjectsInactive.Include);
-            allowFreeScale = session == null || session.IsScalePlayer(Runner.LocalPlayer);
-        }
-
-        grabFreeTransformer.enabled = allowFreeScale;
-
-        if (!allowFreeScale && _networkVirus != null && _networkVirus.Object != null &&
-            _networkVirus.Object.HasStateAuthority && !_networkVirus.IsPulsating)
-        {
-            float vs = _networkVirus.VirusScale;
-            transform.localScale = Vector3.one * vs;
-            _lastSyncedScale = transform.localScale;
-        }
+        grabFreeTransformer.enabled = true;
     }
 
     // Use FixedUpdateNetwork instead of Update - syncs with Fusion tick rate!
@@ -82,12 +64,7 @@ public class GrabFreeTransformerNetworkBridge : NetworkBehaviour
             float averageScale = (currentScale.x + currentScale.y + currentScale.z) / 3f;
 
             if (_networkVirus != null)
-            {
-                var session = PowerRoleSession.Instance
-                              ?? FindFirstObjectByType<PowerRoleSession>(FindObjectsInactive.Include);
-                if (session == null || session.IsScalePlayer(Runner.LocalPlayer))
-                    _networkVirus.SetVirusScale(averageScale);
-            }
+                _networkVirus.SetVirusScale(averageScale);
 
             _lastSyncedScale = currentScale;
         }
