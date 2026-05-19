@@ -163,7 +163,7 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _Color_1: {r: 0.27058825, g: 0, b: 0, a: 0}
     - _Color_2: {r: 0.04885173, g: 1, b: 0, a: 0}
-    - _Color_3_Overlay: {r: 0.0955262, g: 0.44025147, b: 0.44025147, a: 0}
+    - _Color_3_Overlay: {r: 0.039546248, g: 0.039546248, b: 0.039546248, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []

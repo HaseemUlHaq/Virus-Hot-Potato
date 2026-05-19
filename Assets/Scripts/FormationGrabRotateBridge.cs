@@ -6,8 +6,8 @@ using UnityEngine;
 
 /// <summary>
 /// Listens to Meta Interaction grab events and drives networked Y rotation on <see cref="PlaceholderFormation"/>.
+/// Lives on the formation root; wire <see cref="grabbable"/> to the rotation handle's Grabbable.
 /// </summary>
-[RequireComponent(typeof(Grabbable))]
 public class FormationGrabRotateBridge : MonoBehaviour
 {
     [SerializeField] private Grabbable grabbable;

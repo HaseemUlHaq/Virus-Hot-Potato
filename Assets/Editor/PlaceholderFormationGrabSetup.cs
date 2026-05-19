@@ -5,13 +5,15 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// Adds FormationRoot, hand-grab components, and rotation bridge to PlaceHolderFormation.prefab.
+/// Adds FormationRoot, a bottom rotation grab handle, and rotation bridge to PlaceHolderFormation.prefab.
 /// Menu: Virus Hot Potato → Setup Placeholder Formation (grab + rotate)
 /// </summary>
 public static class PlaceholderFormationGrabSetup
 {
     private const string PrefabPath = "Assets/Prefabs/PlaceHolderFormation.prefab";
     private const string FormationRootName = "FormationRoot";
+    private const string GrabHandleName = "RotationGrabHandle";
+    private const string HandleVisualName = "HandleVisual";
     private const string HandGrabRoutineName = "[BuildingBlock] HandGrabInstallationRoutine";
 
     [MenuItem("Virus Hot Potato/Setup Placeholder Formation (grab + rotate)")]
@@ -19,7 +21,7 @@ public static class PlaceholderFormationGrabSetup
     {
         SetupPrefab();
         AssetDatabase.SaveAssets();
-        Debug.Log("[PlaceholderFormationGrabSetup] Done. PlaceHolderFormation prefab is ready for networked grab-rotate.");
+        Debug.Log("[PlaceholderFormationGrabSetup] Done. Bottom rotation handle configured on PlaceHolderFormation.");
     }
 
     public static void ExecuteBatch()
@@ -36,9 +38,11 @@ public static class PlaceholderFormationGrabSetup
         Transform formationRoot = EnsureFormationRoot(root);
         ReparentSlotsUnderFormationRoot(root.transform, formationRoot);
 
-        EnsureGrabComponents(root, formationRoot);
+        RemoveFormationGrabFromRoot(root);
+        GameObject handle = EnsureRotationGrabHandle(root, formationRoot);
+
         WirePlaceholderFormation(root, formationRoot);
-        WireGrabBridge(root, formationRoot);
+        WireGrabBridge(root, formationRoot, handle);
 
         Debug.Log("[PlaceholderFormationGrabSetup] Updated PlaceHolderFormation prefab.");
     }
@@ -64,6 +68,7 @@ public static class PlaceholderFormationGrabSetup
         {
             Transform child = root.GetChild(i);
             if (child == formationRoot) continue;
+            if (child.name == GrabHandleName) continue;
             if (child.name.StartsWith("Slot_"))
                 toMove.Add(child);
         }
@@ -72,31 +77,137 @@ public static class PlaceholderFormationGrabSetup
             slot.SetParent(formationRoot, true);
     }
 
-    private static void EnsureGrabComponents(GameObject root, Transform formationRoot)
+    private static void RemoveFormationGrabFromRoot(GameObject root)
     {
-        if (!root.TryGetComponent(out BoxCollider box))
+        foreach (var col in root.GetComponents<BoxCollider>())
+            Object.DestroyImmediate(col);
+
+        foreach (var rb in root.GetComponents<Rigidbody>())
+            Object.DestroyImmediate(rb);
+
+        foreach (var g in root.GetComponents<Grabbable>())
+            Object.DestroyImmediate(g);
+
+        foreach (var t in root.GetComponents<GrabFreeTransformer>())
+            Object.DestroyImmediate(t);
+
+        Transform handRoutine = root.transform.Find(HandGrabRoutineName);
+        if (handRoutine != null)
+            Object.DestroyImmediate(handRoutine.gameObject);
+    }
+
+    private static GameObject EnsureRotationGrabHandle(GameObject root, Transform formationRoot)
+    {
+        Transform handleTransform = root.transform.Find(GrabHandleName);
+        GameObject handleGo;
+        if (handleTransform == null)
         {
-            box = root.AddComponent<BoxCollider>();
-            box.size = new Vector3(1.2f, 0.35f, 1.2f);
-            box.center = new Vector3(0f, 0.08f, 0f);
-            box.isTrigger = true;
+            handleGo = new GameObject(GrabHandleName);
+            handleGo.transform.SetParent(formationRoot, false);
+            handleGo.transform.localPosition = new Vector3(0f, -0.14f, 0f);
+            handleGo.transform.localRotation = Quaternion.identity;
+            handleGo.transform.localScale = Vector3.one;
+        }
+        else
+        {
+            handleGo = handleTransform.gameObject;
+            // Child of FormationRoot so the handle spins with the formation.
+            if (handleGo.transform.parent != formationRoot)
+                handleGo.transform.SetParent(formationRoot, true);
         }
 
-        if (!root.TryGetComponent(out Rigidbody rb))
+        EnsureHandleVisual(handleGo);
+        EnsureGrabComponentsOnHandle(handleGo, formationRoot);
+
+        return handleGo;
+    }
+
+    // Petri-disk mesh from slots; lab-virus material so the handle reads as a control, not a slot.
+    private const string SlotDiskAssetGuid = "d373038051eb6dd4e914d28686e13545";
+    private const string HandleMaterialPath = "Assets/Materials/FormationRotationHandle.mat";
+
+    private static void EnsureHandleVisual(GameObject handleGo)
+    {
+        Transform visual = handleGo.transform.Find(HandleVisualName);
+        GameObject visualGo;
+        if (visual == null)
         {
-            rb = root.AddComponent<Rigidbody>();
+            visualGo = new GameObject(HandleVisualName);
+            visualGo.transform.SetParent(handleGo.transform, false);
+            visualGo.AddComponent<MeshFilter>();
+            visualGo.AddComponent<MeshRenderer>();
+        }
+        else
+        {
+            visualGo = visual.gameObject;
+        }
+
+        // Same disk mesh as slots; virus-lab material and slightly larger scale so it stands out.
+        visualGo.transform.localPosition = Vector3.zero;
+        visualGo.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
+        visualGo.transform.localScale = new Vector3(5.6f, 5.6f, 5.6f);
+
+        Mesh diskMesh = LoadFirstAssetAtGuid<Mesh>(SlotDiskAssetGuid);
+        Material handleMaterial = AssetDatabase.LoadAssetAtPath<Material>(HandleMaterialPath);
+
+        if (visualGo.TryGetComponent(out MeshFilter meshFilter) && diskMesh != null)
+            meshFilter.sharedMesh = diskMesh;
+
+        if (visualGo.TryGetComponent(out MeshRenderer meshRenderer) && handleMaterial != null)
+            meshRenderer.sharedMaterial = handleMaterial;
+    }
+
+    private static T LoadFirstAssetAtGuid<T>(string guid) where T : Object
+    {
+        string path = AssetDatabase.GUIDToAssetPath(guid);
+        if (string.IsNullOrEmpty(path))
+            return null;
+
+        foreach (Object asset in AssetDatabase.LoadAllAssetsAtPath(path))
+        {
+            if (asset is T typed)
+                return typed;
+        }
+
+        return null;
+    }
+
+    private static void EnsureGrabComponentsOnHandle(GameObject handleGo, Transform formationRoot)
+    {
+        // Trigger only — hand grab still works; viruses pass through to slots below.
+        foreach (Collider col in handleGo.GetComponents<Collider>())
+            col.isTrigger = true;
+
+        if (!handleGo.TryGetComponent(out Collider grabCollider))
+        {
+            var sphere = handleGo.AddComponent<SphereCollider>();
+            sphere.isTrigger = true;
+            sphere.radius = 0.28f;
+            sphere.center = Vector3.zero;
+            grabCollider = sphere;
+        }
+
+        if (grabCollider is SphereCollider sphereCol)
+        {
+            sphereCol.radius = 0.28f;
+            sphereCol.center = Vector3.zero;
+        }
+
+        if (!handleGo.TryGetComponent(out Rigidbody rb))
+        {
+            rb = handleGo.AddComponent<Rigidbody>();
             rb.useGravity = false;
             rb.isKinematic = true;
         }
 
         GrabFreeTransformer transformer;
-        if (!root.TryGetComponent(out transformer))
-            transformer = root.AddComponent<GrabFreeTransformer>();
+        if (!handleGo.TryGetComponent(out transformer))
+            transformer = handleGo.AddComponent<GrabFreeTransformer>();
         LockTransformer(transformer);
 
         Grabbable grabbable;
-        if (!root.TryGetComponent(out grabbable))
-            grabbable = root.AddComponent<Grabbable>();
+        if (!handleGo.TryGetComponent(out grabbable))
+            grabbable = handleGo.AddComponent<Grabbable>();
 
         var grabbableSo = new SerializedObject(grabbable);
         grabbableSo.FindProperty("_oneGrabTransformer").objectReferenceValue = transformer;
@@ -107,7 +218,7 @@ public static class PlaceholderFormationGrabSetup
         grabbableSo.FindProperty("_throwWhenUnselected").boolValue = false;
         grabbableSo.ApplyModifiedPropertiesWithoutUndo();
 
-        EnsureHandGrabRoutine(root, grabbable, rb);
+        EnsureHandGrabRoutine(handleGo, grabbable, rb);
     }
 
     private static void LockTransformer(GrabFreeTransformer transformer)
@@ -135,14 +246,14 @@ public static class PlaceholderFormationGrabSetup
         axisProp.FindPropertyRelative("ConstrainAxis").boolValue = locked;
     }
 
-    private static void EnsureHandGrabRoutine(GameObject root, Grabbable grabbable, Rigidbody rb)
+    private static void EnsureHandGrabRoutine(GameObject handleGo, Grabbable grabbable, Rigidbody rb)
     {
-        Transform routine = root.transform.Find(HandGrabRoutineName);
+        Transform routine = handleGo.transform.Find(HandGrabRoutineName);
         GameObject routineGo;
         if (routine == null)
         {
             routineGo = new GameObject(HandGrabRoutineName);
-            routineGo.transform.SetParent(root.transform, false);
+            routineGo.transform.SetParent(handleGo.transform, false);
         }
         else
         {
@@ -183,12 +294,12 @@ public static class PlaceholderFormationGrabSetup
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
-    private static void WireGrabBridge(GameObject root, Transform formationRoot)
+    private static void WireGrabBridge(GameObject root, Transform formationRoot, GameObject handleGo)
     {
         if (!root.TryGetComponent(out FormationGrabRotateBridge bridge))
             bridge = root.AddComponent<FormationGrabRotateBridge>();
 
-        Grabbable grabbable = root.GetComponent<Grabbable>();
+        Grabbable grabbable = handleGo.GetComponent<Grabbable>();
         PlaceholderFormation formation = root.GetComponent<PlaceholderFormation>();
 
         var so = new SerializedObject(bridge);
