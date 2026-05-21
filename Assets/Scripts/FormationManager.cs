@@ -54,8 +54,12 @@ public class FormationManager : MonoBehaviour
         if (_exampleSpawned || masterRunner == null || formationData == null) return;
         if (exampleFormationPrefab == null) return;
 
-        Vector3 pos = exampleFormationSpawnPoint != null ? exampleFormationSpawnPoint.position : boxQRPosition;
-        Debug.Log($"[FormationManager] SpawnExampleFormation — pos:{pos} (using spawnPoint:{exampleFormationSpawnPoint != null})");
+        // exampleFormationSpawnPoint.position is its design-time world offset (TableRoot starts at 0,0,0).
+        // Add actual QR/table world position so the formation lands in the right place.
+        Vector3 pos = exampleFormationSpawnPoint != null
+            ? boxQRPosition + exampleFormationSpawnPoint.position
+            : boxQRPosition;
+        Debug.Log($"[FormationManager] SpawnExampleFormation — tablePos:{boxQRPosition} offset:{exampleFormationSpawnPoint?.position} final:{pos}");
 
         NetworkObject obj = masterRunner.Spawn(exampleFormationPrefab, pos, Quaternion.identity);
         if (obj == null) return;
