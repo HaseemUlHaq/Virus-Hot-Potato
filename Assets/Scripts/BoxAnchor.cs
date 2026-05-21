@@ -11,20 +11,27 @@ public class BoxAnchor : MonoBehaviour
     [SerializeField] private string qrPayload = "virus_toolbox";
 
     [Header("Wiring")]
+    [SerializeField] private NetworkedBoxAnchor networkedBoxAnchor;
     [SerializeField] private FormationManager formationManager;
 
-    [Header("Optional — positions the ToolboxRoot at the box QR location")]
-    [Tooltip("Drag ToolboxRoot here so handle detection aligns with the physical box.")]
-    [SerializeField] private Transform toolboxRoot;
-
-    [Header("Offset from QR face to formation spawn point (QR local space)")]
-    [Tooltip("Z = inward from door face (use negative), X = left/right, Y = up/down. Applied in QR local space so it works regardless of box orientation.")]
+    [Header("Offsets from QR face (all in QR local space)")]
+    [Tooltip("Where to place ToolboxRoot relative to the QR. Z negative = into the box. Tune this so the virtual box aligns with the physical box.")]
+    [SerializeField] private Vector3 toolboxRootOffset = new Vector3(0f, 0f, 0f);
+    [Tooltip("Where to spawn the ExampleFormation relative to the QR. Z negative = into box, Y = up/down, X = left/right.")]
     [SerializeField] private Vector3 exampleBoxOffset = new Vector3(0f, 0.10f, -0.20f);
+
+    [Header("Testing")]
+    [Tooltip("Skip the colocation gate — use in solo / Meta Quest Link testing. Disable before shipping.")]
+    [SerializeField] private bool skipColocationGate = false;
 
     public static Vector3 BoxQRPosition { get; private set; }
     public static bool BoxFound { get; private set; } = false;
 
     private bool _detected = false;
+    private bool _colocationReady = false;
+    private bool _qrDetected = false;
+    private Vector3 _pendingQrPosition;
+    private Quaternion _pendingQrRotation;
 
     void Start()
     {
@@ -34,6 +41,23 @@ public class BoxAnchor : MonoBehaviour
             return;
         }
         MRUK.Instance.SceneSettings.TrackableAdded.AddListener(OnTrackableAdded);
+
+        if (skipColocationGate)
+            OnColocationReady();
+    }
+
+    // Wire this to ColocationController → ColocationReadyCallbacks in the Inspector,
+    // same as TableAnchor.OnColocationReady.
+    public void OnColocationReady()
+    {
+        Debug.Log("[BoxAnchor] Colocation ready.");
+        _colocationReady = true;
+
+        if (_qrDetected)
+        {
+            Debug.Log("[BoxAnchor] Applying QR placement that was pending colocation.");
+            ApplyPlacement(_pendingQrPosition, _pendingQrRotation);
+        }
     }
 
     void OnTrackableAdded(MRUKTrackable trackable)
@@ -42,25 +66,41 @@ public class BoxAnchor : MonoBehaviour
         if (trackable.TrackableType != OVRAnchor.TrackableType.QRCode) return;
         if (trackable.MarkerPayloadString != qrPayload) return;
 
+        Debug.Log($"[BoxAnchor] Box QR detected at {trackable.transform.position}");
+
+        if (_colocationReady)
+        {
+            ApplyPlacement(trackable.transform.position, trackable.transform.rotation);
+        }
+        else
+        {
+            Debug.Log("[BoxAnchor] Colocation not ready yet — holding QR placement.");
+            _pendingQrPosition = trackable.transform.position;
+            _pendingQrRotation = trackable.transform.rotation;
+            _qrDetected = true;
+        }
+    }
+
+    private void ApplyPlacement(Vector3 qrPosition, Quaternion qrRotation)
+    {
         _detected = true;
-        BoxQRPosition = trackable.transform.position;
+        BoxQRPosition = qrPosition;
         BoxFound = true;
 
-        // Apply offset in QR local space so the spawn point is correct regardless of
-        // which direction the box faces or where on the door the QR is placed.
-        Vector3 interiorWorldPos = trackable.transform.position + (trackable.transform.rotation * exampleBoxOffset);
+        // Sync ToolboxRoot position to all clients via NetworkedBoxAnchor
+        Vector3 boxRootWorldPos = qrPosition + (qrRotation * toolboxRootOffset);
+        if (networkedBoxAnchor != null)
+            networkedBoxAnchor.RequestPlacement(boxRootWorldPos);
 
-        Debug.Log($"[BoxAnchor] Box QR detected at {BoxQRPosition}, interior target: {interiorWorldPos}");
+        // Compute interior world position using QR local space so offset is correct
+        // regardless of which direction the box faces or where the QR sits on the door.
+        Vector3 interiorWorldPos = qrPosition + (qrRotation * exampleBoxOffset);
+        Debug.Log($"[BoxAnchor] QR:{qrPosition} → interior:{interiorWorldPos}");
 
-        // Move ToolboxRoot to box position so handle anchors align with physical box
-        if (toolboxRoot != null)
-            toolboxRoot.position = BoxQRPosition;
-
-        // Find master runner and spawn ExampleFormation
         NetworkRunner masterRunner = FindMasterRunner();
         if (masterRunner == null)
         {
-            Debug.LogWarning("[BoxAnchor] Box QR detected but no master runner yet — formation will not spawn.");
+            Debug.LogWarning("[BoxAnchor] No master runner yet — formation will not spawn.");
             return;
         }
 

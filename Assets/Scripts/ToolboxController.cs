@@ -6,6 +6,13 @@ public class ToolboxController : NetworkBehaviour
     [Header("Handle Detection")]
     [SerializeField] private Transform handleAnchor;
     [SerializeField] private float grabRadius = 0.10f;
+    [Tooltip("Seconds hand must stay near handle before door opens.")]
+    [SerializeField] private float holdDuration = 1.0f;
+
+    private float _holdTimer = 0f;
+
+    [Header("Door")]
+    [SerializeField] private GameObject virtualDoorPanel;
 
     [Header("Interior")]
     [SerializeField] private GameObject interiorObjects;
@@ -30,7 +37,20 @@ public class ToolboxController : NetworkBehaviour
     public override void FixedUpdateNetwork()
     {
         if (!Object.HasStateAuthority || IsOpen) return;
-        if (IsHandNear()) RPC_Open();
+
+        if (leftHand == null || rightHand == null)
+            AutoFindHands();
+
+        if (IsHandNear())
+        {
+            _holdTimer += Runner.DeltaTime;
+            if (_holdTimer >= holdDuration)
+                RPC_Open();
+        }
+        else
+        {
+            _holdTimer = 0f;
+        }
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
@@ -42,6 +62,9 @@ public class ToolboxController : NetworkBehaviour
 
     private void OnDoorOpened()
     {
+        if (virtualDoorPanel != null)
+            virtualDoorPanel.SetActive(!IsOpen);
+
         if (interiorObjects != null)
             interiorObjects.SetActive(IsOpen);
 

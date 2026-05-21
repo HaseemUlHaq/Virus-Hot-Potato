@@ -19,6 +19,10 @@ public class FormationManager : MonoBehaviour
         ? formationDataPerRound[_currentRoundIndex % formationDataPerRound.Length]
         : null;
 
+    [Header("Example Formation Spawn Point")]
+    [Tooltip("Drag an empty GameObject (FormationSpawnPoint) inside ToolboxRoot here.")]
+    [SerializeField] private Transform exampleFormationSpawnPoint;
+
     [Header("Offsets from table QR position")]
     [Tooltip("Where the placeholder formation hovers — above the centre of the work area.")]
     [SerializeField] private Vector3 placeholderOffset = new Vector3(0.1f, 0.35f, 0.2f);
@@ -38,9 +42,10 @@ public class FormationManager : MonoBehaviour
 
         SpawnPlaceholderFormation(masterRunner, tablePosition);
         SpawnWorkViruses(masterRunner, tablePosition);
+        TrySpawnExampleFormation(masterRunner, tablePosition);
 
         _spawned = true;
-        Debug.Log("[FormationManager] Placeholder and work viruses spawned.");
+        Debug.Log("[FormationManager] Placeholder, work viruses, and example formation spawned.");
     }
 
     // Called by BoxAnchor when box QR fires — spawns ExampleFormation inside the box
@@ -49,8 +54,8 @@ public class FormationManager : MonoBehaviour
         if (_exampleSpawned || masterRunner == null || formationData == null) return;
         if (exampleFormationPrefab == null) return;
 
-        Vector3 pos = boxQRPosition; // offset already applied in QR local space by BoxAnchor
-        Debug.Log($"[FormationManager] SpawnExampleFormation — interior pos:{pos}");
+        Vector3 pos = exampleFormationSpawnPoint != null ? exampleFormationSpawnPoint.position : boxQRPosition;
+        Debug.Log($"[FormationManager] SpawnExampleFormation — pos:{pos} (using spawnPoint:{exampleFormationSpawnPoint != null})");
 
         NetworkObject obj = masterRunner.Spawn(exampleFormationPrefab, pos, Quaternion.identity);
         if (obj == null) return;
