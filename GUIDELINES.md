@@ -201,3 +201,124 @@ Before building, verify the scene (`Spatial-Anchors.unity`) has:
 - `SessionStatusHUD` needs adding to the scene (World Space Canvas, TMP_Text references)
 - Normal map on virus mesh still has import issues
 - Duplicate EventSystem and OVRPassthroughLayer should be cleaned up
+- `UDPReceiver.cs` still in project — conflicts with `BreathSensorHandler` on port 5006 if accidentally re-enabled. Delete or add a clear DO-NOT-ENABLE note.
+- `ShapeTestDriver.cs` is test-only (keyboard S = shape, P = pulse) — remove before final build
+- `isPulsating` as a slot validation requirement is unreliable (lasts 1s) — remove from `PlaceholderSlot.ValidateVirus` or replace with a latched state
+- `ExampleVirusFormation` prefab needs **Preassigned Formation Data** field set to `VirusFormationData_01` so non-master clients see the correct display viruses on join
+
+---
+
+## Upcoming Feature — Physical Toolbox
+
+A real physical box (~80 cm wide, ~40 cm tall) on the table. Players see MR overlays on top of it, grab real handles to open virtual doors, and reveal virtual objects hidden inside.
+
+---
+
+## Toolbox Design Notes
+
+### What it does
+```
+Real physical box on table (~80cm wide × 40cm tall)
+  ↓
+Players grab real handles → pull open real doors
+  ↓
+Virtual door animations follow the physical doors
+  ↓
+Virtual objects inside become visible
+  ↓
+Objects were hidden by an occluder mesh covering the interior
+```
+
+### Do you need Depth API? No.
+
+Depth API (OVR Depth API) uses real-world depth sensing to auto-occlude virtual objects behind real surfaces. **Do not use it for this feature.** It causes build errors on this project and is not needed.
+
+What you need is **manual occlusion via a custom occluder mesh** — an invisible mesh that writes to the depth buffer so virtual objects behind it are culled. You control exactly when it activates.
+
+### Occluder material (URP, Quest-compatible)
+
+Create a material in URP with these settings:
+```
+Shader: Universal Render Pipeline/Unlit  (or a custom URP Unlit shader)
+Base Color: black, Alpha = 0
+Surface Type: Opaque
+Render Face: Both
+ZWrite: On
+ColorMask: 0   (writes depth but renders no pixels)
+Render Queue: 2000 (Geometry — must render BEFORE interior objects)
+```
+Interior virtual objects must have Render Queue > 2000 (e.g. 2001) so they render after the occluder writes depth. When the occluder is active, their depth test fails → they are invisible. Disable the occluder → depth values gone → objects render.
+
+### Anchoring the box to the real world
+
+The project already uses QR codes for table detection (`TableAnchor.cs` + `NetworkedTableAnchor.cs`). Use the same pattern for the toolbox — stick a QR code or ArUco marker on the outside of the physical box. On detection, anchor the virtual box to that transform. Because the box is stationary once placed, a single detection at session start is enough.
+
+```csharp
+public void OnTrackableAdded(MRUKTrackable trackable)
+{
+    if (trackable.MarkerPayloadString != "virus_toolbox") return;
+    virtualBox.transform.SetPositionAndRotation(
+        trackable.transform.position, trackable.transform.rotation);
+}
+```
+
+### Detecting the handle grab (hand proximity)
+
+The project already has hand tracking via Oculus Interaction SDK. Use distance-based detection — the same approach as `VirusGestureRouter`. When the player's hand is within ~8–10cm of the handle's world position, trigger the door open event.
+
+```csharp
+void Update()
+{
+    if (Vector3.Distance(playerHand.position, handleAnchor.position) < 0.09f && !_doorOpen)
+        OpenDoor();
+}
+```
+
+Use 8–10cm tolerance (not exact) because Meta hand tracking has a few centimetres of positional error.
+
+### Door state must be networked (Fusion Shared Mode)
+
+All players must see the door open at the same moment. Add a `[Networked]` bool to the toolbox NetworkBehaviour:
+
+```csharp
+[Networked, OnChangedRender(nameof(OnDoorStateChanged))]
+public NetworkBool IsDoorOpen { get; set; }
+
+[Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+public void RPC_OpenDoor(RpcInfo info = default)
+{
+    IsDoorOpen = true;
+}
+
+private void OnDoorStateChanged()
+{
+    occluderMesh.SetActive(!IsDoorOpen);
+    doorAnimator.SetBool("Open", IsDoorOpen);
+}
+```
+
+### Revealing interior objects
+
+Interior objects start disabled or hidden behind the occluder. When door opens:
+```csharp
+public void OpenDoor()
+{
+    occluderMesh.SetActive(false);   // depth barrier removed
+    doorAnimator.SetTrigger("Open");
+    virtualLight.SetActive(true);    // add a point light — inside box is dark on camera
+    foreach (var obj in interiorObjects)
+        obj.SetActive(true);
+}
+```
+
+### Roadblocks to watch out for
+
+| Issue | What happens | Fix |
+|---|---|---|
+| Alignment drift | Virtual box drifts from physical over time as tracking accumulates error | Re-detect QR periodically or add a manual realign button |
+| Hand tracking error | Player's virtual hand doesn't visually touch real handle | Use 8–10cm grab radius, not exact position |
+| Occluder bleeds in one eye | SPI rendering issue — object visible in one eye only | Add `UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX` to shader; or switch to a URP pre-built occluder approach |
+| Interior too dark | Passthrough shows real dark box interior before door opens | Add virtual point light inside that activates on door open |
+| Late-joiner sees open box wrong | If door is already open when someone joins, they need synced state | `[Networked]` bool + `OnChangedRender` handles this automatically |
+| Virtual door vs physical door mismatch | Player pulls real door; virtual door plays fixed animation | Good enough for prototype. For polish: add a hinge sensor to read real door angle |
+| Multiple headsets, one unseen QR | One player hasn't scanned box QR — sees objects appear from nowhere | Gate box activation until all active players have confirmed the QR |

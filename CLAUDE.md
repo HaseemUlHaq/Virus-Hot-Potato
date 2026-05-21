@@ -23,7 +23,7 @@ Collocated mixed reality multiplayer game for Meta Quest 3S. Players share the s
 ### Power Role System (`PowerRoleSession`)
 - 4 roles: **Color**, **Scale**, **Shape**, **Pulse** — assigned in join order via `powerAssignmentOrder[]`
 - `powerAssignmentOrder` is serialized on the prefab — set it there, not in code
-- For 2-player tests: Element 0 = Color, Element 1 = Pulse
+- **Current prefab order: Pulse → Color → Shape → Scale** (player 1 = Pulse for solo test)
 - Everyone can scale — there is no scale gate
 - `debugAllowAllPowersWhenUnassigned` exists on `PowerRoleSession` for solo testing
 
@@ -69,6 +69,16 @@ UDP "BLOW" → BreathSensorHandler (port 5006)
 | `Scripts/GrabFreeTransformerNetworkBridge.cs` | Syncs two-hand scale to network |
 | `Scripts/FormationManager.cs` | Spawns viruses into petri dish formations |
 | `Prefabs/PowerRoleSession.prefab` | Configure `powerAssignmentOrder` here |
+
+---
+
+## Upcoming Feature — Physical Toolbox
+- Manual occluder mesh (ZWrite On, ColorMask 0, Queue 2000) — **do not use Depth API**, it causes build errors
+- Door open state = `[Networked] NetworkBool` + `OnChangedRender` — same Shared Mode pattern
+- QR anchoring via same pattern as `TableAnchor.cs` — single detection at session start is enough
+- Handle grab = hand proximity check (~8–10cm) — same distance gate pattern as `VirusGestureRouter`
+- Interior objects set to Render Queue > 2000 — must be higher than occluder or depth cull fails
+- See GUIDELINES.md **Toolbox Design Notes** for full spec and roadblock table
 
 ---
 

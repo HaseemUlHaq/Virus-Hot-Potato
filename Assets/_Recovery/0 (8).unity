@@ -549,6 +549,7 @@ Transform:
   - {fileID: 2091405066}
   - {fileID: 1398123657}
   - {fileID: 748686604}
+  - {fileID: 1072169938}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &152540252
@@ -571,6 +572,7 @@ MonoBehaviour:
   - {fileID: 1391450676}
   - {fileID: 1350363674}
   - {fileID: 2124798325}
+  - {fileID: 1072169939}
   NetworkedBehaviours:
   - {fileID: 152540253}
   ForceRemoteRenderTimeframe: 0
@@ -3812,8 +3814,7 @@ Transform:
   - {fileID: 2137491245}
   - {fileID: 1415379927}
   - {fileID: 1745058552}
-  - {fileID: 1654311116}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 152540251}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!114 &1072169939
 MonoBehaviour:
@@ -4894,53 +4895,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2092962851}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1307969174
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1307969176}
-  - component: {fileID: 1307969175}
-  m_Layer: 0
-  m_Name: BoxAnchor
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1307969175
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1307969174}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fd625785faa376f4cbc63bc1d5d85bd8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BoxAnchor
-  qrPayload: virus_box
-  formationManager: {fileID: 2084592682}
-  toolboxRoot: {fileID: 1072169938}
---- !u!4 &1307969176
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1307969174}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.10008, y: -0, z: 1.69109}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1317809088
 PrefabInstance:
@@ -6194,37 +6148,6 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours: []
   ForceRemoteRenderTimeframe: 0
---- !u!1 &1654311115
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1654311116}
-  m_Layer: 0
-  m_Name: ExampleFormationSpawnPoint
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1654311116
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1654311115}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.52, y: 0.677, z: 1.144}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1072169938}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!224 &1681067532 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1339816304828597742, guid: 78827750274df7b4cb5c0ea42254bf77, type: 3}
@@ -6479,7 +6402,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1745058552
 Transform:
   m_ObjectHideFlags: 0
@@ -6820,7 +6743,7 @@ Transform:
   m_GameObject: {fileID: 1757354798}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.31296, y: -0.01, z: -0.09393}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8219,7 +8142,7 @@ Transform:
   m_GameObject: {fileID: 2084592679}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -5.00265, y: 0, z: -11.90852}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8242,10 +8165,10 @@ MonoBehaviour:
   virusWorkPrefab: {fileID: -933810911031657331, guid: 98a9fec0d55c3f843a1f621d83624c72, type: 3}
   formationDataPerRound:
   - {fileID: 11400000, guid: 3651782c59044cc4f99b788f50cff043, type: 2}
+  exampleOffset: {x: 0, y: 0.544, z: -0.858}
   placeholderOffset: {x: 0, y: 0.2, z: 0}
   workVirusBaseOffset: {x: -0.3, y: 0.15, z: 0}
   workVirusSpacing: {x: 0.15, y: 0, z: 0}
-  exampleBoxOffset: {x: 0, y: 0.2, z: 0.2}
 --- !u!1 &2091405065
 GameObject:
   m_ObjectHideFlags: 0
@@ -13575,5 +13498,3 @@ SceneRoots:
   - {fileID: 1193564843}
   - {fileID: 1131088595}
   - {fileID: 4600924925477997588}
-  - {fileID: 1307969176}
-  - {fileID: 1072169938}
