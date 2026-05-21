@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3355883277860676362
 Transform:
   m_ObjectHideFlags: 0
@@ -387,11 +387,11 @@ MonoBehaviour:
     spikeColor: {r: 0.15886435, g: 0.24410476, b: 0.3207547, a: 0}
     veinGlowColor: {r: 0.038047355, g: 0.1792453, b: 0.16355662, a: 1}
     glowIntensity: 2
-  - bodyColor: {r: 0.7169812, g: 0.09695014, b: 0.09695014, a: 0}
-    spikeColor: {r: 0, g: 0.21426013, b: 0.5597484, a: 0}
+  - bodyColor: {r: 0.23584908, g: 0.23584908, b: 0.23584908, a: 0}
+    spikeColor: {r: 0.16037738, g: 0.14067905, b: 0.12784801, a: 0}
     veinGlowColor: {r: 0.012682453, g: 0.013984072, b: 0.028301895, a: 1}
-    glowIntensity: 1.97
-  - bodyColor: {r: 0.70440245, g: 0, b: 0.48782933, a: 0}
+    glowIntensity: 3
+  - bodyColor: {r: 0.23584908, g: 0.23584908, b: 0.23584908, a: 0}
     spikeColor: {r: 0.4716981, g: 0.4716981, b: 0.4716981, a: 0}
     veinGlowColor: {r: 0, g: 0.12550883, b: 0.18867922, a: 1}
     glowIntensity: 3
@@ -868,7 +868,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &7293730455343830455
 Transform:
   m_ObjectHideFlags: 0

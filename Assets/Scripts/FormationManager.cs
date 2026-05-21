@@ -10,7 +10,13 @@ public class FormationManager : MonoBehaviour
     [SerializeField] private NetworkObject virusWorkPrefab;
 
     [Header("Formation Data")]
-    [SerializeField] private VirusFormationData formationData;
+    [Tooltip("One entry per round. FormationManager cycles through these in order.")]
+    [SerializeField] private VirusFormationData[] formationDataPerRound;
+
+    private int _currentRoundIndex = 0;
+    private VirusFormationData formationData => formationDataPerRound != null && formationDataPerRound.Length > 0
+        ? formationDataPerRound[_currentRoundIndex % formationDataPerRound.Length]
+        : null;
 
     [Header("Offsets from table surface position")]
     [Tooltip("Where the example formation appears — to the side of the table, elevated for easy viewing.")]
@@ -40,6 +46,7 @@ public class FormationManager : MonoBehaviour
     public void ResetForNewRound()
     {
         _spawned = false;
+        _currentRoundIndex++;
     }
 
     private void SpawnExampleFormation(NetworkRunner runner, Vector3 tablePosition)
