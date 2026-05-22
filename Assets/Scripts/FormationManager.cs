@@ -34,6 +34,9 @@ public class FormationManager : MonoBehaviour
 
     private bool _spawned;
     private bool _exampleSpawned;
+    private Vector3 _cachedExamplePosition;
+    private Quaternion _cachedExampleRotation = Quaternion.identity;
+    private bool _hasCachedExamplePose;
     private readonly List<NetworkObject> _roundSpawned = new List<NetworkObject>();
     public bool HasSpawned => _spawned;
 
@@ -44,28 +47,47 @@ public class FormationManager : MonoBehaviour
 
         SpawnPlaceholderFormation(masterRunner, tablePosition);
         SpawnWorkViruses(masterRunner, tablePosition);
-        TrySpawnExampleFormation(masterRunner, tablePosition);
+        TrySpawnExampleFormation(masterRunner);
 
         _spawned = true;
         Debug.Log("[FormationManager] Placeholder, work viruses, and example formation spawned.");
     }
 
-    // Called by BoxAnchor when box QR fires — spawns ExampleFormation inside the box
-    public void TrySpawnExampleFormation(NetworkRunner masterRunner, Vector3 boxQRPosition)
+    // Called when box QR is detected or on round reset — uses ExampleFormationSpawnPoint world pose (under TableRoot).
+    public void TrySpawnExampleFormation(NetworkRunner masterRunner)
     {
         if (_exampleSpawned || masterRunner == null || formationData == null) return;
         if (exampleFormationPrefab == null) return;
 
-        // exampleFormationSpawnPoint.position is its design-time world offset (TableRoot starts at 0,0,0).
-        // Add actual QR/table world position so the formation lands in the right place.
-        Vector3 pos = exampleFormationSpawnPoint != null
-            ? boxQRPosition + exampleFormationSpawnPoint.position
-            : boxQRPosition;
-        Debug.Log($"[FormationManager] SpawnExampleFormation — tablePos:{boxQRPosition} offset:{exampleFormationSpawnPoint?.position} final:{pos}");
+        Vector3 pos;
+        Quaternion rot;
+        if (_hasCachedExamplePose)
+        {
+            pos = _cachedExamplePosition;
+            rot = _cachedExampleRotation;
+        }
+        else if (exampleFormationSpawnPoint != null)
+        {
+            // TableRoot follows NetworkedTableAnchor in Render(); sync now so world pose is correct on first spawn.
+            SyncTableRootToAnchor();
+            pos = exampleFormationSpawnPoint.position;
+            rot = exampleFormationSpawnPoint.rotation;
+        }
+        else
+        {
+            Debug.LogWarning("[FormationManager] No ExampleFormationSpawnPoint — example formation not spawned.");
+            return;
+        }
 
-        NetworkObject obj = masterRunner.Spawn(exampleFormationPrefab, pos, Quaternion.identity);
+        Debug.Log($"[FormationManager] SpawnExampleFormation at {pos}");
+
+        NetworkObject obj = masterRunner.Spawn(exampleFormationPrefab, pos, rot);
         if (obj == null) return;
         TrackSpawn(obj);
+
+        _cachedExamplePosition = obj.transform.position;
+        _cachedExampleRotation = obj.transform.rotation;
+        _hasCachedExamplePose = true;
 
         ExampleVirusFormation formation = obj.GetComponent<ExampleVirusFormation>();
         if (formation != null)
@@ -128,6 +150,15 @@ public class FormationManager : MonoBehaviour
     {
         if (obj != null && !_roundSpawned.Contains(obj))
             _roundSpawned.Add(obj);
+    }
+
+    private static void SyncTableRootToAnchor()
+    {
+        NetworkedTableAnchor anchor = FindFirstObjectByType<NetworkedTableAnchor>(FindObjectsInactive.Include);
+        if (anchor == null || !anchor.IsTablePlaced)
+            return;
+
+        anchor.transform.SetPositionAndRotation(anchor.PlacedSurfacePosition, anchor.PlacedRotation);
     }
 
 }

@@ -42,6 +42,12 @@ public class LeftHandRoundResetGesture : MonoBehaviour
             return;
         }
 
+        if (!networkedTableAnchor.CanLocalPlayerRequestRoundReset())
+        {
+            _pinchHoldTimer = 0f;
+            return;
+        }
+
         if (IsLocalPlayerHoldingAnyVirus())
         {
             _pinchHoldTimer = 0f;

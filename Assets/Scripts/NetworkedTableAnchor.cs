@@ -9,6 +9,12 @@ using UnityEngine;
 /// </summary>
 public class NetworkedTableAnchor : NetworkBehaviour
 {
+    [Header("Round reset")]
+    [Tooltip("Fusion PlayerId that may trigger left-hand long-pinch round reset. Set to 0 to allow any player.")]
+    [SerializeField] private int roundResetPlayerId = 1;
+
+    public int RoundResetPlayerId => roundResetPlayerId;
+
     [Networked] private Vector3 SyncedPosition { get; set; }
     [Networked] private Quaternion SyncedRotation { get; set; }
     [Networked] private NetworkBool IsPlaced { get; set; }
@@ -69,12 +75,15 @@ public class NetworkedTableAnchor : NetworkBehaviour
     }
 
     /// <summary>
-    /// Left-hand long pinch (or any client) requests a round reset on the shared-mode master.
+    /// Player 1 only: left-hand long pinch requests a round reset on the shared-mode master.
     /// Keeps table placement and colocation; despawns and respawns puzzle entities.
     /// </summary>
     public void RequestRoundReset()
     {
-        if (Object == null || !Object.IsValid)
+        if (Object == null || !Object.IsValid || Runner == null)
+            return;
+
+        if (!CanPlayerRequestRoundReset(Runner.LocalPlayer))
             return;
 
         if (Object.HasStateAuthority)
@@ -83,10 +92,39 @@ public class NetworkedTableAnchor : NetworkBehaviour
             RPC_RequestRoundReset();
     }
 
+    public bool CanPlayerRequestRoundReset(PlayerRef player)
+    {
+        if (player == PlayerRef.None)
+            return false;
+        if (roundResetPlayerId <= 0)
+            return true;
+        return player.PlayerId == roundResetPlayerId;
+    }
+
+    public bool CanLocalPlayerRequestRoundReset()
+    {
+        NetworkRunner runner = Runner != null && Runner.IsRunning ? Runner : FindActiveRunner();
+        return runner != null && CanPlayerRequestRoundReset(runner.LocalPlayer);
+    }
+
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     public void RPC_RequestRoundReset(RpcInfo info = default)
     {
+        if (!CanPlayerRequestRoundReset(info.Source))
+            return;
+
         ExecuteRoundReset();
+    }
+
+    private static NetworkRunner FindActiveRunner()
+    {
+        foreach (NetworkRunner runner in FindObjectsByType<NetworkRunner>(FindObjectsSortMode.None))
+        {
+            if (runner != null && runner.IsRunning)
+                return runner;
+        }
+
+        return null;
     }
 
     private static void ExecuteRoundReset()

@@ -19,7 +19,7 @@ Everyone can **scale** the virus (two-hand grab stretch).
 
 **Solo debug (`Debug Allow All Powers` on `PowerRoleSession`):** left hand swipe = color only, right hand swipe = shape only. Normal multiplayer keeps both RPCs per swipe (roles gate on the virus).
 
-**Round reset:** hold **left-hand index pinch** for **> 2 seconds** (`LeftHandRoundResetGesture` on `VirusSpawner`). Right hand stays free for the Meta system menu. Skips while you are holding a virus. Master despawns placeholder, example, and work viruses, advances `formationDataPerRound`, and respawns at the current `NetworkedTableAnchor` pose — colocation, QR placement, and `PowerRoleSession` are unchanged.
+**Round reset:** hold **left-hand index pinch** for **> 2 seconds** (`LeftHandRoundResetGesture` on `VirusSpawner`; duration/cooldown on that component). Only the player whose Fusion `PlayerId` matches **`Round Reset Player Id`** on **`NetworkedTableAnchor`** (TableRoot, default `1`; set to `0` for any player). Right hand stays free for the Meta system menu. Skips while you are holding a virus. Master despawns placeholder, example, and work viruses, advances `formationDataPerRound`, and respawns at the current anchor pose — colocation, QR placement, and `PowerRoleSession` are unchanged. Example formation respawns at the **cached first-spawn pose** (inside the toolbox).
 
 ---
 
