@@ -1,8 +1,8 @@
+using System.Collections;
 using Fusion;
 using UnityEngine;
 
 // Spawns placeholder formation and work viruses from table QR.
-// ExampleFormation is spawned separately by BoxAnchor once the box QR is detected.
 public class FormationManager : MonoBehaviour
 {
     [Header("Prefabs")]
@@ -35,31 +35,36 @@ public class FormationManager : MonoBehaviour
     private bool _exampleSpawned;
     public bool HasSpawned => _spawned;
 
-    // Called by VirusSpawner when table QR fires — spawns placeholder + work viruses only
+    // Called by VirusSpawner when table QR fires
     public void TrySpawnFormations(NetworkRunner masterRunner, Vector3 tablePosition)
     {
         if (_spawned || masterRunner == null || formationData == null) return;
 
         SpawnPlaceholderFormation(masterRunner, tablePosition);
         SpawnWorkViruses(masterRunner, tablePosition);
-        TrySpawnExampleFormation(masterRunner, tablePosition);
+
+        // Wait one frame so TableRoot (and ToolboxRoot) have moved to their real world positions
+        StartCoroutine(SpawnExampleFormationNextFrame(masterRunner));
 
         _spawned = true;
-        Debug.Log("[FormationManager] Placeholder, work viruses, and example formation spawned.");
+        Debug.Log("[FormationManager] Spawned placeholder and work viruses. Example formation pending next frame.");
     }
 
-    // Called by BoxAnchor when box QR fires — spawns ExampleFormation inside the box
-    public void TrySpawnExampleFormation(NetworkRunner masterRunner, Vector3 boxQRPosition)
+    private IEnumerator SpawnExampleFormationNextFrame(NetworkRunner masterRunner)
+    {
+        yield return null; // wait one frame for TableRoot to move
+        TrySpawnExampleFormation(masterRunner);
+    }
+
+    public void TrySpawnExampleFormation(NetworkRunner masterRunner)
     {
         if (_exampleSpawned || masterRunner == null || formationData == null) return;
         if (exampleFormationPrefab == null) return;
+        if (exampleFormationSpawnPoint == null) { Debug.LogWarning("[FormationManager] ExampleFormationSpawnPoint not assigned!"); return; }
 
-        // exampleFormationSpawnPoint.position is its design-time world offset (TableRoot starts at 0,0,0).
-        // Add actual QR/table world position so the formation lands in the right place.
-        Vector3 pos = exampleFormationSpawnPoint != null
-            ? boxQRPosition + exampleFormationSpawnPoint.position
-            : boxQRPosition;
-        Debug.Log($"[FormationManager] SpawnExampleFormation — tablePos:{boxQRPosition} offset:{exampleFormationSpawnPoint?.position} final:{pos}");
+        // TableRoot has already moved — read world position directly
+        Vector3 pos = exampleFormationSpawnPoint.position;
+        Debug.Log($"[FormationManager] SpawnExampleFormation at {pos}");
 
         NetworkObject obj = masterRunner.Spawn(exampleFormationPrefab, pos, Quaternion.identity);
         if (obj == null) return;
