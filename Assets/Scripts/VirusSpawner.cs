@@ -144,6 +144,8 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
             return;
         }
 
+        bool respawnWorkArea = formationManager != null && formationManager.WorkAreaWasSpawned;
+
         DespawnLegacyViruses(masterRunner);
         formationManager?.DespawnRoundEntities(masterRunner);
         formationManager?.ResetForNewRound();
@@ -154,6 +156,9 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
         _secondaryInstance = null;
 
         TrySpawnViruses();
+        if (respawnWorkArea)
+            formationManager?.SpawnWorkArea();
+
         Debug.Log("[VirusSpawner] Round restarted at " + _spawnPosition);
     }
 
