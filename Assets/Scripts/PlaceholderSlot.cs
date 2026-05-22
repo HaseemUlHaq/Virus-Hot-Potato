@@ -43,6 +43,7 @@ public class PlaceholderSlot : PetriDish
         RequiredScale = config.scale;
         RequiredIsPulsating = config.isPulsating;
         RequiredShapeVariantIndex = config.shapeVariantIndex;
+        transform.localPosition = config.localPosition;
     }
 
     private bool ValidateVirus(NetworkGrabbableVirus virus)

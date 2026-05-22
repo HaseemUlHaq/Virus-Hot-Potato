@@ -33,21 +33,37 @@ public class FormationManager : MonoBehaviour
 
     private bool _spawned;
     private bool _exampleSpawned;
+    private bool _workAreaSpawned;
     public bool HasSpawned => _spawned;
 
-    // Called by VirusSpawner when table QR fires
+    private Vector3 _tablePosition;
+    private NetworkRunner _runner;
+
+    // Called by VirusSpawner when table QR fires — spawns example formation only
     public void TrySpawnFormations(NetworkRunner masterRunner, Vector3 tablePosition)
     {
         if (_spawned || masterRunner == null || formationData == null) return;
 
-        SpawnPlaceholderFormation(masterRunner, tablePosition);
-        SpawnWorkViruses(masterRunner, tablePosition);
+        _tablePosition = tablePosition;
+        _runner = masterRunner;
 
         // Wait one frame so TableRoot (and ToolboxRoot) have moved to their real world positions
         StartCoroutine(SpawnExampleFormationNextFrame(masterRunner));
 
         _spawned = true;
-        Debug.Log("[FormationManager] Spawned placeholder and work viruses. Example formation pending next frame.");
+        Debug.Log("[FormationManager] Table QR fired — spawning example formation. Work area waits for box trigger.");
+    }
+
+    // Called by BoxFrontWallTrigger when player opens the box
+    public void SpawnWorkArea()
+    {
+        if (_runner == null || formationData == null) return;
+        if (_workAreaSpawned) return;
+
+        SpawnPlaceholderFormation(_runner, _tablePosition);
+        SpawnWorkViruses(_runner, _tablePosition);
+        _workAreaSpawned = true;
+        Debug.Log("[FormationManager] Box opened — placeholder formation and work viruses spawned.");
     }
 
     private IEnumerator SpawnExampleFormationNextFrame(NetworkRunner masterRunner)
@@ -80,6 +96,7 @@ public class FormationManager : MonoBehaviour
     {
         _spawned = false;
         _exampleSpawned = false;
+        _workAreaSpawned = false;
         _currentRoundIndex++;
     }
 
@@ -99,14 +116,23 @@ public class FormationManager : MonoBehaviour
         }
     }
 
+    [Header("Spawn Animation")]
+    [SerializeField] private float virusSpawnStagger = 0.4f;
+
     private void SpawnWorkViruses(NetworkRunner runner, Vector3 tablePosition)
     {
         if (virusWorkPrefab == null || formationData == null) return;
+        StartCoroutine(SpawnWorkVirusesStaggered(runner, tablePosition));
+    }
 
+    private IEnumerator SpawnWorkVirusesStaggered(NetworkRunner runner, Vector3 tablePosition)
+    {
+        Vector3 placeholderOrigin = tablePosition + placeholderOffset;
         for (int i = 0; i < formationData.slots.Length; i++)
         {
-            Vector3 pos = tablePosition + workVirusBaseOffset + workVirusSpacing * i;
+            Vector3 pos = placeholderOrigin + formationData.slots[i].localPosition;
             runner.Spawn(virusWorkPrefab, pos, Quaternion.identity);
+            yield return new WaitForSeconds(virusSpawnStagger);
         }
     }
 
