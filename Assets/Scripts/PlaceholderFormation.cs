@@ -40,7 +40,10 @@ public class PlaceholderFormation : NetworkBehaviour
     public Color completeHandleColor = new Color(0x8A / 255f, 0xF2 / 255f, 0xAA / 255f, 1f);
 
     private static readonly int HandleColorId = Shader.PropertyToID("_Color");
-    private static Material s_sharedConnectionLineMaterial;
+    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+    private static readonly int ColorId = Shader.PropertyToID("_Color");
+
+    private Material _connectionLineMaterial;
 
     private MaterialPropertyBlock _handleMpb;
     private Color _defaultHandleColor;
@@ -274,6 +277,8 @@ public class PlaceholderFormation : NetworkBehaviour
 
     private void SetupConnectionLineRenderer(LineRenderer line)
     {
+        Material mat = GetConnectionLineMaterial();
+
         line.useWorldSpace = true;
         line.positionCount = 2;
         line.startWidth = connectionLineWidth;
@@ -283,24 +288,37 @@ public class PlaceholderFormation : NetworkBehaviour
         line.startColor = connectionLineColor;
         line.endColor = connectionLineColor;
         line.enabled = false;
-        line.material = GetSharedConnectionLineMaterial();
+        line.sharedMaterial = mat;
         line.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         line.receiveShadows = false;
     }
 
-    private static Material GetSharedConnectionLineMaterial()
+    private Material GetConnectionLineMaterial()
     {
-        if (s_sharedConnectionLineMaterial != null)
-            return s_sharedConnectionLineMaterial;
+        if (_connectionLineMaterial == null)
+        {
+            Shader shader = Shader.Find("Sprites/Default")
+                ?? Shader.Find("Unlit/Color")
+                ?? Shader.Find("Universal Render Pipeline/Unlit");
+            if (shader == null)
+                return null;
 
-        Shader shader = Shader.Find("Universal Render Pipeline/Unlit")
-            ?? Shader.Find("Unlit/Color")
-            ?? Shader.Find("Sprites/Default");
-        if (shader == null)
-            return null;
+            _connectionLineMaterial = new Material(shader);
+        }
 
-        s_sharedConnectionLineMaterial = new Material(shader);
-        return s_sharedConnectionLineMaterial;
+        ApplyConnectionLineColorToMaterial(_connectionLineMaterial, connectionLineColor);
+        return _connectionLineMaterial;
+    }
+
+    private static void ApplyConnectionLineColorToMaterial(Material mat, Color color)
+    {
+        if (mat == null)
+            return;
+
+        if (mat.HasProperty(BaseColorId))
+            mat.SetColor(BaseColorId, color);
+        if (mat.HasProperty(ColorId))
+            mat.SetColor(ColorId, color);
     }
 
     private void RefreshConnectionLines()
@@ -341,6 +359,15 @@ public class PlaceholderFormation : NetworkBehaviour
     private void ClearConnectionLineObjects()
     {
         _connectionEdges = null;
+
+        if (_connectionLineMaterial != null)
+        {
+            if (Application.isPlaying)
+                Destroy(_connectionLineMaterial);
+            else
+                DestroyImmediate(_connectionLineMaterial);
+            _connectionLineMaterial = null;
+        }
 
         if (_connectionLinesRoot != null)
         {
