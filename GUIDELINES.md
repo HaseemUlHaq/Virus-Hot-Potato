@@ -17,6 +17,8 @@ A collocated mixed reality game for Meta Quest 3S. Players are physically in the
 
 Everyone can **scale** the virus (two-hand grab stretch).
 
+**Solo debug (`Debug Allow All Powers` on `PowerRoleSession`):** left hand swipe = color only, right hand swipe = shape only. Normal multiplayer keeps both RPCs per swipe (roles gate on the virus).
+
 ---
 
 ## Tech Stack

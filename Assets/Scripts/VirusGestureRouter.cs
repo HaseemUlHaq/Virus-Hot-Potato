@@ -5,6 +5,8 @@ using UnityEngine;
 /// Lives in the SCENE on VirusGestureDetectors.
 /// Receives swipe events from HandSwipeGestureLeft/Right (scene-level ActiveStateUnityEventWrapper)
 /// and forwards them to the virus closest to the swiping hand (proximity gate).
+/// Normal play: each swipe sends color + shape RPCs (power roles gate on the virus).
+/// Debug all-powers: left swipe = color only, right swipe = shape only (solo testing).
 /// </summary>
 public class VirusGestureRouter : MonoBehaviour
 {
@@ -45,6 +47,14 @@ public class VirusGestureRouter : MonoBehaviour
         NetworkGrabbableVirus virus = ResolveVirusForHand(leftHand, Handedness.Left);
         if (virus == null) { Debug.LogWarning("[VirusGestureRouter] No virus in range"); return; }
         if (virus.Object == null || !virus.Object.IsValid) return;
+
+        if (IsDebugAllPowersEnabled())
+        {
+            Debug.Log($"[VirusGestureRouter] Debug — color previous on {virus.name}");
+            virus.RequestCycleMaterialFromGesture(nextMaterial: false);
+            return;
+        }
+
         Debug.Log($"[VirusGestureRouter] Cycle previous via RPC on {virus.name}");
         virus.RequestCycleMaterialFromGesture(nextMaterial: false);
         virus.RequestCycleShapeFromGesture(next: false);
@@ -58,9 +68,25 @@ public class VirusGestureRouter : MonoBehaviour
         NetworkGrabbableVirus virus = ResolveVirusForHand(rightHand, Handedness.Right);
         if (virus == null) { Debug.LogWarning("[VirusGestureRouter] No virus in range"); return; }
         if (virus.Object == null || !virus.Object.IsValid) return;
+
+        if (IsDebugAllPowersEnabled())
+        {
+            Debug.Log($"[VirusGestureRouter] Debug — shape next on {virus.name}");
+            virus.RequestCycleShapeFromGesture(next: true);
+            return;
+        }
+
         Debug.Log($"[VirusGestureRouter] Cycle next via RPC on {virus.name}");
         virus.RequestCycleMaterialFromGesture(nextMaterial: true);
         virus.RequestCycleShapeFromGesture(next: true);
+    }
+
+    private static bool IsDebugAllPowersEnabled()
+    {
+        PowerRoleSession session = PowerRoleSession.Instance;
+        if (session == null)
+            session = FindFirstObjectByType<PowerRoleSession>(FindObjectsInactive.Include);
+        return session != null && session.DebugAllowAllPowersWhenUnassigned;
     }
 
     private NetworkGrabbableVirus ResolveVirusForHand(Hand hand, Handedness side)
