@@ -1,4 +1,5 @@
 using Fusion;
+using System.Collections.Generic;
 using UnityEngine;
 
 // Spawns placeholder formation and work viruses from table QR.
@@ -33,6 +34,7 @@ public class FormationManager : MonoBehaviour
 
     private bool _spawned;
     private bool _exampleSpawned;
+    private readonly List<NetworkObject> _roundSpawned = new List<NetworkObject>();
     public bool HasSpawned => _spawned;
 
     // Called by VirusSpawner when table QR fires — spawns placeholder + work viruses only
@@ -63,6 +65,7 @@ public class FormationManager : MonoBehaviour
 
         NetworkObject obj = masterRunner.Spawn(exampleFormationPrefab, pos, Quaternion.identity);
         if (obj == null) return;
+        TrackSpawn(obj);
 
         ExampleVirusFormation formation = obj.GetComponent<ExampleVirusFormation>();
         if (formation != null)
@@ -78,6 +81,22 @@ public class FormationManager : MonoBehaviour
         _currentRoundIndex++;
     }
 
+    public void DespawnRoundEntities(NetworkRunner runner)
+    {
+        if (runner == null) return;
+
+        for (int i = _roundSpawned.Count - 1; i >= 0; i--)
+        {
+            NetworkObject obj = _roundSpawned[i];
+            if (obj != null && obj.IsValid)
+                runner.Despawn(obj);
+        }
+
+        _roundSpawned.Clear();
+        _spawned = false;
+        _exampleSpawned = false;
+    }
+
     private void SpawnPlaceholderFormation(NetworkRunner runner, Vector3 tablePosition)
     {
         if (placeholderFormationPrefab == null) return;
@@ -85,6 +104,7 @@ public class FormationManager : MonoBehaviour
         Vector3 pos = tablePosition + placeholderOffset;
         NetworkObject obj = runner.Spawn(placeholderFormationPrefab, pos, Quaternion.identity);
         if (obj == null) return;
+        TrackSpawn(obj);
 
         PlaceholderFormation formation = obj.GetComponent<PlaceholderFormation>();
         if (formation != null)
@@ -98,8 +118,16 @@ public class FormationManager : MonoBehaviour
         for (int i = 0; i < formationData.slots.Length; i++)
         {
             Vector3 pos = tablePosition + workVirusBaseOffset + workVirusSpacing * i;
-            runner.Spawn(virusWorkPrefab, pos, Quaternion.identity);
+            NetworkObject work = runner.Spawn(virusWorkPrefab, pos, Quaternion.identity);
+            if (work != null)
+                TrackSpawn(work);
         }
+    }
+
+    private void TrackSpawn(NetworkObject obj)
+    {
+        if (obj != null && !_roundSpawned.Contains(obj))
+            _roundSpawned.Add(obj);
     }
 
 }

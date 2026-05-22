@@ -67,4 +67,37 @@ public class NetworkedTableAnchor : NetworkBehaviour
         PlacementVersion++;
         Debug.Log($"[NetworkedTableAnchor] Table placed at {position} (version {PlacementVersion})");
     }
+
+    /// <summary>
+    /// Left-hand long pinch (or any client) requests a round reset on the shared-mode master.
+    /// Keeps table placement and colocation; despawns and respawns puzzle entities.
+    /// </summary>
+    public void RequestRoundReset()
+    {
+        if (Object == null || !Object.IsValid)
+            return;
+
+        if (Object.HasStateAuthority)
+            ExecuteRoundReset();
+        else
+            RPC_RequestRoundReset();
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_RequestRoundReset(RpcInfo info = default)
+    {
+        ExecuteRoundReset();
+    }
+
+    private static void ExecuteRoundReset()
+    {
+        VirusSpawner spawner = FindFirstObjectByType<VirusSpawner>(FindObjectsInactive.Include);
+        if (spawner == null)
+        {
+            Debug.LogWarning("[NetworkedTableAnchor] Round reset requested but no VirusSpawner found.");
+            return;
+        }
+
+        spawner.RestartRoundAtCurrentTable();
+    }
 }

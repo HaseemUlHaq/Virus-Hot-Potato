@@ -37,6 +37,8 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
     private bool _powerRoleSessionSpawned = false;
     private bool _positionReady = false;
     private Vector3 _spawnPosition = Vector3.zero;
+    private NetworkObject _primaryInstance;
+    private NetworkObject _secondaryInstance;
 
     private readonly List<NetworkRunner> _registeredRunners = new List<NetworkRunner>();
     private Coroutine _runnerDiscoveryRoutine;
@@ -118,8 +120,41 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
         _positionReady = false;
         _powerRoleSessionSpawned = false;
         _lastAppliedPlacementVersion = -1;
+        _primaryInstance = null;
+        _secondaryInstance = null;
         formationManager?.ResetForNewRound();
         UnityEngine.Debug.Log("VirusSpawner reset");
+    }
+
+    /// <summary>
+    /// Despawn puzzle entities and respawn at the current table anchor. Keeps colocation, anchor pose,
+    /// and <see cref="PowerRoleSession"/>; does not re-scan QR.
+    /// </summary>
+    public void RestartRoundAtCurrentTable()
+    {
+        NetworkRunner masterRunner = GetMasterRunner();
+        if (masterRunner == null || !masterRunner.IsSharedModeMasterClient)
+            return;
+
+        EnsureSpawnPoseFromAnchor();
+
+        if (!_positionReady)
+        {
+            Debug.LogWarning("[VirusSpawner] Round restart skipped — table anchor not placed yet.");
+            return;
+        }
+
+        DespawnLegacyViruses(masterRunner);
+        formationManager?.DespawnRoundEntities(masterRunner);
+        formationManager?.ResetForNewRound();
+
+        _primarySpawned = false;
+        _secondarySpawned = false;
+        _primaryInstance = null;
+        _secondaryInstance = null;
+
+        TrySpawnViruses();
+        Debug.Log("[VirusSpawner] Round restarted at " + _spawnPosition);
     }
 
     private bool AllRequestedVirusesSpawned()
@@ -203,6 +238,7 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
             if (spawned != null)
             {
                 _primarySpawned = true;
+                _primaryInstance = spawned;
                 UnityEngine.Debug.Log("Primary virus spawned at: " + _spawnPosition);
             }
         }
@@ -218,11 +254,50 @@ public class VirusSpawner : MonoBehaviour, INetworkRunnerCallbacks
             if (spawned2 != null)
             {
                 _secondarySpawned = true;
+                _secondaryInstance = spawned2;
                 UnityEngine.Debug.Log("Second virus spawned at: " + p2);
             }
         }
 
         formationManager?.TrySpawnFormations(masterRunner, _spawnPosition);
+    }
+
+    private void EnsureSpawnPoseFromAnchor()
+    {
+        if (networkedTableAnchor == null || !networkedTableAnchor.IsTablePlaced)
+            return;
+
+        _spawnPosition = networkedTableAnchor.PlacedSurfacePosition + Vector3.up * 0.15f;
+        _positionReady = true;
+        _lastAppliedPlacementVersion = networkedTableAnchor.CurrentPlacementVersion;
+    }
+
+    private void DespawnLegacyViruses(NetworkRunner runner)
+    {
+        if (runner == null) return;
+
+        if (_primaryInstance != null && _primaryInstance.IsValid)
+            runner.Despawn(_primaryInstance);
+        if (_secondaryInstance != null && _secondaryInstance.IsValid)
+            runner.Despawn(_secondaryInstance);
+    }
+
+    private NetworkRunner GetMasterRunner()
+    {
+        foreach (NetworkRunner runner in _registeredRunners)
+        {
+            if (runner != null && runner.IsRunning && runner.IsSharedModeMasterClient)
+                return runner;
+        }
+
+        NetworkRunner[] runners = FindObjectsByType<NetworkRunner>(FindObjectsSortMode.None);
+        foreach (NetworkRunner runner in runners)
+        {
+            if (runner != null && runner.IsRunning && runner.IsSharedModeMasterClient)
+                return runner;
+        }
+
+        return null;
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
