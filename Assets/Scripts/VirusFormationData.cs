@@ -13,6 +13,7 @@ public class VirusFormationData : ScriptableObject
         public int shapeVariantIndex;
         public Vector3 localPosition;
         public Vector3 localEulerAngles;
+        [Tooltip("Fallback links when PlaceholderFormation.slotConnections is empty. Other slot indices (0-based). Line when both are correct.")]
         public int[] connectionIndices = System.Array.Empty<int>();
     }
 

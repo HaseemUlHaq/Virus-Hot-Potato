@@ -266,15 +266,15 @@ PlayerSettings:
   useCustomMainGradleTemplate: 0
   useCustomLauncherGradleManifest: 0
   useCustomBaseGradleTemplate: 0
-  useCustomGradlePropertiesTemplate: 0
+  useCustomGradlePropertiesTemplate: 1
   useCustomGradleSettingsTemplate: 0
   useCustomProguardFile: 0
   AndroidTargetArchitectures: 2
   AndroidAllowedArchitectures: -13
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
-  AndroidKeystoreName: '{inproject}: user.keystore'
-  AndroidKeyaliasName: virus5
+  AndroidKeystoreName: C:/Users/haul9864/Downloads/user.keystore
+  AndroidKeyaliasName: group5
   AndroidEnableArmv9SecurityFeatures: 0
   AndroidEnableArm64MTE: 0
   AndroidBuildApkPerCpuArchitecture: 0

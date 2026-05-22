@@ -822,6 +822,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89aa7c04d777cfc4db073ecf988e7a3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkedTableAnchor
+  roundResetPlayerId: 1
 --- !u!1 &156447843 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1125734649379851871, guid: 740b5ee262c98df4381adba974c8f978, type: 3}
@@ -10315,6 +10316,7 @@ GameObject:
   - component: {fileID: 2084592681}
   - component: {fileID: 2084592680}
   - component: {fileID: 2084592682}
+  - component: {fileID: 2084592683}
   m_Layer: 0
   m_Name: VirusSpawner
   m_TagString: Untagged
@@ -10377,6 +10379,22 @@ MonoBehaviour:
   workVirusBaseOffset: {x: -0.3, y: 0.15, z: 0}
   workVirusSpacing: {x: 0.15, y: 0, z: 0}
   virusSpawnStagger: 0.4
+--- !u!114 &2084592683
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2084592679}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4e8a91c2b3d4e5f6a7b8c9d0e1f2a3b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeftHandRoundResetGesture
+  holdDurationSeconds: 2.05
+  resetCooldownSeconds: 3
+  leftHand: {fileID: 2131984123}
+  networkedTableAnchor: {fileID: 152540253}
 --- !u!1 &2091405065
 GameObject:
   m_ObjectHideFlags: 0
