@@ -2,11 +2,12 @@ using System.Collections;
 using Fusion;
 using UnityEngine;
 
-// Add to work virus prefab. On spawn, animates VirusScale from 0 to 1 with a bounce.
-// State authority drives the networked value — all clients see the animation.
+// Add to work virus prefab. On spawn, sets default material and animates the virus
+// dropping down from above into its slot position. No scale changes.
 public class WorkVirusSpawnAnimator : NetworkBehaviour
 {
     [SerializeField] private float animDuration = 0.5f;
+    [SerializeField] private float spawnHeightOffset = 0.3f;
     [SerializeField] private int defaultMaterialIndex = 5;
 
     public override void Spawned()
@@ -15,27 +16,28 @@ public class WorkVirusSpawnAnimator : NetworkBehaviour
         if (!Object.HasStateAuthority) return;
 
         var virus = GetComponent<NetworkGrabbableVirus>();
-        if (virus == null) return;
+        if (virus != null)
+            virus.MaterialIndex = defaultMaterialIndex;
 
-        virus.MaterialIndex = defaultMaterialIndex;
-        virus.VirusScale = 0f;
-        StartCoroutine(AnimateIn(virus));
+        StartCoroutine(AnimateIn());
     }
 
-    private IEnumerator AnimateIn(NetworkGrabbableVirus virus)
+    private IEnumerator AnimateIn()
     {
+        Vector3 targetPos = transform.position;
+        Vector3 startPos = targetPos + Vector3.up * spawnHeightOffset;
+        transform.position = startPos;
+
         float elapsed = 0f;
         while (elapsed < animDuration)
         {
+            if (GetComponent<NetworkGrabbableVirus>() is { IsBeingGrabbed: true }) yield break;
             elapsed += Runner.DeltaTime;
             float t = Mathf.Clamp01(elapsed / animDuration);
-            // Overshoot bounce: goes slightly past 1 then settles
-            float scale = t < 0.8f
-                ? Mathf.SmoothStep(0f, 1.15f, t / 0.8f)
-                : Mathf.Lerp(1.15f, 1f, (t - 0.8f) / 0.2f);
-            virus.VirusScale = scale;
+            transform.position = Vector3.Lerp(startPos, targetPos, Mathf.SmoothStep(0f, 1f, t));
             yield return null;
         }
-        virus.VirusScale = 1f;
+
+        transform.position = targetPos;
     }
 }

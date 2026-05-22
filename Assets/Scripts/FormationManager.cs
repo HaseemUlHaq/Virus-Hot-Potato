@@ -125,12 +125,21 @@ public class FormationManager : MonoBehaviour
         StartCoroutine(SpawnWorkVirusesStaggered(runner, tablePosition));
     }
 
+    private static readonly Vector3[] PlaceholderSlotOffsets = new Vector3[]
+    {
+        new Vector3( 0.361f,  0.109f,  0f     ),
+        new Vector3( 0f,      0.064f,  0.436f ),
+        new Vector3(-0.430f,  0.150f,  0f     ),
+        new Vector3( 0f,      0.242f, -0.436f ),
+    };
+
     private IEnumerator SpawnWorkVirusesStaggered(NetworkRunner runner, Vector3 tablePosition)
     {
         Vector3 placeholderOrigin = tablePosition + placeholderOffset;
-        for (int i = 0; i < formationData.slots.Length; i++)
+        int count = formationData != null ? formationData.slots.Length : PlaceholderSlotOffsets.Length;
+        for (int i = 0; i < count && i < PlaceholderSlotOffsets.Length; i++)
         {
-            Vector3 pos = placeholderOrigin + formationData.slots[i].localPosition;
+            Vector3 pos = placeholderOrigin + PlaceholderSlotOffsets[i];
             runner.Spawn(virusWorkPrefab, pos, Quaternion.identity);
             yield return new WaitForSeconds(virusSpawnStagger);
         }

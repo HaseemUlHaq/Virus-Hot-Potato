@@ -588,7 +588,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6139b0950e904b4886da4cfc4d0a667, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorkVirusSpawnAnimator
-  animDuration: 0.5
+  animDuration: 1
+  defaultMaterialIndex: 5
+  startScale: 0.5
 --- !u!1 &2578310240436922983
 GameObject:
   m_ObjectHideFlags: 0
