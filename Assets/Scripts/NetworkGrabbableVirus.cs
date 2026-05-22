@@ -546,11 +546,20 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     // ─── Public API ───────────────────────────────────────────────────────
 
+    public const float ScaleStep = 0.5f;
+
+    /// <summary>Snaps scale to 0.5 steps between 0.5 and 3.0 (matches formation puzzle tiers).</summary>
+    public static float QuantizeScale(float scale)
+    {
+        scale = Mathf.Clamp(scale, 0.5f, 3.0f);
+        return Mathf.Round(scale / ScaleStep) * ScaleStep;
+    }
+
     public void SetVirusScale(float newScale)
     {
         if (Object != null && Object.HasStateAuthority)
         {
-            VirusScale = Mathf.Clamp(newScale, 0.5f, 3.0f);
+            VirusScale = QuantizeScale(newScale);
         }
     }
 

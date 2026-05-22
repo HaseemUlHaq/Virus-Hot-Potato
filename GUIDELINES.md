@@ -117,7 +117,7 @@ Each slot has required properties (set from `VirusFormationData` ScriptableObjec
 | Property | Tolerance |
 |---|---|
 | `MaterialIndex` (colour theme) | Exact match |
-| `VirusScale` | ±0.15 |
+| `VirusScale` | ±0.3 (networked scale snaps to 0.5 steps: 0.5, 1.0, 1.5, … 3.0) |
 | `ShapeVariantIndex` | Exact match |
 | `IsPulsating` | Exact match |
 

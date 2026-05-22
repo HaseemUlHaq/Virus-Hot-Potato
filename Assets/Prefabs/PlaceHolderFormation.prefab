@@ -57,7 +57,7 @@ MonoBehaviour:
   RequiredScale: 1
   RequiredIsPulsating: 0
   RequiredShapeVariantIndex: 0
-  scaleTolerance: 0.15
+  scaleTolerance: 0.3
   slotRenderer: {fileID: 2410359316494942622}
   emptyMaterial: {fileID: 2100000, guid: 54a5256866bd2014b8f4d20d091a5b25, type: 2}
   correctMaterial: {fileID: 2100000, guid: 275b2c99765ede142919b05d8a0a22b0, type: 2}
@@ -178,7 +178,7 @@ MonoBehaviour:
   RequiredScale: 1
   RequiredIsPulsating: 0
   RequiredShapeVariantIndex: 0
-  scaleTolerance: 0.15
+  scaleTolerance: 0.3
   slotRenderer: {fileID: 6037442220276127392}
   emptyMaterial: {fileID: 2100000, guid: 54a5256866bd2014b8f4d20d091a5b25, type: 2}
   correctMaterial: {fileID: 2100000, guid: 275b2c99765ede142919b05d8a0a22b0, type: 2}
@@ -415,7 +415,7 @@ MonoBehaviour:
   RequiredScale: 1
   RequiredIsPulsating: 0
   RequiredShapeVariantIndex: 0
-  scaleTolerance: 0.15
+  scaleTolerance: 0.3
   slotRenderer: {fileID: 1903393628767421219}
   emptyMaterial: {fileID: 2100000, guid: 54a5256866bd2014b8f4d20d091a5b25, type: 2}
   correctMaterial: {fileID: 2100000, guid: 275b2c99765ede142919b05d8a0a22b0, type: 2}
@@ -930,7 +930,7 @@ MonoBehaviour:
   RequiredScale: 1
   RequiredIsPulsating: 0
   RequiredShapeVariantIndex: 0
-  scaleTolerance: 0.15
+  scaleTolerance: 0.3
   slotRenderer: {fileID: 387773168477655753}
   emptyMaterial: {fileID: 2100000, guid: 54a5256866bd2014b8f4d20d091a5b25, type: 2}
   correctMaterial: {fileID: 2100000, guid: 275b2c99765ede142919b05d8a0a22b0, type: 2}

@@ -12,7 +12,7 @@ public class PlaceholderSlot : PetriDish
     public int RequiredShapeVariantIndex;
 
     [Header("Validation")]
-    [SerializeField] private float scaleTolerance = 0.15f;
+    [SerializeField] private float scaleTolerance = 0.3f;
 
     [Header("Visual Feedback")]
     [SerializeField] private Renderer slotRenderer;
@@ -40,7 +40,7 @@ public class PlaceholderSlot : PetriDish
     public void ConfigureFromSlot(VirusFormationData.SlotConfig config)
     {
         RequiredMaterialIndex = config.materialIndex;
-        RequiredScale = config.scale;
+        RequiredScale = NetworkGrabbableVirus.QuantizeScale(config.scale);
         RequiredIsPulsating = config.isPulsating;
         RequiredShapeVariantIndex = config.shapeVariantIndex;
     }

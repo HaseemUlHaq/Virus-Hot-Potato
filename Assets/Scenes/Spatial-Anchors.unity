@@ -4191,7 +4191,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1064510439
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22304,8 +22304,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4789c9e762abfe245a3fee80165ed02d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VirusColorSpray
-  nozzle: {fileID: 5367601774036538327}
-  range: 2
 --- !u!1001 &2865947121405088872
 PrefabInstance:
   m_ObjectHideFlags: 0
