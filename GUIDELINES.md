@@ -125,6 +125,12 @@ Each slot has required properties (set from `VirusFormationData` ScriptableObjec
 
 Slot shows **green** when correct, **red** when wrong, neutral when empty.
 
+### Connection lines (placeholder)
+- Configure pairs on **`PlaceHolderFormation` prefab** → **Slot Connections** (e.g. `slotA: 0`, `slotB: 1` links **Slots[0]** to **Slots[1]**; for “slot 2 and slot 4” use indices **1** and **3** if those are Elements 1 and 3 in the **Slots** array).
+- Line is **visible only when both linked slots are correctly filled** (green).
+- If **Slot Connections** is empty, falls back to `VirusFormationData.connectionIndices`, then to a **0–1–2–3 chain**.
+- Lines are mint green (`#8AF2AA`) by default — tune width/color on `PlaceholderFormation`. Runtime only (Play Mode / build).
+
 ### Completion
 `PlaceholderFormation.FixedUpdateNetwork()` checks all slots every tick. When every slot is `IsFilledCorrectly`, `IsComplete` flips to `true` and `OnIsCompleteChanged` fires on all clients.
 

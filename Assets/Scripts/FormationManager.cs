@@ -88,10 +88,7 @@ public class FormationManager : MonoBehaviour
 
         PlaceholderFormation formation = obj.GetComponent<PlaceholderFormation>();
         if (formation != null)
-        {
             formation.ConfigureSlots(formationData);
-            BuildPlaceholderConnectionLines(formation);
-        }
     }
 
     private void SpawnWorkViruses(NetworkRunner runner, Vector3 tablePosition)
@@ -105,9 +102,4 @@ public class FormationManager : MonoBehaviour
         }
     }
 
-    private void BuildPlaceholderConnectionLines(PlaceholderFormation formation)
-    {
-        if (formation == null || formationData == null) return;
-        // TODO: dynamic line creation
-    }
 }
