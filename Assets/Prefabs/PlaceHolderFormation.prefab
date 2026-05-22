@@ -323,6 +323,8 @@ MonoBehaviour:
   preassignedFormationData: {fileID: 11400000, guid: 3651782c59044cc4f99b788f50cff043, type: 2}
   connectionLines: []
   rotationSensitivity: 1
+  handleVisualRenderer: {fileID: 9000000000000000023}
+  completeHandleColor: {r: 0.5411765, g: 0.9490196, b: 0.6666667, a: 1}
   _IsComplete:
     _value: 0
 --- !u!114 &2048533741542839071

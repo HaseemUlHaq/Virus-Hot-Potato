@@ -20,6 +20,17 @@ public class PlaceholderFormation : NetworkBehaviour
     [Header("Rotation")]
     [SerializeField] private float rotationSensitivity = 1f;
 
+    [Header("Rotation Handle Visual")]
+    [Tooltip("Mesh renderer on HandleVisual (RotationGrabHandle). Auto-found by name if unset.")]
+    public Renderer handleVisualRenderer;
+    [Tooltip("Handle tint when all placeholder slots are correctly filled.")]
+    public Color completeHandleColor = new Color(0x8A / 255f, 0xF2 / 255f, 0xAA / 255f, 1f);
+
+    private static readonly int HandleColorId = Shader.PropertyToID("_Color");
+    private MaterialPropertyBlock _handleMpb;
+    private Color _defaultHandleColor;
+    private bool _defaultHandleColorCached;
+
     [Networked] private float _rotationY { get; set; }
 
     [Networked, OnChangedRender(nameof(OnIsCompleteChanged))]
@@ -33,6 +44,9 @@ public class PlaceholderFormation : NetworkBehaviour
         base.Spawned();
         if (preassignedFormationData != null)
             ConfigureSlots(preassignedFormationData);
+
+        EnsureHandleRenderer();
+        ApplyHandleVisualColor();
     }
 
     public override void FixedUpdateNetwork()
@@ -103,8 +117,48 @@ public class PlaceholderFormation : NetworkBehaviour
 
     private void OnIsCompleteChanged()
     {
+        ApplyHandleVisualColor();
         if (IsComplete)
             Debug.Log("[PlaceholderFormation] All slots correctly filled — formation complete!");
+    }
+
+    private void EnsureHandleRenderer()
+    {
+        if (handleVisualRenderer != null)
+            return;
+
+        var renderers = GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            if (renderers[i] != null && renderers[i].gameObject.name == "HandleVisual")
+            {
+                handleVisualRenderer = renderers[i];
+                return;
+            }
+        }
+    }
+
+    private void CacheDefaultHandleColor()
+    {
+        if (_defaultHandleColorCached || handleVisualRenderer == null)
+            return;
+
+        Material mat = handleVisualRenderer.sharedMaterial;
+        _defaultHandleColor = mat != null && mat.HasProperty(HandleColorId)
+            ? mat.GetColor(HandleColorId)
+            : Color.white;
+        _defaultHandleColorCached = true;
+    }
+
+    private void ApplyHandleVisualColor()
+    {
+        if (handleVisualRenderer == null)
+            return;
+
+        CacheDefaultHandleColor();
+        _handleMpb ??= new MaterialPropertyBlock();
+        _handleMpb.SetColor(HandleColorId, IsComplete ? completeHandleColor : _defaultHandleColor);
+        handleVisualRenderer.SetPropertyBlock(_handleMpb);
     }
 
     private void RefreshConnectionLines()
