@@ -25,6 +25,7 @@
     "com.unity.xr.hands": "1.8.0",
     "com.unity.xr.legacyinputhelpers": "3.0.1",
     "com.unity.xr.management": "4.6.0",
+    "com.unity.xr.meta-openxr": "2.5.0",
     "com.unity.xr.openxr": "1.17.0",
     "com.veriorpies.parrelsync": "https://github.com/VeriorPies/ParrelSync.git?path=/ParrelSync",
     "com.unity.modules.accessibility": "1.0.0",

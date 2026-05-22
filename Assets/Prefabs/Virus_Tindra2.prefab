@@ -117,6 +117,7 @@ GameObject:
   - component: {fileID: 7321827033630362553}
   - component: {fileID: 7721203966171748277}
   - component: {fileID: 8407094129555590774}
+  - component: {fileID: 3416863657943328197}
   m_Layer: 0
   m_Name: Virus_Tindra2
   m_TagString: Untagged
@@ -374,7 +375,7 @@ MonoBehaviour:
   - bodyColor: {r: 0.028660158, g: 0.14150941, b: 0, a: 0}
     spikeColor: {r: 0.063651726, g: 0.31132078, b: 0, a: 0}
     veinGlowColor: {r: 0.06301003, g: 0.30946895, b: 0, a: 1}
-    glowIntensity: 0.46
+    glowIntensity: 2.72
   - bodyColor: {r: 0, g: 0.12156863, b: 0.11352913, a: 0}
     spikeColor: {r: 0.058823522, g: 0.41568628, b: 0.3935271, a: 0}
     veinGlowColor: {r: 0.4509804, g: 0.14654893, b: 0, a: 1}
@@ -384,15 +385,15 @@ MonoBehaviour:
     veinGlowColor: {r: 0.509434, g: 0.035438888, b: 0, a: 1}
     glowIntensity: 3
   - bodyColor: {r: 0.02336241, g: 0.23584908, b: 0.066462465, a: 0}
-    spikeColor: {r: 0.15886435, g: 0.24410476, b: 0.3207547, a: 0}
+    spikeColor: {r: 0.39355636, g: 0.5108926, b: 0.6226415, a: 0}
     veinGlowColor: {r: 0.038047355, g: 0.1792453, b: 0.16355662, a: 1}
     glowIntensity: 2
   - bodyColor: {r: 0.23584908, g: 0.23584908, b: 0.23584908, a: 0}
     spikeColor: {r: 0.16037738, g: 0.14067905, b: 0.12784801, a: 0}
-    veinGlowColor: {r: 0.012682453, g: 0.013984072, b: 0.028301895, a: 1}
+    veinGlowColor: {r: 0.050096896, g: 0.06430223, b: 0.106918216, a: 1}
     glowIntensity: 3
   - bodyColor: {r: 0.23584908, g: 0.23584908, b: 0.23584908, a: 0}
-    spikeColor: {r: 0.4716981, g: 0.4716981, b: 0.4716981, a: 0}
+    spikeColor: {r: 0.69182384, g: 0.23278345, b: 0.23278345, a: 0}
     veinGlowColor: {r: 0, g: 0.12550883, b: 0.18867922, a: 1}
     glowIntensity: 3
   - bodyColor: {r: 0.2035867, g: 0.45129985, b: 0.5754717, a: 0}
@@ -411,7 +412,7 @@ MonoBehaviour:
     spikeColor: {r: 0.41568628, g: 0.058823522, b: 0.23010524, a: 0}
     veinGlowColor: {r: 0.16668683, g: 0, b: 0.4245283, a: 1}
     glowIntensity: 3
-  defaultThemeIndex: 1
+  defaultThemeIndex: 4
   spikePulseMaxDisplacement: 0.001
   spikePulseSpeed: 5
   targetRenderer: {fileID: 6198457664840306716}
@@ -476,6 +477,7 @@ MonoBehaviour:
   - {fileID: 7963275968349194443}
   - {fileID: 7793585175934115953}
   - {fileID: 7321827033630362553}
+  - {fileID: 3416863657943328197}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &-2202350563873431255
 MonoBehaviour:
@@ -574,6 +576,21 @@ MonoBehaviour:
   shapeVariants:
   - {fileID: 5234679410522503188}
   - {fileID: 795259040308806897}
+--- !u!114 &3416863657943328197
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2144216136471679737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6139b0950e904b4886da4cfc4d0a667, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorkVirusSpawnAnimator
+  animDuration: 1
+  defaultMaterialIndex: 5
+  startScale: 0.5
 --- !u!1 &2578310240436922983
 GameObject:
   m_ObjectHideFlags: 0

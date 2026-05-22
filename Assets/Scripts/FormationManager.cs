@@ -1,9 +1,9 @@
+using System.Collections;
 using Fusion;
 using System.Collections.Generic;
 using UnityEngine;
 
-// Spawns placeholder formation and work viruses from table QR.
-// ExampleFormation is spawned separately by BoxAnchor once the box QR is detected.
+// Table QR: example formation in toolbox. Box front-wall trigger: placeholder + work viruses.
 public class FormationManager : MonoBehaviour
 {
     [Header("Prefabs")]
@@ -32,32 +32,64 @@ public class FormationManager : MonoBehaviour
     [Tooltip("Spacing between spawned work viruses.")]
     [SerializeField] private Vector3 workVirusSpacing = new Vector3(0.1f, 0f, 0f);
 
+    [Header("Spawn Animation")]
+    [SerializeField] private float virusSpawnStagger = 0.4f;
+
     private bool _spawned;
     private bool _exampleSpawned;
+    private bool _workAreaSpawned;
     private Vector3 _cachedExamplePosition;
     private Quaternion _cachedExampleRotation = Quaternion.identity;
     private bool _hasCachedExamplePose;
     private readonly List<NetworkObject> _roundSpawned = new List<NetworkObject>();
-    public bool HasSpawned => _spawned;
 
-    // Called by VirusSpawner when table QR fires — spawns placeholder + work viruses only
+    private Vector3 _tablePosition;
+    private NetworkRunner _runner;
+
+    public bool HasSpawned => _spawned;
+    public bool WorkAreaWasSpawned => _workAreaSpawned;
+
+    // Called by VirusSpawner when table QR fires — spawns example formation only
     public void TrySpawnFormations(NetworkRunner masterRunner, Vector3 tablePosition)
     {
         if (_spawned || masterRunner == null || formationData == null) return;
 
-        SpawnPlaceholderFormation(masterRunner, tablePosition);
-        SpawnWorkViruses(masterRunner, tablePosition);
-        TrySpawnExampleFormation(masterRunner);
+        _tablePosition = tablePosition;
+        _runner = masterRunner;
+
+        StartCoroutine(SpawnExampleFormationNextFrame(masterRunner));
 
         _spawned = true;
-        Debug.Log("[FormationManager] Placeholder, work viruses, and example formation spawned.");
+        Debug.Log("[FormationManager] Table QR fired — spawning example formation. Work area waits for box trigger.");
     }
 
-    // Called when box QR is detected or on round reset — uses ExampleFormationSpawnPoint world pose (under TableRoot).
+    // Called by BoxFrontWallTrigger when player reaches the box
+    public void SpawnWorkArea()
+    {
+        if (_runner == null || formationData == null) return;
+        if (_workAreaSpawned) return;
+
+        SpawnPlaceholderFormation(_runner, _tablePosition);
+        SpawnWorkViruses(_runner, _tablePosition);
+        _workAreaSpawned = true;
+        Debug.Log("[FormationManager] Box opened — placeholder formation and work viruses spawned.");
+    }
+
+    private IEnumerator SpawnExampleFormationNextFrame(NetworkRunner masterRunner)
+    {
+        yield return null;
+        TrySpawnExampleFormation(masterRunner);
+    }
+
     public void TrySpawnExampleFormation(NetworkRunner masterRunner)
     {
         if (_exampleSpawned || masterRunner == null || formationData == null) return;
         if (exampleFormationPrefab == null) return;
+        if (exampleFormationSpawnPoint == null)
+        {
+            Debug.LogWarning("[FormationManager] ExampleFormationSpawnPoint not assigned!");
+            return;
+        }
 
         Vector3 pos;
         Quaternion rot;
@@ -66,17 +98,11 @@ public class FormationManager : MonoBehaviour
             pos = _cachedExamplePosition;
             rot = _cachedExampleRotation;
         }
-        else if (exampleFormationSpawnPoint != null)
+        else
         {
-            // TableRoot follows NetworkedTableAnchor in Render(); sync now so world pose is correct on first spawn.
             SyncTableRootToAnchor();
             pos = exampleFormationSpawnPoint.position;
             rot = exampleFormationSpawnPoint.rotation;
-        }
-        else
-        {
-            Debug.LogWarning("[FormationManager] No ExampleFormationSpawnPoint — example formation not spawned.");
-            return;
         }
 
         Debug.Log($"[FormationManager] SpawnExampleFormation at {pos}");
@@ -100,6 +126,7 @@ public class FormationManager : MonoBehaviour
     {
         _spawned = false;
         _exampleSpawned = false;
+        _workAreaSpawned = false;
         _currentRoundIndex++;
     }
 
@@ -136,13 +163,28 @@ public class FormationManager : MonoBehaviour
     private void SpawnWorkViruses(NetworkRunner runner, Vector3 tablePosition)
     {
         if (virusWorkPrefab == null || formationData == null) return;
+        StartCoroutine(SpawnWorkVirusesStaggered(runner, tablePosition));
+    }
 
-        for (int i = 0; i < formationData.slots.Length; i++)
+    private static readonly Vector3[] PlaceholderSlotOffsets =
+    {
+        new Vector3( 0.361f,  0.109f,  0f     ),
+        new Vector3( 0f,      0.064f,  0.436f ),
+        new Vector3(-0.430f,  0.150f,  0f     ),
+        new Vector3( 0f,      0.242f, -0.436f ),
+    };
+
+    private IEnumerator SpawnWorkVirusesStaggered(NetworkRunner runner, Vector3 tablePosition)
+    {
+        Vector3 placeholderOrigin = tablePosition + placeholderOffset;
+        int count = formationData != null ? formationData.slots.Length : PlaceholderSlotOffsets.Length;
+        for (int i = 0; i < count && i < PlaceholderSlotOffsets.Length; i++)
         {
-            Vector3 pos = tablePosition + workVirusBaseOffset + workVirusSpacing * i;
+            Vector3 pos = placeholderOrigin + PlaceholderSlotOffsets[i];
             NetworkObject work = runner.Spawn(virusWorkPrefab, pos, Quaternion.identity);
             if (work != null)
                 TrackSpawn(work);
+            yield return new WaitForSeconds(virusSpawnStagger);
         }
     }
 
@@ -160,5 +202,4 @@ public class FormationManager : MonoBehaviour
 
         anchor.transform.SetPositionAndRotation(anchor.PlacedSurfacePosition, anchor.PlacedRotation);
     }
-
 }
