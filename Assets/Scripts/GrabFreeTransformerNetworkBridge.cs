@@ -35,6 +35,18 @@ public class GrabFreeTransformerNetworkBridge : NetworkBehaviour
         _lastSyncedScale = transform.localScale;
     }
 
+    /// <summary>
+    /// Interaction SDK often re-enables GrabFreeTransformer during grabs (after Render).
+    /// Re-apply the role gate every LateUpdate so non–scale-role players cannot keep scaling.
+    /// </summary>
+    private void LateUpdate()
+    {
+        if (grabFreeTransformer == null)
+            return;
+
+        grabFreeTransformer.enabled = true;
+    }
+
     // Use FixedUpdateNetwork instead of Update - syncs with Fusion tick rate!
     public override void FixedUpdateNetwork()
     {
@@ -52,9 +64,7 @@ public class GrabFreeTransformerNetworkBridge : NetworkBehaviour
             float averageScale = (currentScale.x + currentScale.y + currentScale.z) / 3f;
 
             if (_networkVirus != null)
-            {
                 _networkVirus.SetVirusScale(averageScale);
-            }
 
             _lastSyncedScale = currentScale;
         }

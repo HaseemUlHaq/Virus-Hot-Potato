@@ -34,6 +34,9 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     [Header("Material Cycling")]
     [SerializeField] private VirusSwipeCycler swipeCycler;
 
+    [Header("Shape Cycling")]
+    [SerializeField] private VirusShapeCycler shapeCycler;
+
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI eliminationMessageText;
 
@@ -53,22 +56,38 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     public float VirusScale { get; set; } = 1.0f;
 
     [Networked, OnChangedRender(nameof(OnMaterialIndexChanged))]
-    public int MaterialIndex { get; set; } = 1; // Default to Virus 2 (index 1)
+    public int MaterialIndex { get; set; } = 1;
 
     [Networked, OnChangedRender(nameof(OnVirusPulsateChanged))]
     public NetworkBool IsPulsating { get; set; } = false;
+
+    [Networked, OnChangedRender(nameof(OnShapeVariantChanged))]
+    public int ShapeVariantIndex { get; set; } = 0;
 
     // ─── Local State ──────────────────────────────────────────────────────
     public bool IsBeingGrabbed { get; private set; } = false;
     private bool _pendingGrab = false;
     private bool _pendingRelease = false;
+    private Handedness _pendingHandedness = Handedness.Left;
+
+    // ─── Ghost Hand Snap ──────────────────────────────────────────────────
+    [Networked] private NetworkBool _holderUsesLeftHand { get; set; }
+    private NetworkedHandSimple _cachedHolderHand;
+    private PlayerRef _cachedHolderHandFor = PlayerRef.None;
     private Coroutine _deferredReleaseAuthorityRoutine;
+    private Coroutine _stopPulsateRoutine;
+    private bool _networkTransformEnabled = true;
     public bool _petriDishDisablesNetworkTransform;
 
-    // ─── Pulsate Animation State ──────────────────────────────────────────
-    private float _pulsateTime = 0f;
-    private const float PULSATE_SPEED = 2f;
-    private const float PULSATE_AMOUNT = 0.2f;
+    [Header("Collaborative MR (Petri sync)")]
+    [Tooltip(
+        "When snapped, reposition this virus each LateUpdate onto each player's local dish hover pose. "+
+        "Prevents MR collocation drift from showing the virus seated on dish for host but floating/in-hand for peers.")]
+    [SerializeField]
+    private bool bindVisualToPetriSnapOnAllPeers = true;
+
+    // ─── Pulse Scale Memory ───────────────────────────────────────────────
+    private float _preBeforeScale = 1f;
 
     // ─── Handedness Detection ─────────────────────────────────────────────
     private readonly Dictionary<int, Handedness> _grabHandByInteractorId = new();
@@ -77,6 +96,8 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     // ─── PetriDish Cache ──────────────────────────────────────────────────
     private PetriDish[] _cachedDishes;
     private float _lastDishCacheTime;
+
+    private PowerRoleSession _powerRoleSession;
 
     // ─── Debug Properties ─────────────────────────────────────────────────
     public float GetRemainingSeconds()
@@ -103,13 +124,11 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         _networkTransform = GetComponent<NetworkTransform>();
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SnapshotTo, false);
 
-        // Initialize material cycler
         if (swipeCycler == null)
             swipeCycler = GetComponent<VirusSwipeCycler>();
 
         ApplyRigidbodyMassIfConfigured();
 
-        // Set physics directly on all clients
         if (_rb != null)
         {
             _rb.isKinematic = false;
@@ -125,14 +144,39 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             FuseStarted = false;
             HasElimination = false;
             SpawnRestUnlocked = false;
-
-            // Initialize virus visual properties
             VirusScale = 1.0f;
-            MaterialIndex = 1; // Start with Virus 2
+            MaterialIndex = 1;
             IsPulsating = false;
+            ShapeVariantIndex = 0;
         }
 
+        // Apply initial visual state on all clients — [OnChangedRender] won't fire if the
+        // networked value matches its default, so we push it explicitly once at spawn.
+        transform.localScale = Vector3.one * VirusScale;
+        if (swipeCycler != null)
+            swipeCycler.SetMaterialIndex(MaterialIndex);
+        if (shapeCycler != null)
+            shapeCycler.SetShapeIndex(ShapeVariantIndex);
+
         _grabbable.WhenPointerEventRaised += OnPointerEvent;
+        RefreshPowerRoleSessionReference();
+    }
+
+    /// <summary>Refreshes the Petri lookup used by simulation and visuals.</summary>
+    private void EnsurePetriDishesCached()
+    {
+        if (_cachedDishes == null || Time.time - _lastDishCacheTime > 1f)
+        {
+            _cachedDishes = FindObjectsByType<PetriDish>(FindObjectsSortMode.None);
+            _lastDishCacheTime = Time.time;
+        }
+    }
+
+    private void RefreshPowerRoleSessionReference()
+    {
+        _powerRoleSession = PowerRoleSession.Instance;
+        if (_powerRoleSession == null)
+            _powerRoleSession = FindFirstObjectByType<PowerRoleSession>(FindObjectsInactive.Include);
     }
 
     public void SetPetriDishSnapNetworkTransformDisabled(bool petriDishHoldsTransformOff)
@@ -145,68 +189,27 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         if (_networkTransform == null) return;
         if (_petriDishDisablesNetworkTransform) return;
 
-        if (IsBeingGrabbed && !Object.HasStateAuthority)
-            _networkTransform.enabled = false;
-        else
-            _networkTransform.enabled = true;
+        bool wantEnabled = !(IsBeingGrabbed && !Object.HasStateAuthority);
+        if (wantEnabled != _networkTransformEnabled)
+        {
+            _networkTransformEnabled = wantEnabled;
+            _networkTransform.enabled = wantEnabled;
+        }
     }
 
     // ─── Network Tick ─────────────────────────────────────────────────────
 
     public override void FixedUpdateNetwork()
     {
-        // CHECK: Am I in a PetriDish? (cache for performance)
-        if (_cachedDishes == null || Time.time - _lastDishCacheTime > 1f)
-        {
-            _cachedDishes = FindObjectsByType<PetriDish>(FindObjectsSortMode.None);
-            _lastDishCacheTime = Time.time;
-        }
+        EnsurePetriDishesCached();
 
-        PetriDish myDish = null;
-        foreach (var dish in _cachedDishes)
-        {
-            if (dish != null && dish.SnappedVirus == this)
-            {
-                myDish = dish;
-                break;
-            }
-        }
-
-        // HANDLE PHYSICS based on dish state
-        if (myDish != null && myDish.IsOccupied)
-        {
-            // I'm in a dish - disable physics and hover
-            if (_rb != null && !_rb.isKinematic)
-            {
-                _rb.linearVelocity = Vector3.zero;
-                _rb.angularVelocity = Vector3.zero;
-                _rb.isKinematic = true;
-                _rb.useGravity = false;
-            }
-
-            // Move to hover position
-            if (Object.HasStateAuthority)
-            {
-                transform.position = myDish.GetHoverPosition();
-                transform.rotation = Quaternion.identity;
-            }
-        }
-        else
-        {
-            // I'm NOT in a dish - enable physics (unless being grabbed)
-            if (_rb != null && _rb.isKinematic && CurrentHolder == PlayerRef.None)
-            {
-                _rb.isKinematic = false;
-                _rb.useGravity = true;
-            }
-        }
-
-        // Handle grab state
+        // Apply grab/release on authority before physics so CurrentHolder matches this tick.
         if (_pendingGrab && Object.HasStateAuthority)
         {
             _pendingGrab = false;
             CurrentHolder = Runner.LocalPlayer;
             _lastTouchedPlayer = Runner.LocalPlayer;
+            _holderUsesLeftHand = (_pendingHandedness == Handedness.Left);
 
             if (!_fuseTimer.IsRunning && !_roundResolved)
             {
@@ -220,6 +223,57 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         {
             _pendingRelease = false;
             CurrentHolder = PlayerRef.None;
+        }
+
+        PetriDish myDish = null;
+        if (_cachedDishes != null)
+        {
+            foreach (var dish in _cachedDishes)
+            {
+                if (dish != null && dish.SnappedVirus == this)
+                {
+                    myDish = dish;
+                    break;
+                }
+            }
+        }
+
+        if (myDish != null && myDish.IsOccupied)
+        {
+            if (_rb != null && !_rb.isKinematic)
+            {
+                _rb.linearVelocity = Vector3.zero;
+                _rb.angularVelocity = Vector3.zero;
+                _rb.isKinematic = true;
+                _rb.useGravity = false;
+            }
+
+            if (Object.HasStateAuthority)
+            {
+                transform.position = myDish.GetHoverPosition();
+                transform.rotation = Quaternion.identity;
+            }
+        }
+        else
+        {
+            // Not in dish: on proxies only, freeze RB while someone holds so NetworkTransform
+            // pose is not fought by local physics (fixes remote jitter). Do not force kinematic
+            // on state authority — Interaction SDK must own RB during hover/grab on the holder.
+            if (CurrentHolder != PlayerRef.None && !Object.HasStateAuthority)
+            {
+                if (_rb != null && !_rb.isKinematic)
+                {
+                    _rb.linearVelocity = Vector3.zero;
+                    _rb.angularVelocity = Vector3.zero;
+                    _rb.isKinematic = true;
+                    _rb.useGravity = false;
+                }
+            }
+            else if (_rb != null && _rb.isKinematic && CurrentHolder == PlayerRef.None)
+            {
+                _rb.isKinematic = false;
+                _rb.useGravity = true;
+            }
         }
 
         // Handle fuse timer
@@ -236,7 +290,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             }
         }
 
-        // Detect changes
         foreach (var change in _changeDetector.DetectChanges(this))
         {
             switch (change)
@@ -246,6 +299,35 @@ public class NetworkGrabbableVirus : NetworkBehaviour
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// Keeps snapped viruses on the dish hover point (world space). Called from LateUpdate so formation
+    /// rotation in Render runs first — no parenting, scale, or NetworkTransform changes.
+    /// </summary>
+    /// <returns>True if this virus is snapped and pose was updated.</returns>
+    private bool ApplyPetriSnapFollowPose()
+    {
+        if (!bindVisualToPetriSnapOnAllPeers || Object == null || !Object.IsValid)
+            return false;
+
+        if (CurrentHolder != PlayerRef.None)
+            return false;
+
+        EnsurePetriDishesCached();
+
+        if (_cachedDishes == null) return false;
+
+        foreach (PetriDish dish in _cachedDishes)
+        {
+            if (dish == null || dish.Object == null || !dish.Object.IsValid) continue;
+            if (!dish.IsOccupied || dish.SnappedVirus != this) continue;
+
+            transform.SetPositionAndRotation(dish.GetHoverPosition(), Quaternion.identity);
+            return true;
+        }
+
+        return false;
     }
 
     // ─── Grab Events ──────────────────────────────────────────────────────
@@ -285,14 +367,12 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     {
         IsBeingGrabbed = true;
         _pendingGrab = true;
+        _pendingHandedness = handedness;
 
         if (Object != null && !Object.HasStateAuthority)
             Object.RequestStateAuthority();
 
         _lastGrabInteractorId = interactorId;
-
-        if (Object.HasStateAuthority)
-            RefreshVirusSwipeMaterial();
     }
 
     private void OnGrabEnded()
@@ -321,25 +401,21 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     private void RefreshVirusSwipeMaterial()
     {
-        if (_lastGrabInteractorId < 0)
-            return;
+        if (_lastGrabInteractorId < 0) return;
 
         if (!_grabHandByInteractorId.TryGetValue(_lastGrabInteractorId, out Handedness h))
             return;
 
-        // Cycle material based on hand
+        RefreshPowerRoleSessionReference();
+        if (_powerRoleSession != null && !_powerRoleSession.IsColorPlayer(Runner.LocalPlayer))
+            return;
+
         if (Object != null && Object.HasStateAuthority)
         {
             if (h == Handedness.Left)
-            {
-                // Left hand = cycle backward
                 MaterialIndex = (MaterialIndex - 1 + 10) % 10;
-            }
             else
-            {
-                // Right hand = cycle forward
                 MaterialIndex = (MaterialIndex + 1) % 10;
-            }
         }
     }
 
@@ -444,34 +520,31 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     private void OnVirusScaleChanged()
     {
         if (!IsPulsating)
-        {
             transform.localScale = Vector3.one * VirusScale;
-        }
-        UnityEngine.Debug.Log($"Virus scale changed to {VirusScale}");
     }
 
     private void OnMaterialIndexChanged()
     {
         if (swipeCycler != null)
-        {
             swipeCycler.SetMaterialIndex(MaterialIndex);
-        }
-        UnityEngine.Debug.Log($"Virus material changed to index {MaterialIndex}");
     }
 
     private void OnVirusPulsateChanged()
     {
-        _pulsateTime = 0f;
-
+        Debug.Log($"[4-Network] OnVirusPulsateChanged → IsPulsating:{IsPulsating}");
         if (!IsPulsating)
-        {
             transform.localScale = Vector3.one * VirusScale;
-        }
-
-        UnityEngine.Debug.Log($"Virus pulsate toggled to {IsPulsating}");
     }
 
-    // ─── Public API for Visual Properties ─────────────────────────────────
+    private void OnShapeVariantChanged()
+    {
+        if (shapeCycler != null)
+            shapeCycler.SetShapeIndex(ShapeVariantIndex);
+        if (swipeCycler != null)
+            swipeCycler.RefreshAfterShapeChange();
+    }
+
+    // ─── Public API ───────────────────────────────────────────────────────
 
     public void SetVirusScale(float newScale)
     {
@@ -485,6 +558,9 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     {
         if (Object != null && Object.HasStateAuthority)
         {
+            RefreshPowerRoleSessionReference();
+            if (_powerRoleSession != null && !_powerRoleSession.IsColorPlayer(Runner.LocalPlayer))
+                return;
             MaterialIndex = (MaterialIndex + 1) % 10;
         }
     }
@@ -493,6 +569,9 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     {
         if (Object != null && Object.HasStateAuthority)
         {
+            RefreshPowerRoleSessionReference();
+            if (_powerRoleSession != null && !_powerRoleSession.IsColorPlayer(Runner.LocalPlayer))
+                return;
             MaterialIndex = (MaterialIndex - 1 + 10) % 10;
         }
     }
@@ -500,23 +579,140 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     public void TogglePulsate()
     {
         if (Object != null && Object.HasStateAuthority)
-        {
             IsPulsating = !IsPulsating;
-        }
     }
 
-    // ─── Render Loop (for pulsate animation) ─────────────────────────────
+    public void RequestTogglePulseFromTangible()
+    {
+        RPC_RequestTogglePulse();
+    }
+
+    public void RequestSpikeBurstFromTangible()
+    {
+        if (Object == null || !Object.IsValid)
+        {
+            Debug.LogWarning("[Pulse] RequestSpikeBurstFromTangible — NetworkObject not valid yet");
+            return;
+        }
+        if (Runner == null)
+        {
+            Debug.LogWarning("[Pulse] RequestSpikeBurstFromTangible — Runner is null");
+            return;
+        }
+        Debug.Log($"[Pulse] Sending RPC_TriggerPulse — HasStateAuthority:{Object.HasStateAuthority} LocalPlayer:{Runner.LocalPlayer}");
+        RPC_TriggerPulse();
+    }
+
+    /// <summary>Gestures must use this path (RPC to authority); validates color role via <paramref name="info"/>.Source.</summary>
+    public void RequestCycleMaterialFromGesture(bool nextMaterial)
+    {
+        RPC_RequestCycleMaterial(nextMaterial);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_RequestCycleMaterial(bool nextMaterial, RpcInfo info = default)
+    {
+        RefreshPowerRoleSessionReference();
+        if (_powerRoleSession != null && !_powerRoleSession.IsColorPlayer(info.Source))
+            return;
+
+        if (nextMaterial)
+            MaterialIndex = (MaterialIndex + 1) % 10;
+        else
+            MaterialIndex = (MaterialIndex - 1 + 10) % 10;
+    }
+
+    public void RequestCycleShapeFromGesture(bool next)
+    {
+        RPC_RequestCycleShape(next);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_RequestCycleShape(bool next, RpcInfo info = default)
+    {
+        RefreshPowerRoleSessionReference();
+        if (_powerRoleSession != null && !_powerRoleSession.IsShapePlayer(info.Source))
+            return;
+
+        if (shapeCycler == null) return;
+        int count = shapeCycler.ShapeCount;
+        if (count <= 1) return;
+        ShapeVariantIndex = next
+            ? (ShapeVariantIndex + 1) % count
+            : (ShapeVariantIndex - 1 + count) % count;
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_RequestTogglePulse(RpcInfo info = default)
+    {
+        RefreshPowerRoleSessionReference();
+        if (_powerRoleSession == null || !_powerRoleSession.IsPulsePlayer(info.Source))
+            return;
+        TogglePulsate();
+    }
+
+    // ─── NEW: UDP Button Pulse RPC ────────────────────────────────────────
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_TriggerPulse(RpcInfo info = default)
+    {
+        RefreshPowerRoleSessionReference();
+        if (_powerRoleSession != null && !_powerRoleSession.IsPulsePlayer(info.Source))
+        {
+            Debug.LogWarning($"[Pulse] RPC_TriggerPulse rejected — sender {info.Source} is not PulsePowerPlayer ({_powerRoleSession.PulsePowerPlayer})");
+            return;
+        }
+
+        Debug.Log("[Pulse] RPC_TriggerPulse accepted — IsPulsating = true");
+        _preBeforeScale = VirusScale;
+        IsPulsating = true;
+        if (_stopPulsateRoutine != null) StopCoroutine(_stopPulsateRoutine);
+        _stopPulsateRoutine = StartCoroutine(StopPulsateNetwork());
+    }
+
+    IEnumerator StopPulsateNetwork()
+    {
+        yield return new WaitForSeconds(1f);
+        _stopPulsateRoutine = null;
+        IsPulsating = false;
+        VirusScale = _preBeforeScale;
+    }
+
+    // ─── Ghost Hand Snap ──────────────────────────────────────────────────
+
+    private void LateUpdate()
+    {
+        if (Runner == null || Object == null || !Object.IsValid) return;
+
+        if (ApplyPetriSnapFollowPose())
+            return;
+
+        if (CurrentHolder == PlayerRef.None || Object.HasStateAuthority) return;
+        if (_petriDishDisablesNetworkTransform) return;
+
+        if (_cachedHolderHandFor != CurrentHolder)
+        {
+            _cachedHolderHandFor = CurrentHolder;
+            _cachedHolderHand = null;
+            foreach (var hand in FindObjectsByType<NetworkedHandSimple>(FindObjectsSortMode.None))
+            {
+                if (hand.Object == null || !hand.Object.IsValid) continue;
+                if (hand.Object.StateAuthority != CurrentHolder) continue;
+                if (hand.IsLeftHand != _holderUsesLeftHand) continue;
+                _cachedHolderHand = hand;
+                break;
+            }
+        }
+
+        if (_cachedHolderHand != null && _cachedHolderHand.Object != null && _cachedHolderHand.Object.IsValid)
+            transform.position = _cachedHolderHand.GetPalmPosition();
+    }
+
+    // ─── Render Loop ─────────────────────────────────────────────────────
 
     public override void Render()
     {
         base.Render();
-
-        if (IsPulsating)
-        {
-            _pulsateTime += Time.deltaTime * PULSATE_SPEED;
-            float pulse = 1f + Mathf.Sin(_pulsateTime) * PULSATE_AMOUNT;
-            transform.localScale = Vector3.one * VirusScale * pulse;
-        }
     }
 
     // ─── Cleanup ──────────────────────────────────────────────────────────
@@ -527,6 +723,12 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         {
             StopCoroutine(_deferredReleaseAuthorityRoutine);
             _deferredReleaseAuthorityRoutine = null;
+        }
+
+        if (_stopPulsateRoutine != null)
+        {
+            StopCoroutine(_stopPulsateRoutine);
+            _stopPulsateRoutine = null;
         }
 
         if (_grabbable != null)

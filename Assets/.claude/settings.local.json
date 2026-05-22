@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"c:\\\\Users\\\\loli6917\\\\Documents\\\\GitHub\\\\Virus-Hot-Potato\" && grep -c \"SlotConfig\\\\|materialIndex\\\\|isPulsating\\\\|shapeVariantIndex\" \"Assets/Assets/VirusFormationData_01.asset\")",
+      "Read(//c/Users/loli6917/Documents/GitHub/Virus-Hot-Potato/**)",
+      "Bash(findstr /n \"^--- !u\" \"Spatial-Anchors.unity\")",
+      "Bash(Remove-Item \"c:\\\\Users\\\\loli6917\\\\Documents\\\\GitHub\\\\Virus-Hot-Potato\\\\Assets\\\\Scripts\\\\MicrophonePulseDetector.cs\" -ErrorAction SilentlyContinue)",
+      "Bash(Remove-Item \"c:\\\\Users\\\\loli6917\\\\Documents\\\\GitHub\\\\Virus-Hot-Potato\\\\Assets\\\\Scripts\\\\MicrophonePulseDetector.cs.meta\" -ErrorAction SilentlyContinue)",
+      "Bash(Write-Output \"done\")",
+      "PowerShell(\"done\")"
+    ]
+  }
+}

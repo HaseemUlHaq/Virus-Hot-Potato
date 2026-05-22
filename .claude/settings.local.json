@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep -l \"ActiveState\\\\|HandSwipe\\\\|SwipeRecognizer\")",
+      "Bash(xargs grep -l \"Player\\\\|player\\\\|role\\\\|power\")",
+      "PowerShell(head -50)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\livad\\\\.claude\\\\projects\\\\c--Users-livad-Documents-GitHub-Virus-Hot-Potato\\\\memory\")",
+      "Bash(del \"c:\\\\Users\\\\livad\\\\Documents\\\\GitHub\\\\Virus-Hot-Potato\\\\Assets\\\\Scripts\\\\MyCustomColorChanger.cs\")",
+      "Bash(del \"c:\\\\Users\\\\livad\\\\Documents\\\\GitHub\\\\Virus-Hot-Potato\\\\Assets\\\\Scripts\\\\MyCustomColorChanger.cs.meta\")",
+      "Bash(git add *)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\livad\\.claude\\projects\\c--Users-livad-Documents-GitHub-Virus-Hot-Potato\\memory"
+    ]
+  }
+}
