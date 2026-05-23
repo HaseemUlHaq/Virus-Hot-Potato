@@ -64,8 +64,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4e8a2c91b3d4e5f8690a1b2c3d4e5f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PowerRoleSession
-  powerAssignmentOrder: 02000000000000000300000001000000
-  debugAllowAllPowersWhenUnassigned: 1
+  powerAssignmentOrder: 03000000000000000200000001000000
+  debugAllowAllPowersWhenUnassigned: 0
   manualColorPlayerId: 1
   manualScalePlayerId: 1
   manualShapePlayerId: 1

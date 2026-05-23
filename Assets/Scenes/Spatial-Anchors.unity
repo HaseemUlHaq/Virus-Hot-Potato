@@ -12411,7 +12411,7 @@ MonoBehaviour:
   - {fileID: 1752351564}
   - {fileID: 1451997947}
   revealDelay: 2
-  debugRevealOnStart: 1
+  debugRevealOnStart: 0
 --- !u!1 &723487293
 GameObject:
   m_ObjectHideFlags: 0
@@ -25368,7 +25368,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1663332134
 Transform:
   m_ObjectHideFlags: 0
