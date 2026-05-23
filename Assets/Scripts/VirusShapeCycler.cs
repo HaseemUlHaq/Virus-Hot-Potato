@@ -15,6 +15,11 @@ public class VirusShapeCycler : MonoBehaviour
     public void SetShapeIndex(int index)
     {
         if (shapeVariants == null) return;
+        if (index >= shapeVariants.Length)
+        {
+            Debug.LogWarning($"[VirusShapeCycler] Index {index} is out of range — shapeVariants has {shapeVariants.Length} entries. Add the new shape to the array in the Inspector.", this);
+            return;
+        }
         for (int i = 0; i < shapeVariants.Length; i++)
         {
             if (shapeVariants[i] != null)
