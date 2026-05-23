@@ -1,4 +1,5 @@
 using System.Collections;
+using Fusion;
 using UnityEngine;
 
 // Attach to any scene object. Watches PlaceholderFormation.IsComplete and enables
@@ -18,6 +19,8 @@ public class EndGameBottleReveal : MonoBehaviour
 
     private void Start()
     {
+        SetBottlesVisible(false);
+
         if (debugRevealOnStart)
         {
             _triggered = true;
@@ -28,22 +31,46 @@ public class EndGameBottleReveal : MonoBehaviour
     private void Update()
     {
         if (_triggered) return;
-        if (placeholderFormation == null || !placeholderFormation.IsComplete) return;
+
+        PlaceholderFormation formation = ResolveFormation();
+        if (formation == null || !formation.IsComplete) return;
 
         _triggered = true;
         StartCoroutine(RevealAfterDelay());
     }
 
+    /// <summary>
+    /// FormationManager spawns PlaceholderFormation at runtime; a prefab asset reference in the
+    /// Inspector is not the live networked instance.
+    /// </summary>
+    private PlaceholderFormation ResolveFormation()
+    {
+        if (IsSpawnedFormation(placeholderFormation))
+            return placeholderFormation;
+
+        return FindFirstObjectByType<PlaceholderFormation>();
+    }
+
+    private static bool IsSpawnedFormation(PlaceholderFormation formation)
+    {
+        return formation != null
+            && formation.Object != null
+            && formation.Object.IsValid;
+    }
+
+    private void SetBottlesVisible(bool visible)
+    {
+        foreach (var bottle in sprayBottles)
+            if (bottle != null) bottle.SetActive(visible);
+
+        foreach (var label in uiLabels)
+            if (label != null) label.SetActive(visible);
+    }
+
     private IEnumerator RevealAfterDelay()
     {
         yield return new WaitForSeconds(revealDelay);
-
-        foreach (var bottle in sprayBottles)
-            if (bottle != null) bottle.SetActive(true);
-
-        foreach (var label in uiLabels)
-            if (label != null) label.SetActive(true);
-
+        SetBottlesVisible(true);
         Debug.Log("[EndGame] Spray bottles revealed.");
     }
 }
