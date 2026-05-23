@@ -101,9 +101,9 @@ public class PowerRoleSession : NetworkBehaviour, INetworkRunnerCallbacks
         {
             if (p == PlayerRef.None)
                 continue;
-            if (SlotContainsPlayer(p))
+            if (SlotContainsPlayer(p) || IsSpectator(p))
                 continue;
-            TryAssignPlayerToNextSlot(p);
+            StartCoroutine(DelayedAssignPlayerRoutine(p));
         }
 
         _reconciledOnce = true;
@@ -120,6 +120,18 @@ public class PowerRoleSession : NetworkBehaviour, INetworkRunnerCallbacks
     {
         return ColorPowerPlayer == p || ScalePowerPlayer == p
             || ShapeVariantPlayer == p || PulsePowerPlayer == p;
+    }
+
+    /// <summary>True when this player holds a gameplay power (not a facilitator PC client).</summary>
+    public bool HasAssignedPowerSlot(PlayerRef player) => SlotContainsPlayer(player);
+
+    /// <summary>State authority only: mark a joiner as non-playing spectator.</summary>
+    public void RegisterSpectatorOnAuthority(PlayerRef player)
+    {
+        if (!Object.HasStateAuthority || player == PlayerRef.None)
+            return;
+
+        SpectatorPlayerIdMask |= 1 << player.PlayerId;
     }
 
     public bool IsSpectator(PlayerRef player)

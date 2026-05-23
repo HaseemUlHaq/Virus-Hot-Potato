@@ -104,7 +104,19 @@ public class SpectatorStatusHUD : MonoBehaviour
             $"Work area spawned: {(workAreaSpawned ? "Yes" : "No")}\n" +
             $"Placement version: {placementVersion}\n" +
             "\nWASD move | RMB look | Q/E up/down | Shift fast | F focus table | Esc unlock cursor" +
-            "\nHold R (2s) round reset";
+            "\nHold R ~2s round reset (facilitator)" +
+            FormatRoundResetStatus();
+    }
+
+    private static string FormatRoundResetStatus()
+    {
+        if (SpectatorRoundResetInput.HoldProgress > 0f)
+            return $"\nRound reset: holding R… {SpectatorRoundResetInput.HoldProgress * 100f:F0}%";
+
+        if (!string.IsNullOrEmpty(SpectatorRoundResetInput.BlockReason))
+            return $"\nRound reset (R): {SpectatorRoundResetInput.BlockReason}";
+
+        return "\nRound reset: hold R ~2s when connected";
     }
 
     private int CountParticipants()
