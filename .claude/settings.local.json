@@ -7,7 +7,8 @@
       "Bash(mkdir -p \"C:\\\\Users\\\\livad\\\\.claude\\\\projects\\\\c--Users-livad-Documents-GitHub-Virus-Hot-Potato\\\\memory\")",
       "Bash(del \"c:\\\\Users\\\\livad\\\\Documents\\\\GitHub\\\\Virus-Hot-Potato\\\\Assets\\\\Scripts\\\\MyCustomColorChanger.cs\")",
       "Bash(del \"c:\\\\Users\\\\livad\\\\Documents\\\\GitHub\\\\Virus-Hot-Potato\\\\Assets\\\\Scripts\\\\MyCustomColorChanger.cs.meta\")",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git remote *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\livad\\.claude\\projects\\c--Users-livad-Documents-GitHub-Virus-Hot-Potato\\memory"
