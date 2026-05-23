@@ -64,6 +64,12 @@ public class TableAnchor : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        if (MRUK.Instance != null)
+            MRUK.Instance.SceneSettings.TrackableAdded.RemoveListener(OnTrackableAdded);
+    }
+
     // ─── QR Detection ─────────────────────────────────────────────────────
 
     void OnTrackableAdded(MRUKTrackable trackable)

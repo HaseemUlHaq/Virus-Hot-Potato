@@ -63,10 +63,6 @@ public class ExampleVirusFormation : NetworkBehaviour
 
     private void RefreshConnectionLines()
     {
-        for (int i = 0; i < connectionLines.Length; i++)
-        {
-            var line = connectionLines[i];
-            if (line == null || line.positionCount < 2) continue;
-        }
+        // Reserved for future connection line animation between example virus slots
     }
 }

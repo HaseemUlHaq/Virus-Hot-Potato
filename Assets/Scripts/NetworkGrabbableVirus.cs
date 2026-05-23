@@ -397,6 +397,21 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         eliminationMessageText.gameObject.SetActive(true);
     }
 
+    // ─── Correctly Placed Lock ────────────────────────────────────────────
+
+    private bool IsCorrectlyPlaced()
+    {
+        EnsurePetriDishesCached();
+        if (_cachedDishes == null) return false;
+        foreach (var dish in _cachedDishes)
+        {
+            if (dish == null) continue;
+            if (dish.IsOccupied && dish.SnappedVirus == this && dish is PlaceholderSlot slot && slot.IsFilledCorrectly)
+                return true;
+        }
+        return false;
+    }
+
     // ─── Material Cycling System ──────────────────────────────────────────
 
     private void RefreshVirusSwipeMaterial()
@@ -412,6 +427,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
         if (Object != null && Object.HasStateAuthority)
         {
+            if (IsCorrectlyPlaced()) return;
             if (h == Handedness.Left)
                 MaterialIndex = (MaterialIndex - 1 + 10) % 10;
             else
@@ -559,6 +575,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     {
         if (Object != null && Object.HasStateAuthority)
         {
+            if (IsCorrectlyPlaced()) return;
             VirusScale = QuantizeScale(newScale);
         }
     }
@@ -624,6 +641,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         RefreshPowerRoleSessionReference();
         if (_powerRoleSession != null && !_powerRoleSession.IsColorPlayer(info.Source))
             return;
+        if (IsCorrectlyPlaced()) return;
 
         if (nextMaterial)
             MaterialIndex = (MaterialIndex + 1) % 10;
@@ -642,6 +660,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         RefreshPowerRoleSessionReference();
         if (_powerRoleSession != null && !_powerRoleSession.IsShapePlayer(info.Source))
             return;
+        if (IsCorrectlyPlaced()) return;
 
         if (shapeCycler == null) return;
         int count = shapeCycler.ShapeCount;
@@ -657,6 +676,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         RefreshPowerRoleSessionReference();
         if (_powerRoleSession == null || !_powerRoleSession.IsPulsePlayer(info.Source))
             return;
+        if (IsCorrectlyPlaced()) return;
         TogglePulsate();
     }
 
@@ -672,6 +692,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             return;
         }
 
+        if (IsCorrectlyPlaced()) return;
         Debug.Log("[Pulse] RPC_TriggerPulse accepted — IsPulsating = true");
         _preBeforeScale = VirusScale;
         IsPulsating = true;

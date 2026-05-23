@@ -32,6 +32,7 @@ public class PlaceholderFormation : NetworkBehaviour
 
     [Header("Rotation")]
     [SerializeField] private float rotationSensitivity = 1f;
+    [SerializeField] private float autoRotateSpeed = 8f;
 
     [Header("Rotation Handle Visual")]
     [Tooltip("Mesh renderer on HandleVisual (RotationGrabHandle). Auto-found by name if unset.")]
@@ -94,6 +95,9 @@ public class PlaceholderFormation : NetworkBehaviour
         }
 
         IsComplete = complete;
+
+        if (IsComplete)
+            _rotationY += autoRotateSpeed * Runner.DeltaTime;
     }
 
     public override void Render()
