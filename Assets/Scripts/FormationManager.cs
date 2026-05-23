@@ -168,10 +168,10 @@ public class FormationManager : MonoBehaviour
 
     private static readonly Vector3[] PlaceholderSlotOffsets =
     {
-        new Vector3( 0.361f,  0.109f,  0f     ),
-        new Vector3( 0f,      0.064f,  0.436f ),
-        new Vector3(-0.430f,  0.150f,  0f     ),
-        new Vector3( 0f,      0.242f, -0.436f ),
+        new Vector3( 0.40f,  0.05f,  0.00f ),
+        new Vector3( 0.00f,  0.13f,  0.40f ),
+        new Vector3(-0.40f,  0.22f,  0.00f ),
+        new Vector3( 0.00f,  0.30f, -0.40f ),
     };
 
     private IEnumerator SpawnWorkVirusesStaggered(NetworkRunner runner, Vector3 tablePosition)

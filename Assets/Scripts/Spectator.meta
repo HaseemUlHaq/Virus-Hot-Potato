@@ -1,7 +1,14 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Scripts/Spectator.meta
 guid: f47d63e824c504f4e8ad9b16f3f61356
 folderAsset: yes
 DefaultImporter:
+========
+guid: 348f375cec7f0d54db3b84cce97559cf
+labels:
+- FusionPrefab
+PrefabImporter:
+>>>>>>>> ece7646acc9154295c5215cc4c2dc0d07ea864df:Assets/Prefabs/TableRoot.prefab.meta
   externalObjects: {}
   userData: 
   assetBundleName: 
