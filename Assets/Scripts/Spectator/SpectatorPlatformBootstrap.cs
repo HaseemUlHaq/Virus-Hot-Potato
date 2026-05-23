@@ -20,10 +20,13 @@ public class SpectatorPlatformBootstrap : MonoBehaviour
         "XR Origin",
     };
 
-#if !UNITY_EDITOR
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void CreateIfNeeded()
     {
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+            return;
+#endif
         if (FindFirstObjectByType<SpectatorPlatformBootstrap>() != null)
             return;
 
@@ -33,7 +36,6 @@ public class SpectatorPlatformBootstrap : MonoBehaviour
         root.AddComponent<SpectatorRoundResetInput>();
         root.AddComponent<SpectatorStatusHUD>();
     }
-#endif
 
     private void Awake()
     {

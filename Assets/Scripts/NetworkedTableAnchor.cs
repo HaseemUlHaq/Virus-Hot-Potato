@@ -115,11 +115,11 @@ public class NetworkedTableAnchor : NetworkBehaviour
         if (Object == null || !Object.IsValid || Runner == null)
             return;
 
-        if (!CanSpectatorRequestRoundReset(Runner.LocalPlayer))
+        if (!CanLocalSpectatorRequestRoundReset())
             return;
 
         if (Object.HasStateAuthority)
-            ExecuteRoundReset();
+            ExecuteRoundResetAsSpectator(Runner.LocalPlayer);
         else
             RPC_RequestSpectatorRoundReset();
     }
@@ -133,13 +133,29 @@ public class NetworkedTableAnchor : NetworkBehaviour
         if (powerRoles == null || !powerRoles.Object.IsValid)
             return false;
 
+        if (powerRoles.HasAssignedPowerSlot(player))
+            return false;
+
         return powerRoles.IsSpectator(player);
     }
 
     public bool CanLocalSpectatorRequestRoundReset()
     {
         NetworkRunner runner = Runner != null && Runner.IsRunning ? Runner : FindActiveRunner();
-        return runner != null && CanSpectatorRequestRoundReset(runner.LocalPlayer);
+        if (runner == null)
+            return false;
+
+        if (SpectatorSession.LocalIsSpectator)
+        {
+            PowerRoleSession powerRoles = PowerRoleSession.Instance;
+            if (powerRoles != null && powerRoles.Object.IsValid &&
+                powerRoles.HasAssignedPowerSlot(runner.LocalPlayer))
+                return false;
+
+            return true;
+        }
+
+        return CanSpectatorRequestRoundReset(runner.LocalPlayer);
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
@@ -154,9 +170,26 @@ public class NetworkedTableAnchor : NetworkBehaviour
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     public void RPC_RequestSpectatorRoundReset(RpcInfo info = default)
     {
-        if (!CanSpectatorRequestRoundReset(info.Source))
-            return;
+        ExecuteRoundResetAsSpectator(info.Source);
+    }
 
+    private static void ExecuteRoundResetAsSpectator(PlayerRef requester)
+    {
+        PowerRoleSession powerRoles = PowerRoleSession.Instance;
+        if (powerRoles == null || !powerRoles.Object.IsValid)
+        {
+            Debug.LogWarning("[NetworkedTableAnchor] Spectator round reset ignored — no PowerRoleSession.");
+            return;
+        }
+
+        if (requester == PlayerRef.None || powerRoles.HasAssignedPowerSlot(requester))
+        {
+            Debug.LogWarning(
+                $"[NetworkedTableAnchor] Spectator round reset denied for PlayerId {requester.PlayerId} (has gameplay power).");
+            return;
+        }
+
+        powerRoles.RegisterSpectatorOnAuthority(requester);
         ExecuteRoundReset();
     }
 

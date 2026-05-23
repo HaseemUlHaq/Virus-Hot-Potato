@@ -9,14 +9,19 @@ using UnityEngine.InputSystem;
 /// </summary>
 public class SpectatorRoundResetInput : MonoBehaviour
 {
+    public static float HoldProgress { get; private set; }
+    public static string BlockReason { get; private set; } = string.Empty;
+
     [SerializeField] private float holdDurationSeconds = 2.05f;
     [SerializeField] private float resetCooldownSeconds = 3f;
+    [SerializeField] private float blockedLogIntervalSeconds = 2f;
 
     private NetworkRunner _runner;
     private NetworkedTableAnchor _tableAnchor;
     private PowerRoleSession _powerRoleSession;
     private float _holdTimer;
     private float _cooldownTimer;
+    private float _lastBlockedLogTime;
 
     private void Update()
     {
@@ -25,27 +30,38 @@ public class SpectatorRoundResetInput : MonoBehaviour
         if (_cooldownTimer > 0f)
         {
             _cooldownTimer -= Time.deltaTime;
+            HoldProgress = 0f;
             return;
         }
 
-        if (!CanRequestReset())
+        string blockReason = GetBlockReason();
+        BlockReason = blockReason;
+
+        if (!string.IsNullOrEmpty(blockReason))
         {
+            HoldProgress = 0f;
             _holdTimer = 0f;
+            LogBlockedPeriodically(blockReason);
             return;
         }
 
         if (Keyboard.current == null || !Keyboard.current.rKey.isPressed)
         {
+            HoldProgress = 0f;
             _holdTimer = 0f;
             return;
         }
 
         _holdTimer += Time.deltaTime;
+        HoldProgress = Mathf.Clamp01(_holdTimer / holdDurationSeconds);
         if (_holdTimer < holdDurationSeconds)
             return;
 
         _holdTimer = 0f;
+        HoldProgress = 0f;
         _cooldownTimer = resetCooldownSeconds;
+
+        _powerRoleSession?.RPC_RegisterSpectator();
         _tableAnchor.RequestSpectatorRoundReset();
         Debug.Log($"[SpectatorRoundReset] Round reset requested (held R {holdDurationSeconds:F2}s)");
     }
@@ -62,21 +78,40 @@ public class SpectatorRoundResetInput : MonoBehaviour
             _powerRoleSession = PowerRoleSession.Instance;
     }
 
-    private bool CanRequestReset()
+    private string GetBlockReason()
     {
+        if (!SpectatorSession.LocalIsSpectator)
+            return "Not spectator client";
+
         if (_runner == null || !_runner.IsRunning)
-            return false;
+            return "Not connected to Fusion";
 
-        if (_tableAnchor == null || !SpectatorTableAnchorQueries.IsNetworkSpawned(_tableAnchor))
-            return false;
+        if (_tableAnchor == null)
+            return "No NetworkedTableAnchor in scene";
 
-        if (_powerRoleSession == null || !_powerRoleSession.Object.IsValid)
-            return false;
+        if (!SpectatorTableAnchorQueries.IsNetworkSpawned(_tableAnchor))
+            return "Table not network-spawned yet";
 
-        if (!_powerRoleSession.IsSpectator(_runner.LocalPlayer))
-            return false;
+        if (_powerRoleSession != null && _powerRoleSession.Object.IsValid &&
+            _powerRoleSession.HasAssignedPowerSlot(_runner.LocalPlayer))
+            return "PC was assigned a gameplay power — reconnect as spectator";
 
-        return _tableAnchor.CanLocalSpectatorRequestRoundReset();
+        if (_tableAnchor != null && !_tableAnchor.CanLocalSpectatorRequestRoundReset())
+            return "Round reset not allowed for local player";
+
+        return string.Empty;
+    }
+
+    private void LogBlockedPeriodically(string reason)
+    {
+        if (Keyboard.current == null || !Keyboard.current.rKey.isPressed)
+            return;
+
+        if (Time.unscaledTime - _lastBlockedLogTime < blockedLogIntervalSeconds)
+            return;
+
+        _lastBlockedLogTime = Time.unscaledTime;
+        Debug.LogWarning($"[SpectatorRoundReset] Hold R blocked: {reason}");
     }
 }
 #endif
