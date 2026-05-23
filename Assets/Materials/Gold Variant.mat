@@ -40,6 +40,7 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
+    - _Metallic: 0.8
     - _Smoothness: 0.652
     m_Colors:
     - _BaseColor: {r: 0.22540632, g: 0.8238993, b: 0.67427605, a: 1}
