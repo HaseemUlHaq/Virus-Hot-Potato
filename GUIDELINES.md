@@ -48,7 +48,7 @@ A **Windows Standalone** build lets a facilitator watch the live session on a mo
 2. On Quest, check the log for **`[FusionSessionNameLogger] Quest room: '...'`** and note the session name.
 3. Complete colocation, then scan QR (after **`[TableAnchor] Colocation ready.`** if you saw “holding QR”).
 4. Launch the **PC spectator** exe — it auto-joins any open session in Photon lobby **`virus5`** (must match Quest Network `lobbyName`). Start Quest before PC. Optional: set PlayerPrefs `SpectatorSessionName` to the exact Fusion room from the Quest log.
-5. Use **WASD**, **RMB** look, **Q/E** up/down, **Shift** fast move, **F** focus table, **Esc** unlock cursor.
+5. Use **WASD**, **RMB** look, **Q/E** up/down, **Shift** fast move, **F** focus table, **Esc** unlock cursor. **Hold R (~2s)** to round-reset (facilitator only; Quest player 1 left-hand pinch is unchanged).
 
 ### Notes
 

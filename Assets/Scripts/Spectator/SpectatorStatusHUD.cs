@@ -103,7 +103,8 @@ public class SpectatorStatusHUD : MonoBehaviour
             $"Table placed: {(tablePlaced ? "Yes" : "No")}\n" +
             $"Work area spawned: {(workAreaSpawned ? "Yes" : "No")}\n" +
             $"Placement version: {placementVersion}\n" +
-            "\nWASD move | RMB look | Q/E up/down | Shift fast | F focus table | Esc unlock cursor";
+            "\nWASD move | RMB look | Q/E up/down | Shift fast | F focus table | Esc unlock cursor" +
+            "\nHold R (2s) round reset";
     }
 
     private int CountParticipants()
