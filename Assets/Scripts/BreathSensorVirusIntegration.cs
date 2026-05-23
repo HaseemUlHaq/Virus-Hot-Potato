@@ -1,11 +1,14 @@
 using Fusion;
 using UnityEngine;
 
+// Triggers persistent spike displacement on the virus sitting in the assigned petri dish.
+// Assign the specific dish in the Inspector — only that dish's virus will be pulsed on blow.
 public class BreathSensorVirusIntegration : MonoBehaviour
 {
+    [SerializeField] private PetriDish targetDish;
+
     private NetworkRunner _runner;
     private PowerRoleSession _powerRoleSession;
-    private NetworkGrabbableVirus _lastHeldVirus;
 
     void Start()
     {
@@ -18,26 +21,19 @@ public class BreathSensorVirusIntegration : MonoBehaviour
 
     void Update()
     {
-        if (_runner == null)
-        {
-            _runner = FindFirstObjectByType<NetworkRunner>();
-            return;
-        }
-
-        // Keep _lastHeldVirus up to date every frame
-        foreach (var v in FindObjectsByType<NetworkGrabbableVirus>(FindObjectsSortMode.None))
-        {
-            if (v.CurrentHolder == _runner.LocalPlayer)
-            {
-                _lastHeldVirus = v;
-                break;
-            }
-        }
-
         if (!BreathSensorHandler.triggerBlow)
             return;
 
         BreathSensorHandler.triggerBlow = false;
+
+        if (_runner == null)
+            _runner = FindFirstObjectByType<NetworkRunner>();
+
+        if (_runner == null)
+        {
+            Debug.LogWarning("[BreathIntegration] BLOW received but NetworkRunner not found!");
+            return;
+        }
 
         // Gate: only the pulse player can trigger
         if (_powerRoleSession == null)
@@ -51,16 +47,19 @@ public class BreathSensorVirusIntegration : MonoBehaviour
             return;
         }
 
-        NetworkGrabbableVirus target = _lastHeldVirus;
+        if (targetDish == null)
+        {
+            Debug.LogWarning("[BreathIntegration] No target dish assigned!");
+            return;
+        }
 
-        if (target != null)
+        if (!targetDish.IsOccupied || targetDish.SnappedVirus == null)
         {
-            Debug.Log($"[BreathIntegration] ✓ BLOW → {target.name}");
-            target.RequestSetPulsatingOn();
+            Debug.LogWarning("[BreathIntegration] BLOW received but no virus in the target dish.");
+            return;
         }
-        else
-        {
-            Debug.LogWarning("[BreathIntegration] BLOW received but no virus held or previously held by local player!");
-        }
+
+        Debug.Log($"[BreathIntegration] ✓ BLOW → {targetDish.SnappedVirus.name}");
+        targetDish.SnappedVirus.RequestSetPulsatingOn();
     }
 }
