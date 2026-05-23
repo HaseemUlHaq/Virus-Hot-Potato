@@ -775,7 +775,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoxFrontWallTrigger
   formationManager: {fileID: 0}
-  detectionRadius: 0.12
+  planeDepth: 0.1
+  lateralRadius: 0.3
   leftHand: {fileID: 0}
   rightHand: {fileID: 0}
   spawnDelay: 1
@@ -3527,7 +3528,7 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 1043848273
+  SortKey: 2916304602
   ObjectInterest: 1
   Flags: 786433
   NestedObjects: []
@@ -4970,7 +4971,7 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 1715327719
+  SortKey: 3587784048
   ObjectInterest: 1
   Flags: 786433
   NestedObjects: []
@@ -5504,7 +5505,7 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 556851107
+  SortKey: 2429307436
   ObjectInterest: 1
   Flags: 262145
   NestedObjects: []
@@ -7846,7 +7847,7 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 3423628412
+  SortKey: 1001117445
   ObjectInterest: 1
   Flags: 1
   NestedObjects:
@@ -15128,7 +15129,7 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 128090360
+  SortKey: 2000546689
   ObjectInterest: 1
   Flags: 786433
   NestedObjects: []

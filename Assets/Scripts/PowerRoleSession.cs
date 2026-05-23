@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
@@ -59,6 +60,9 @@ public class PowerRoleSession : NetworkBehaviour, INetworkRunnerCallbacks
     [Networked] public PlayerRef ShapeVariantPlayer { get; set; }
     [Networked] public PlayerRef PulsePowerPlayer { get; set; }
 
+    /// <summary>Bitmask of Fusion PlayerId values registered as non-playing spectators (e.g. PC client).</summary>
+    [Networked] public int SpectatorPlayerIdMask { get; set; }
+
     private bool _reconciledOnce;
     private bool _loggedFifthPlayerFull;
 
@@ -118,8 +122,28 @@ public class PowerRoleSession : NetworkBehaviour, INetworkRunnerCallbacks
             || ShapeVariantPlayer == p || PulsePowerPlayer == p;
     }
 
+    public bool IsSpectator(PlayerRef player)
+    {
+        if (player == PlayerRef.None)
+            return false;
+        int bit = 1 << player.PlayerId;
+        return (SpectatorPlayerIdMask & bit) != 0;
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_RegisterSpectator(RpcInfo info = default)
+    {
+        if (info.Source == PlayerRef.None)
+            return;
+        SpectatorPlayerIdMask |= 1 << info.Source.PlayerId;
+        Debug.Log($"[PowerRoleSession] Registered spectator PlayerId {info.Source.PlayerId}.");
+    }
+
     private void TryAssignPlayerToNextSlot(PlayerRef player)
     {
+        if (IsSpectator(player))
+            return;
+
         foreach (var kind in powerAssignmentOrder)
         {
             switch (kind)
@@ -150,6 +174,17 @@ public class PowerRoleSession : NetworkBehaviour, INetworkRunnerCallbacks
             return;
         if (SlotContainsPlayer(player))
             return;
+        StartCoroutine(DelayedAssignPlayerRoutine(player));
+    }
+
+    private IEnumerator DelayedAssignPlayerRoutine(PlayerRef player)
+    {
+        // Allow spectator clients time to RPC_RegisterSpectator before power assignment.
+        yield return new WaitForSeconds(1f);
+        if (!Object.IsValid || !Object.HasStateAuthority)
+            yield break;
+        if (player == PlayerRef.None || SlotContainsPlayer(player))
+            yield break;
         TryAssignPlayerToNextSlot(player);
     }
 

@@ -52032,9 +52032,9 @@ MonoBehaviour:
   onRoomLeaveFinished:
     m_PersistentCalls:
       m_Calls: []
-  lobbyName: myLobby
+  lobbyName: virus5
   isPrivate: 0
-  maxPlayersPerRoom: 4
+  maxPlayersPerRoom: 5
   isPasswordProtected: 0
 --- !u!4 &5395464241661459170
 Transform:

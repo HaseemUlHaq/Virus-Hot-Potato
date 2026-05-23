@@ -158,7 +158,10 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         if (shapeCycler != null)
             shapeCycler.SetShapeIndex(ShapeVariantIndex);
 
-        _grabbable.WhenPointerEventRaised += OnPointerEvent;
+        if (SpectatorSession.LocalIsSpectator)
+            _grabbable.enabled = false;
+        else
+            _grabbable.WhenPointerEventRaised += OnPointerEvent;
         RefreshPowerRoleSessionReference();
     }
 
@@ -334,6 +337,8 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     private void OnPointerEvent(PointerEvent evt)
     {
+        if (SpectatorSession.LocalIsSpectator)
+            return;
         if (!Object || !Object.IsValid) return;
 
         if (!TryGetHandednessFromPointerEvent(evt, out Handedness handedness))
