@@ -97,6 +97,10 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     private PetriDish[] _cachedDishes;
     private float _lastDishCacheTime;
 
+    // ─── Local Hand Cache (handedness proximity fallback) ─────────────────
+    private NetworkedHandSimple _cachedLocalLeftHand;
+    private NetworkedHandSimple _cachedLocalRightHand;
+
     private PowerRoleSession _powerRoleSession;
 
     // ─── Debug Properties ─────────────────────────────────────────────────
@@ -308,7 +312,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     /// Keeps snapped viruses on the dish hover point (world space). Called from LateUpdate so formation
     /// rotation in Render runs first — no parenting, scale, or NetworkTransform changes.
     /// </summary>
-    /// <returns>True if this virus is snapped and pose was updated.</returns>
     private bool ApplyPetriSnapFollowPose()
     {
         if (!bindVisualToPetriSnapOnAllPeers || Object == null || !Object.IsValid)
@@ -337,12 +340,15 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     private void OnPointerEvent(PointerEvent evt)
     {
-        if (SpectatorSession.LocalIsSpectator)
-            return;
         if (!Object || !Object.IsValid) return;
 
         if (!TryGetHandednessFromPointerEvent(evt, out Handedness handedness))
-            handedness = Handedness.Left;
+        {
+            // Primary detection failed — use proximity to local hand as fallback.
+            // This ensures _holderUsesLeftHand is set correctly on remote clients.
+            if (!TryDetectHandednessFromProximity(out handedness))
+                handedness = Handedness.Left;
+        }
 
         int interactorId = evt.Identifier;
 
@@ -441,6 +447,34 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     }
 
     // ─── Handedness Detection ─────────────────────────────────────────────
+
+    private void CacheLocalHands()
+    {
+        if (_cachedLocalLeftHand != null && _cachedLocalRightHand != null) return;
+        foreach (var hand in FindObjectsByType<NetworkedHandSimple>(FindObjectsSortMode.None))
+        {
+            if (hand.Object == null || !hand.Object.HasStateAuthority) continue;
+            if (hand.IsLeftHand && _cachedLocalLeftHand == null) _cachedLocalLeftHand = hand;
+            else if (!hand.IsLeftHand && _cachedLocalRightHand == null) _cachedLocalRightHand = hand;
+        }
+    }
+
+    private bool TryDetectHandednessFromProximity(out Handedness handedness)
+    {
+        handedness = Handedness.Left;
+        CacheLocalHands();
+        if (_cachedLocalLeftHand == null && _cachedLocalRightHand == null) return false;
+
+        float leftDist = _cachedLocalLeftHand != null
+            ? Vector3.Distance(_cachedLocalLeftHand.GetPalmPosition(), transform.position)
+            : float.MaxValue;
+        float rightDist = _cachedLocalRightHand != null
+            ? Vector3.Distance(_cachedLocalRightHand.GetPalmPosition(), transform.position)
+            : float.MaxValue;
+
+        handedness = leftDist <= rightDist ? Handedness.Left : Handedness.Right;
+        return true;
+    }
 
     private static bool TryGetHandednessFromPointerEvent(PointerEvent evt, out Handedness handedness)
     {
@@ -685,7 +719,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         TogglePulsate();
     }
 
-    // ─── NEW: UDP Button Pulse RPC ────────────────────────────────────────
+    // ─── UDP Button Pulse RPC ─────────────────────────────────────────────
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     public void RPC_TriggerPulse(RpcInfo info = default)
@@ -766,7 +800,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             _stopPulsateRoutine = null;
         }
 
-        if (_grabbable != null)
+        if (_grabbable != null && !SpectatorSession.LocalIsSpectator)
             _grabbable.WhenPointerEventRaised -= OnPointerEvent;
 
         _grabHandByInteractorId.Clear();

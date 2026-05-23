@@ -589,8 +589,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorkVirusSpawnAnimator
   animDuration: 1
+  spawnHeightOffset: 0.3
   defaultMaterialIndex: 5
-  startScale: 0.5
 --- !u!1 &2578310240436922983
 GameObject:
   m_ObjectHideFlags: 0
