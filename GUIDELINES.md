@@ -32,6 +32,33 @@ Everyone can **scale** the virus (two-hand grab stretch).
 
 ---
 
+## PC Spectator Client (Windows)
+
+A **Windows Standalone** build lets a facilitator watch the live session on a monitor (fly camera + status HUD). It is **not** a VR player.
+
+### Build
+
+1. In Unity: **File → Build Settings → Windows**.
+2. Ensure the **Standalone** scripting define includes `VIRUS_SPECTATOR` (Project Settings → Player → Script Compilation → Standalone).
+3. Build and run the executable on the same network as the Quest headsets.
+
+### Lab workflow
+
+1. Start **Quest** build(s) — Meta matchmaking creates the Fusion session (same as before the spectator work).
+2. On Quest, check the log for **`[FusionSessionNameLogger] Quest room: '...'`** and note the session name.
+3. Complete colocation, then scan QR (after **`[TableAnchor] Colocation ready.`** if you saw “holding QR”).
+4. Launch the **PC spectator** exe — it auto-joins any open session in Photon lobby **`virus5`** (must match Quest Network `lobbyName`). Start Quest before PC. Optional: set PlayerPrefs `SpectatorSessionName` to the exact Fusion room from the Quest log.
+5. Use **WASD**, **RMB** look, **Q/E** up/down, **Shift** fast move, **F** focus table, **Esc** unlock cursor.
+
+### Notes
+
+- Room name and max peers are in [`Assets/Scripts/Spectator/SpectatorSessionConfig.cs`](Assets/Scripts/Spectator/SpectatorSessionConfig.cs).
+- **Quest does not use `FixedRoomSessionStarter`** — that path disabled Meta matchmaking and broke colocation. Quest uses Meta building blocks again.
+- Android APK builds do **not** define `VIRUS_SPECTATOR`; gameplay matches pre-spectator behaviour.
+- If you see **`Colocation not ready yet — holding QR`**, wait for **`Colocation ready`**, then scan again (or keep the QR in view so the live trackable can be re-read).
+
+---
+
 ## Networking Rules
 
 ### Shared Mode means

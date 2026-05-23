@@ -18,6 +18,9 @@ public class PlayerSpawner : MonoBehaviour
 
     public void PlayerJoined(NetworkRunner runner, PlayerRef player)
     {
+        if (SpectatorSession.LocalIsSpectator)
+            return;
+
         if (player == runner.LocalPlayer)
         {
             Debug.Log("Local Player " + player.PlayerId + " joined!");

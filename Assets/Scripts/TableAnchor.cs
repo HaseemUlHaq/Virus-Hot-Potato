@@ -24,8 +24,7 @@ public class TableAnchor : MonoBehaviour
     // ─── Colocation-gate state ────────────────────────────────────────────
     private bool _colocationReady = false;
     private bool _qrDetected = false;
-    private Vector3 _pendingQrPosition;
-    private Quaternion _pendingQrRotation;
+    private MRUKTrackable _lastQrTrackable;
 
     void Start()
     {
@@ -56,11 +55,14 @@ public class TableAnchor : MonoBehaviour
         Debug.Log("[TableAnchor] Colocation ready.");
         _colocationReady = true;
 
-        // If the QR code was already detected before colocation finished, apply it now.
+        // Re-read the live QR trackable in the colocated frame (do not use stale pre-colocation poses).
+        if (TryApplyPlacementFromLastQrTrackable())
+            return;
+
         if (_qrDetected)
         {
-            Debug.Log("[TableAnchor] Applying QR placement that was pending colocation.");
-            ApplyPlacement(_pendingQrPosition, _pendingQrRotation);
+            _qrDetected = false;
+            Debug.Log("[TableAnchor] Colocation ready — point at the QR code again to place the table.");
         }
     }
 
@@ -79,22 +81,30 @@ public class TableAnchor : MonoBehaviour
 
         Debug.Log($"[TableAnchor] QR code detected: {qrCodePayload}");
 
-        Quaternion baseRotation = trackable.transform.rotation * Quaternion.Euler(90, 0, 0);
-        Quaternion finalRotation = baseRotation * Quaternion.Euler(0, yRotationOffset, 0);
+        _lastQrTrackable = trackable;
 
         if (_colocationReady)
-        {
-            // Coordinate space is already aligned — place immediately.
-            ApplyPlacement(trackable.transform.position, finalRotation);
-        }
+            TryApplyPlacementFromLastQrTrackable();
         else
         {
-            // Colocation not done yet — store and wait for OnColocationReady().
             Debug.Log("[TableAnchor] Colocation not ready yet — holding QR placement.");
-            _pendingQrPosition = trackable.transform.position;
-            _pendingQrRotation = finalRotation;
             _qrDetected = true;
         }
+    }
+
+    private bool TryApplyPlacementFromLastQrTrackable()
+    {
+        if (_lastQrTrackable == null)
+            return false;
+
+        if (_lastQrTrackable.MarkerPayloadString != qrCodePayload)
+            return false;
+
+        Quaternion baseRotation = _lastQrTrackable.transform.rotation * Quaternion.Euler(90, 0, 0);
+        Quaternion finalRotation = baseRotation * Quaternion.Euler(0, yRotationOffset, 0);
+        ApplyPlacement(_lastQrTrackable.transform.position, finalRotation);
+        _qrDetected = false;
+        return true;
     }
 
     /// <summary>
