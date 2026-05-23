@@ -30,6 +30,7 @@ public class SpectatorPlatformBootstrap : MonoBehaviour
         var root = new GameObject("SpectatorRoot");
         root.AddComponent<SpectatorPlatformBootstrap>();
         root.AddComponent<SpectatorNetworkBootstrap>();
+        root.AddComponent<SpectatorRoundResetInput>();
         root.AddComponent<SpectatorStatusHUD>();
     }
 #endif
