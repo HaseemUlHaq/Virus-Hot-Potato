@@ -271,7 +271,7 @@ MonoBehaviour:
     veinGlowColor: {r: 0.16668683, g: 0, b: 0.4245283, a: 1}
     glowIntensity: 3
   defaultThemeIndex: 1
-  spikePulseMaxDisplacement: 0.05
+  spikePulseMaxDisplacement: 0.001
   spikePulseSpeed: 5
   targetRenderer: {fileID: 0}
   applyToChildRenderers: 1
@@ -756,7 +756,7 @@ MonoBehaviour:
     veinGlowColor: {r: 0.16668683, g: 0, b: 0.4245283, a: 1}
     glowIntensity: 3
   defaultThemeIndex: 1
-  spikePulseMaxDisplacement: 0.05
+  spikePulseMaxDisplacement: 0.001
   spikePulseSpeed: 5
   targetRenderer: {fileID: 0}
   applyToChildRenderers: 1
@@ -1459,7 +1459,7 @@ MonoBehaviour:
     veinGlowColor: {r: 0.16668683, g: 0, b: 0.4245283, a: 1}
     glowIntensity: 3
   defaultThemeIndex: 1
-  spikePulseMaxDisplacement: 0.05
+  spikePulseMaxDisplacement: 0.001
   spikePulseSpeed: 5
   targetRenderer: {fileID: 0}
   applyToChildRenderers: 1
@@ -1674,7 +1674,7 @@ MonoBehaviour:
     veinGlowColor: {r: 0.16668683, g: 0, b: 0.4245283, a: 1}
     glowIntensity: 3
   defaultThemeIndex: 1
-  spikePulseMaxDisplacement: 0.05
+  spikePulseMaxDisplacement: 0.001
   spikePulseSpeed: 5
   targetRenderer: {fileID: 0}
   applyToChildRenderers: 1

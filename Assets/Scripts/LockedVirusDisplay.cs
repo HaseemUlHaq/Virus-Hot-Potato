@@ -21,7 +21,10 @@ public class LockedVirusDisplay : MonoBehaviour
         transform.localScale = Vector3.one * scale;
 
         if (materialCycler != null)
+        {
             materialCycler.SetMaterialIndex(materialIndex);
+            materialCycler.SetStandalonePulsating(isPulsating);
+        }
 
         if (shapeCycler != null)
             shapeCycler.SetShapeIndex(shapeVariantIndex);

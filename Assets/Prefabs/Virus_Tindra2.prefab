@@ -118,6 +118,7 @@ GameObject:
   - component: {fileID: 7721203966171748277}
   - component: {fileID: 8407094129555590774}
   - component: {fileID: 3416863657943328197}
+  - component: {fileID: 3529899820184421752}
   m_Layer: 0
   m_Name: Virus_Tindra2
   m_TagString: Untagged
@@ -384,17 +385,17 @@ MonoBehaviour:
   - bodyColor: {r: 0.12156863, g: 0, b: 0.017805237, a: 0}
     spikeColor: {r: 0.41568628, g: 0.058823522, b: 0.23010524, a: 0}
     veinGlowColor: {r: 0.509434, g: 0.035438888, b: 0, a: 1}
-    glowIntensity: 3
+    glowIntensity: 4.75
   - bodyColor: {r: 0.02336241, g: 0.23584908, b: 0.066462465, a: 0}
     spikeColor: {r: 0.39355636, g: 0.5108926, b: 0.6226415, a: 0}
     veinGlowColor: {r: 0.038047355, g: 0.1792453, b: 0.16355662, a: 1}
-    glowIntensity: 2
+    glowIntensity: 5.23
   - bodyColor: {r: 0.23584908, g: 0.23584908, b: 0.23584908, a: 0}
     spikeColor: {r: 0.16037738, g: 0.14067905, b: 0.12784801, a: 0}
     veinGlowColor: {r: 0.050096896, g: 0.06430223, b: 0.106918216, a: 1}
     glowIntensity: 3
   - bodyColor: {r: 0.23584908, g: 0.23584908, b: 0.23584908, a: 0}
-    spikeColor: {r: 0.69182384, g: 0.23278345, b: 0.23278345, a: 0}
+    spikeColor: {r: 0.47798735, g: 0.3541315, b: 0.013527862, a: 0}
     veinGlowColor: {r: 0, g: 0.12550883, b: 0.18867922, a: 1}
     glowIntensity: 3
   - bodyColor: {r: 0.2035867, g: 0.45129985, b: 0.5754717, a: 0}
@@ -406,8 +407,8 @@ MonoBehaviour:
     veinGlowColor: {r: 0.10083229, g: 0.24528301, b: 0.0011569981, a: 1}
     glowIntensity: 5
   - bodyColor: {r: 0.1509434, g: 0.1509434, b: 0.1509434, a: 0}
-    spikeColor: {r: 0.36320752, g: 0.68658733, b: 1, a: 0}
-    veinGlowColor: {r: 0.01886791, g: 0.018266967, b: 0.018244913, a: 1}
+    spikeColor: {r: 0.6855345, g: 0.01636186, b: 0, a: 0}
+    veinGlowColor: {r: 0, g: 0.7676799, b: 1, a: 1}
     glowIntensity: 6
   - bodyColor: {r: 0.3207547, g: 0.0015129976, b: 0.10462699, a: 0}
     spikeColor: {r: 0.41568628, g: 0.058823522, b: 0.23010524, a: 0}
@@ -528,6 +529,7 @@ MonoBehaviour:
   swipeCycler: {fileID: 1381689035116568269}
   shapeCycler: {fileID: 8407094129555590774}
   eliminationMessageText: {fileID: 0}
+  audioSource: {fileID: 3529899820184421752}
   _VirusScale: 1
   _MaterialIndex: 1
   _IsPulsating:
@@ -593,6 +595,103 @@ MonoBehaviour:
   animDuration: 1
   spawnHeightOffset: 0.3
   defaultMaterialIndex: 5
+--- !u!82 &3529899820184421752
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2144216136471679737}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: eec1a4e0cb9cf3d4a881837e7a165919, type: 3}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &2578310240436922983
 GameObject:
   m_ObjectHideFlags: 0

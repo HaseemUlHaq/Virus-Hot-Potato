@@ -97,11 +97,16 @@ public class VirusSwipeCycler : MonoBehaviour
             if (r != null) r.SetPropertyBlock(_block);
     }
 
+    // Driven by LockedVirusDisplay when there is no NetworkGrabbableVirus on this object
+    private bool _standalonePulsating;
+
+    public void SetStandalonePulsating(bool value) => _standalonePulsating = value;
+
     private bool _wasPulsating = false;
 
     private void Update()
     {
-        bool pulsating = _virus != null && _virus.IsPulsating;
+        bool pulsating = _virus != null ? (bool)_virus.IsPulsating : _standalonePulsating;
 
         if (pulsating != _wasPulsating)
         {

@@ -40,6 +40,9 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI eliminationMessageText;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+
     // ─── Networked State ──────────────────────────────────────────────────
     [Networked] public PlayerRef CurrentHolder { get; private set; } = PlayerRef.None;
     [Networked] private PlayerRef _lastTouchedPlayer { get; set; } = PlayerRef.None;
@@ -587,8 +590,15 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     private void OnVirusPulsateChanged()
     {
         Debug.Log($"[4-Network] OnVirusPulsateChanged → IsPulsating:{IsPulsating}");
-        if (!IsPulsating)
+        if (IsPulsating)
+        {
+            if (audioSource != null)
+                audioSource.Play();
+        }
+        else
+        {
             transform.localScale = Vector3.one * VirusScale;
+        }
     }
 
     private void OnShapeVariantChanged()
@@ -717,6 +727,31 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             return;
         if (IsCorrectlyPlaced()) return;
         TogglePulsate();
+    }
+
+    // ─── Persistent Spike Displacement (breath sensor) ───────────────────
+
+    public void RequestSetPulsatingOn()
+    {
+        RPC_RequestSetPulsatingOn();
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void RPC_RequestSetPulsatingOn(RpcInfo info = default)
+    {
+        RefreshPowerRoleSessionReference();
+        if (_powerRoleSession != null && !_powerRoleSession.IsPulsePlayer(info.Source))
+            return;
+        if (IsCorrectlyPlaced()) return;
+
+        // Cancel any timed stop so the spike animation stays on
+        if (_stopPulsateRoutine != null)
+        {
+            StopCoroutine(_stopPulsateRoutine);
+            _stopPulsateRoutine = null;
+        }
+
+        IsPulsating = true;
     }
 
     // ─── UDP Button Pulse RPC ─────────────────────────────────────────────
