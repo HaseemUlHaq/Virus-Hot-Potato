@@ -107,10 +107,54 @@ public class NetworkedTableAnchor : NetworkBehaviour
         return runner != null && CanPlayerRequestRoundReset(runner.LocalPlayer);
     }
 
+    /// <summary>
+    /// PC spectator facilitator: same round reset as player 1 pinch, without changing Quest permissions.
+    /// </summary>
+    public void RequestSpectatorRoundReset()
+    {
+        if (Object == null || !Object.IsValid || Runner == null)
+            return;
+
+        if (!CanSpectatorRequestRoundReset(Runner.LocalPlayer))
+            return;
+
+        if (Object.HasStateAuthority)
+            ExecuteRoundReset();
+        else
+            RPC_RequestSpectatorRoundReset();
+    }
+
+    public bool CanSpectatorRequestRoundReset(PlayerRef player)
+    {
+        if (player == PlayerRef.None)
+            return false;
+
+        PowerRoleSession powerRoles = PowerRoleSession.Instance;
+        if (powerRoles == null || !powerRoles.Object.IsValid)
+            return false;
+
+        return powerRoles.IsSpectator(player);
+    }
+
+    public bool CanLocalSpectatorRequestRoundReset()
+    {
+        NetworkRunner runner = Runner != null && Runner.IsRunning ? Runner : FindActiveRunner();
+        return runner != null && CanSpectatorRequestRoundReset(runner.LocalPlayer);
+    }
+
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     public void RPC_RequestRoundReset(RpcInfo info = default)
     {
         if (!CanPlayerRequestRoundReset(info.Source))
+            return;
+
+        ExecuteRoundReset();
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_RequestSpectatorRoundReset(RpcInfo info = default)
+    {
+        if (!CanSpectatorRequestRoundReset(info.Source))
             return;
 
         ExecuteRoundReset();
