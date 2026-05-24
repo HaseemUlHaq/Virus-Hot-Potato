@@ -65,7 +65,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PowerRoleSession
   powerAssignmentOrder: 03000000000000000200000001000000
-  debugAllowAllPowersWhenUnassigned: 1
+  debugAllowAllPowersWhenUnassigned: 0
   manualColorPlayerId: 1
   manualScalePlayerId: 1
   manualShapePlayerId: 1
