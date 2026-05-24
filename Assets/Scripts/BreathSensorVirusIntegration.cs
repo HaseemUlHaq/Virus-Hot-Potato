@@ -1,14 +1,13 @@
 using Fusion;
 using UnityEngine;
 
-// Triggers persistent spike displacement on the virus sitting in the assigned petri dish.
-// Assign the specific dish in the Inspector — only that dish's virus will be pulsed on blow.
+// Breath / button UDP → pulse only the virus snapped in the assigned petri dish (PetriDish_p3).
+// Any connected player may trigger; no PowerRoleSession / PlayerId check.
 public class BreathSensorVirusIntegration : MonoBehaviour
 {
     [SerializeField] private PetriDish targetDish;
 
     private NetworkRunner _runner;
-    private PowerRoleSession _powerRoleSession;
 
     void Start()
     {
@@ -16,7 +15,21 @@ public class BreathSensorVirusIntegration : MonoBehaviour
         if (_runner == null)
             Debug.LogWarning("[BreathIntegration] NetworkRunner not found at Start - will retry on blow.");
         else
-            Debug.Log("[BreathIntegration] ✓ Found NetworkRunner");
+            LogLocalPlayerId("Start");
+    }
+
+    private void LogLocalPlayerId(string context)
+    {
+        if (_runner == null)
+            _runner = FindFirstObjectByType<NetworkRunner>();
+
+        if (_runner == null)
+        {
+            Debug.Log($"[BreathIntegration] ({context}) Current PlayerId: n/a (no NetworkRunner)");
+            return;
+        }
+
+        Debug.Log($"[BreathIntegration] ({context}) Current PlayerId: {_runner.LocalPlayer.PlayerId}");
     }
 
     void Update()
@@ -24,6 +37,8 @@ public class BreathSensorVirusIntegration : MonoBehaviour
         if (BreathSensorHandler.triggerBlow)
         {
             BreathSensorHandler.triggerBlow = false;
+            LogLocalPlayerId("BLOW");
+            Debug.Log($"[BreathIntegration] Processing BLOW (target dish: {(targetDish != null ? targetDish.name : "none")})");
             if (TryGetTargetVirus(out NetworkGrabbableVirus virus, "BLOW"))
             {
                 Debug.Log($"[BreathIntegration] ✓ BLOW → {virus.name}");
@@ -34,6 +49,8 @@ public class BreathSensorVirusIntegration : MonoBehaviour
         if (BreathSensorHandler.triggerButtonPressed)
         {
             BreathSensorHandler.triggerButtonPressed = false;
+            LogLocalPlayerId("BUTTON_PRESSED");
+            Debug.Log($"[BreathIntegration] Processing BUTTON_PRESSED (target dish: {(targetDish != null ? targetDish.name : "none")})");
             if (TryGetTargetVirus(out NetworkGrabbableVirus virus, "BUTTON_PRESSED"))
             {
                 Debug.Log($"[BreathIntegration] ✓ BUTTON_PRESSED → stop pulse on {virus.name}");
@@ -55,17 +72,6 @@ public class BreathSensorVirusIntegration : MonoBehaviour
             return false;
         }
 
-        if (_powerRoleSession == null)
-            _powerRoleSession = PowerRoleSession.Instance
-                ?? FindFirstObjectByType<PowerRoleSession>(FindObjectsInactive.Include);
-
-        bool debugAll = _powerRoleSession != null && _powerRoleSession.DebugAllowAllPowersWhenUnassigned;
-        if (!debugAll && (_powerRoleSession == null || !_powerRoleSession.IsPulsePlayer(_runner.LocalPlayer)))
-        {
-            Debug.Log($"[BreathIntegration] {eventLabel} received but local player does not have Pulse role — ignored.");
-            return false;
-        }
-
         if (targetDish == null)
         {
             Debug.LogWarning("[BreathIntegration] No target dish assigned!");
@@ -74,7 +80,7 @@ public class BreathSensorVirusIntegration : MonoBehaviour
 
         if (!targetDish.IsOccupied || targetDish.SnappedVirus == null)
         {
-            Debug.LogWarning($"[BreathIntegration] {eventLabel} received but no virus in the target dish.");
+            Debug.LogWarning($"[BreathIntegration] {eventLabel} — no virus snapped in {targetDish.name}.");
             return false;
         }
 

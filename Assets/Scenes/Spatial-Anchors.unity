@@ -2323,7 +2323,7 @@ Canvas:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 223772398}
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_RenderMode: 2
   m_Camera: {fileID: 0}
@@ -2337,7 +2337,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 100
   m_TargetDisplay: 0
 --- !u!224 &223772402
 RectTransform:
@@ -2349,7 +2349,7 @@ RectTransform:
   m_LocalRotation: {x: -0, y: 0.16071029, z: -0, w: -0.98700166}
   m_LocalPosition: {x: 0, y: 0, z: 3.28}
   m_LocalScale: {x: 0.24, y: 0.06, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1732492696}
   - {fileID: 2082799608}
@@ -8998,15 +8998,15 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 481225568}
   m_LocalRotation: {x: -0, y: -0.37301558, z: -0, w: -0.92782515}
-  m_LocalPosition: {x: 0, y: 0, z: -62.6}
-  m_LocalScale: {x: 7.8, y: 7.8, z: 7.8}
+  m_LocalPosition: {x: 0, y: 0, z: -1.377}
+  m_LocalScale: {x: 0.27, y: 2.064706, z: 2.064706}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 223772402}
   m_LocalEulerAnglesHint: {x: 0, y: 43.803, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 187.2, y: 0}
+  m_AnchoredPosition: {x: 7.7, y: 12.9}
   m_SizeDelta: {x: 1, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &481225570
@@ -26324,7 +26324,7 @@ MonoBehaviour:
   powerRoleSession: {fileID: 0}
   powerSessionSearchIntervalSeconds: 1
   captureDebugLogs: 1
-  maxLogLines: 10
+  maxLogLines: 18
   showLogTimestamp: 1
 --- !u!4 &1732492696
 Transform:
@@ -52216,7 +52216,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0.418, y: 0.007, z: -0.167}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 517786082}
   - {fileID: 223772402}

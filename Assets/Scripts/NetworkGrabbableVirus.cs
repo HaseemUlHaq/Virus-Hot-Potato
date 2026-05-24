@@ -739,9 +739,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void RPC_RequestSetPulsatingOn(RpcInfo info = default)
     {
-        RefreshPowerRoleSessionReference();
-        if (_powerRoleSession != null && !_powerRoleSession.IsPulsePlayer(info.Source))
-            return;
+        // Breath sensor path: gated by PetriDish snap in BreathSensorVirusIntegration, not by power role.
         if (IsCorrectlyPlaced()) return;
 
         // Cancel any timed stop so the spike animation stays on
@@ -762,10 +760,6 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void RPC_RequestSetPulsatingOff(RpcInfo info = default)
     {
-        RefreshPowerRoleSessionReference();
-        if (_powerRoleSession != null && !_powerRoleSession.IsPulsePlayer(info.Source))
-            return;
-
         if (_stopPulsateRoutine != null)
         {
             StopCoroutine(_stopPulsateRoutine);

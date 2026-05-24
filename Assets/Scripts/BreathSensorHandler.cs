@@ -58,29 +58,48 @@ public class BreathSensorHandler : MonoBehaviour
             {
                 byte[] data = _udpClient.Receive(ref remoteEndPoint);
                 string message = Encoding.UTF8.GetString(data).Trim();
-                Debug.Log($"BreathSensorHandler: '{message}'");
-                if (message == "BLOW")
-                {
-                    UnityMainThreadDispatcher.Enqueue(() =>
-                    {
-                        Debug.Log("[BREATH] Setting triggerBlow = true");
-                        triggerBlow = true;
-                    });
-                }
-                else if (message == "BUTTON_PRESSED")
-                {
-                    UnityMainThreadDispatcher.Enqueue(() =>
-                    {
-                        Debug.Log("[BREATH] Setting triggerButtonPressed = true");
-                        triggerButtonPressed = true;
-                    });
-                }
+                string normalized = NormalizeMessage(message);
+
+                UnityMainThreadDispatcher.Enqueue(() => HandleMessageOnMainThread(message, normalized));
             }
             catch (Exception e)
             {
-                if (_isRunning) Debug.LogError($"[BREATH] Error: {e.Message}");
+                if (_isRunning)
+                {
+                    UnityMainThreadDispatcher.Enqueue(() =>
+                        Debug.LogError($"[BREATH] Error: {e.Message}"));
+                }
             }
         }
+    }
+
+    private static string NormalizeMessage(string message)
+    {
+        if (string.IsNullOrEmpty(message))
+            return string.Empty;
+        return message.Trim().ToUpperInvariant();
+    }
+
+    private static void HandleMessageOnMainThread(string rawMessage, string normalized)
+    {
+        Debug.Log($"[BREATH] UDP: '{rawMessage}'");
+
+        if (normalized == "BLOW" || normalized == "BREATH")
+        {
+            Debug.Log("[BREATH] Setting triggerBlow = true");
+            triggerBlow = true;
+            return;
+        }
+
+        if (normalized == "BUTTON_PRESSED" || normalized == "BUTTON")
+        {
+            Debug.Log("[BREATH] Setting triggerButtonPressed = true");
+            triggerButtonPressed = true;
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(normalized))
+            Debug.LogWarning($"[BREATH] Unrecognized UDP message (expected BLOW or BUTTON_PRESSED): '{rawMessage}'");
     }
 
     void OnDestroy() => Shutdown();
