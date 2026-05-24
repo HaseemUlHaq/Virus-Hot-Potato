@@ -173,13 +173,14 @@ public class FormationManager : MonoBehaviour
         new Vector3( 0.00f,  0.13f,  0.40f ),
         new Vector3(-0.40f,  0.22f,  0.00f ),
         new Vector3( 0.00f,  0.30f, -0.40f ),
+        new Vector3( 0.30f,  0.10f, -0.30f ),
+        new Vector3(-0.30f,  0.18f,  0.30f ),
     };
 
     private IEnumerator SpawnWorkVirusesStaggered(NetworkRunner runner, Vector3 tablePosition)
     {
         Vector3 placeholderOrigin = tablePosition + placeholderOffset;
-        int count = formationData != null ? formationData.slots.Length : PlaceholderSlotOffsets.Length;
-        for (int i = 0; i < count && i < PlaceholderSlotOffsets.Length; i++)
+        for (int i = 0; i < PlaceholderSlotOffsets.Length; i++)
         {
             Vector3 pos = placeholderOrigin + PlaceholderSlotOffsets[i];
             NetworkObject work = runner.Spawn(virusWorkPrefab, pos, Quaternion.identity);
