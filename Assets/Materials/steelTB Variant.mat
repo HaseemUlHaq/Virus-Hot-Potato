@@ -13,7 +13,6 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _ENVIRONMENTREFLECTIONS_OFF
-  - _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -29,13 +28,13 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Metallic: 0.192
+    - _Metallic: 0.292
     - _ReceiveShadows: 1
-    - _Smoothness: 0.561
+    - _Smoothness: 0.651
     - _WorkflowMode: 1
     m_Colors:
-    - _BaseColor: {r: 0.8391875, g: 0.9496855, b: 0.9188489, a: 1}
-    - _Color: {r: 0.8391875, g: 0.9496855, b: 0.9188489, a: 1}
+    - _BaseColor: {r: 0.29803923, g: 0.77647066, b: 0.6627451, a: 1}
+    - _Color: {r: 0.2980392, g: 0.77647066, b: 0.6627451, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &6375475712067146743
