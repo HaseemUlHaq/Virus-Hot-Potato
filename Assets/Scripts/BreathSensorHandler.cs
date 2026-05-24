@@ -15,6 +15,7 @@ public class BreathSensorHandler : MonoBehaviour
     private static BreathSensorHandler instance;
 
     public static bool triggerBlow = false;
+    public static bool triggerButtonPressed = false;
 
     void Awake()
     {
@@ -57,13 +58,21 @@ public class BreathSensorHandler : MonoBehaviour
             {
                 byte[] data = _udpClient.Receive(ref remoteEndPoint);
                 string message = Encoding.UTF8.GetString(data).Trim();
-                Debug.Log($"[BREATH] GOT: '{message}'");
+                Debug.Log($"BreathSensorHandler: '{message}'");
                 if (message == "BLOW")
                 {
                     UnityMainThreadDispatcher.Enqueue(() =>
                     {
                         Debug.Log("[BREATH] Setting triggerBlow = true");
                         triggerBlow = true;
+                    });
+                }
+                else if (message == "BUTTON_PRESSED")
+                {
+                    UnityMainThreadDispatcher.Enqueue(() =>
+                    {
+                        Debug.Log("[BREATH] Setting triggerButtonPressed = true");
+                        triggerButtonPressed = true;
                     });
                 }
             }
