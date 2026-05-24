@@ -24,20 +24,20 @@ MonoBehaviour:
     scale: 3
     isPulsating: 0
     shapeVariantIndex: 2
-    localPosition: {x: -0.1285, y: 0.077, z: 0.0699}
+    localPosition: {x: -0.1285, y: 0.077, z: 0.0605}
     localEulerAngles: {x: 0, y: 0, z: 0}
     connectionIndices: 02000000
   - materialIndex: 4
     scale: 3
     isPulsating: 0
     shapeVariantIndex: 0
-    localPosition: {x: -0.3712, y: 0.239, z: 0}
+    localPosition: {x: -0.18, y: 0.239, z: 0}
     localEulerAngles: {x: 0, y: 0, z: 0}
     connectionIndices: 03000000
   - materialIndex: 5
     scale: 3
     isPulsating: 1
     shapeVariantIndex: 1
-    localPosition: {x: 0, y: 0.242, z: -0.1474}
+    localPosition: {x: 0.053, y: 0.242, z: -0.105}
     localEulerAngles: {x: 0, y: 0, z: 0}
     connectionIndices: 
