@@ -92,10 +92,6 @@ public class SpectatorRoundResetInput : MonoBehaviour
         if (!SpectatorTableAnchorQueries.IsNetworkSpawned(_tableAnchor))
             return "Table not network-spawned yet";
 
-        if (_powerRoleSession != null && _powerRoleSession.Object.IsValid &&
-            _powerRoleSession.HasAssignedPowerSlot(_runner.LocalPlayer))
-            return "PC was assigned a gameplay power — reconnect as spectator";
-
         if (_tableAnchor != null && !_tableAnchor.CanLocalSpectatorRequestRoundReset())
             return "Round reset not allowed for local player";
 
