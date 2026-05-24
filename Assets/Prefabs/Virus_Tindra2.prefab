@@ -532,7 +532,7 @@ MonoBehaviour:
   shapeCycler: {fileID: 8407094129555590774}
   eliminationMessageText: {fileID: 0}
   audioSource: {fileID: 3529899820184421752}
-  defaultSpawnScale: 1.5
+  defaultSpawnScale: 2
   _VirusScale: 1
   _MaterialIndex: 1
   _IsPulsating:
