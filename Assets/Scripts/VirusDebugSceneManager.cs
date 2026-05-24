@@ -28,10 +28,32 @@ public class VirusDebugSceneManager : MonoBehaviour
     private float _nextPowerSessionSearchTime;
     private readonly Queue<string> _logQueue = new Queue<string>();
 
+    private void Awake()
+    {
+        EnsureDebugCanvasEnabled();
+    }
+
     private void OnEnable()
     {
+        EnsureDebugCanvasEnabled();
         if (captureDebugLogs)
             Application.logMessageReceived += HandleLog;
+    }
+
+    private void EnsureDebugCanvasEnabled()
+    {
+        TMP_Text anyText = debugText != null ? debugText : logText;
+        if (anyText == null)
+            return;
+
+        Canvas canvas = anyText.canvas;
+        if (canvas == null)
+            return;
+
+        if (!canvas.gameObject.activeSelf)
+            canvas.gameObject.SetActive(true);
+        if (!canvas.enabled)
+            canvas.enabled = true;
     }
 
     private void OnDisable()
@@ -128,11 +150,13 @@ public class VirusDebugSceneManager : MonoBehaviour
         }
 
         var lp = runner.LocalPlayer;
+        sb.AppendLine($"Current PlayerId: {lp.PlayerId}  (LocalPlayer: {lp})");
         sb.AppendLine($"Session OK | StateAuth: {powerRoleSession.Object.HasStateAuthority} | ActivePlayers: {powerRoleSession.ActivePlayerCount}");
         sb.AppendLine($"debugAllowAllPowers: {powerRoleSession.DebugAllowAllPowersWhenUnassigned}");
+        sb.AppendLine($"Pulse slot: {FormatPlayer(powerRoleSession.PulsePowerPlayer)} | connected: {powerRoleSession.IsPlayerStillConnected(powerRoleSession.PulsePowerPlayer)}");
+        sb.AppendLine($"Shape slot: {FormatPlayer(powerRoleSession.ShapeVariantPlayer)} | connected: {powerRoleSession.IsPlayerStillConnected(powerRoleSession.ShapeVariantPlayer)}");
         sb.AppendLine($"Color slot: {FormatPlayer(powerRoleSession.ColorPowerPlayer)} | connected: {powerRoleSession.IsPlayerStillConnected(powerRoleSession.ColorPowerPlayer)}");
         sb.AppendLine($"Scale slot: {FormatPlayer(powerRoleSession.ScalePowerPlayer)} | connected: {powerRoleSession.IsPlayerStillConnected(powerRoleSession.ScalePowerPlayer)}");
-        sb.AppendLine($"Pulse slot: {FormatPlayer(powerRoleSession.PulsePowerPlayer)} | connected: {powerRoleSession.IsPlayerStillConnected(powerRoleSession.PulsePowerPlayer)}");
 
         bool canColor = powerRoleSession.IsColorPlayer(lp);
         bool canScale = powerRoleSession.IsScalePlayer(lp);

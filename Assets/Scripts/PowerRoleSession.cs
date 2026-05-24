@@ -19,7 +19,15 @@ public class PowerRoleSession : NetworkBehaviour, INetworkRunnerCallbacks
 
     [Header("Power Assignment Order")]
     [Tooltip("Which power each joiner receives, in order. 1st joiner = slot 0, 2nd = slot 1, etc.")]
-    [SerializeField] private PowerKind[] powerAssignmentOrder = { PowerKind.Color, PowerKind.Scale, PowerKind.Shape, PowerKind.Pulse };
+    [SerializeField] private PowerKind[] powerAssignmentOrder = { PowerKind.Pulse, PowerKind.Shape, PowerKind.Color, PowerKind.Scale };
+
+    [Header("Assignment timing")]
+    [Tooltip("Wait this long after join before assigning a power, so PC spectators can RPC_RegisterSpectator first.")]
+    [SerializeField] private float powerAssignDelaySeconds = 2.5f;
+
+    [Header("Ranked seat map (recommended for lab)")]
+    [Tooltip("When enabled, non-spectators are sorted by PlayerId; lowest gets Pulse, then Shape, Color, Scale. Solo testers always get Pulse even if PlayerId is not 1.")]
+    [SerializeField] private bool useFixedPlayerIdSlots = true;
 
     [Header("Debug")]
     [Tooltip("When enabled on this client, local gate checks act as if this client has all three powers.")]
@@ -49,9 +57,19 @@ public class PowerRoleSession : NetworkBehaviour, INetworkRunnerCallbacks
 
     private PlayerRef FindPlayerById(int playerId)
     {
+        PlayerRef p = TryFindPlayerById(playerId);
+        if (p == PlayerRef.None)
+            Debug.LogWarning($"[PowerRoleSession] Player {playerId} not found.");
+        return p;
+    }
+
+    private PlayerRef TryFindPlayerById(int playerId)
+    {
+        if (Runner == null)
+            return PlayerRef.None;
         foreach (var p in Runner.ActivePlayers)
-            if (p.PlayerId == playerId) return p;
-        Debug.LogWarning($"[PowerRoleSession] Player {playerId} not found.");
+            if (p.PlayerId == playerId)
+                return p;
         return PlayerRef.None;
     }
 
@@ -132,6 +150,7 @@ public class PowerRoleSession : NetworkBehaviour, INetworkRunnerCallbacks
             return;
 
         SpectatorPlayerIdMask |= 1 << player.PlayerId;
+        ClearPowerSlotsForPlayer(player);
     }
 
     public bool IsSpectator(PlayerRef player)
@@ -148,7 +167,98 @@ public class PowerRoleSession : NetworkBehaviour, INetworkRunnerCallbacks
         if (info.Source == PlayerRef.None)
             return;
         SpectatorPlayerIdMask |= 1 << info.Source.PlayerId;
+        ClearPowerSlotsForPlayer(info.Source);
         Debug.Log($"[PowerRoleSession] Registered spectator PlayerId {info.Source.PlayerId}.");
+        LogAssignments();
+    }
+
+    private void ClearPowerSlotsForPlayer(PlayerRef player)
+    {
+        if (player == PlayerRef.None)
+            return;
+
+        bool changed = false;
+        if (ColorPowerPlayer == player) { ColorPowerPlayer = PlayerRef.None; changed = true; }
+        if (ScalePowerPlayer == player) { ScalePowerPlayer = PlayerRef.None; changed = true; }
+        if (ShapeVariantPlayer == player) { ShapeVariantPlayer = PlayerRef.None; changed = true; }
+        if (PulsePowerPlayer == player) { PulsePowerPlayer = PlayerRef.None; changed = true; }
+
+        if (changed)
+        {
+            Debug.Log($"[PowerRoleSession] Cleared gameplay power slots for spectator {player} (PlayerId {player.PlayerId}).");
+            TryFillOpenPowerSlots();
+        }
+    }
+
+    /// <summary>After a spectator releases a slot, re-apply seat assignments.</summary>
+    private void TryFillOpenPowerSlots()
+    {
+        if (!Object.HasStateAuthority || Runner == null)
+            return;
+
+        if (useFixedPlayerIdSlots)
+            ApplyFixedPlayerIdAssignments();
+        else
+        {
+            foreach (var p in ToSortedList(Runner.ActivePlayers))
+            {
+                if (p == PlayerRef.None || IsSpectator(p) || SlotContainsPlayer(p))
+                    continue;
+                TryAssignPlayerToNextSlot(p);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Sorted non-spectators by PlayerId → powerAssignmentOrder slots (Pulse first).
+    /// One headset in the room always gets Pulse regardless of whether Fusion assigned PlayerId 1 or 2.
+    /// </summary>
+    private void ApplyFixedPlayerIdAssignments()
+    {
+        if (!Object.HasStateAuthority || Runner == null)
+            return;
+
+        var players = new List<PlayerRef>();
+        foreach (var p in ToSortedList(Runner.ActivePlayers))
+        {
+            if (p != PlayerRef.None && !IsSpectator(p))
+                players.Add(p);
+        }
+
+        if (players.Count == 0)
+            return;
+
+        PulsePowerPlayer = PlayerRef.None;
+        ShapeVariantPlayer = PlayerRef.None;
+        ColorPowerPlayer = PlayerRef.None;
+        ScalePowerPlayer = PlayerRef.None;
+
+        int slotCount = Mathf.Min(powerAssignmentOrder.Length, players.Count);
+        for (int i = 0; i < slotCount; i++)
+            AssignPowerToPlayer(players[i], powerAssignmentOrder[i]);
+
+        Debug.Log($"[PowerRoleSession] Ranked assignment for {players.Count} gameplay player(s): " +
+                  string.Join(", ", players.ConvertAll(p => $"PlayerId {p.PlayerId}")));
+        LogAssignments();
+    }
+
+    private void AssignPowerToPlayer(PlayerRef player, PowerKind kind)
+    {
+        switch (kind)
+        {
+            case PowerKind.Pulse:
+                PulsePowerPlayer = player;
+                break;
+            case PowerKind.Shape:
+                ShapeVariantPlayer = player;
+                break;
+            case PowerKind.Color:
+                ColorPowerPlayer = player;
+                break;
+            case PowerKind.Scale:
+                ScalePowerPlayer = player;
+                break;
+        }
     }
 
     private void TryAssignPlayerToNextSlot(PlayerRef player)
@@ -161,13 +271,25 @@ public class PowerRoleSession : NetworkBehaviour, INetworkRunnerCallbacks
             switch (kind)
             {
                 case PowerKind.Color when ColorPowerPlayer == PlayerRef.None:
-                    ColorPowerPlayer = player; return;
+                    ColorPowerPlayer = player;
+                    Debug.Log($"[PowerRoleSession] Assigned Color → {player} (PlayerId {player.PlayerId})");
+                    LogAssignments();
+                    return;
                 case PowerKind.Scale when ScalePowerPlayer == PlayerRef.None:
-                    ScalePowerPlayer = player; return;
+                    ScalePowerPlayer = player;
+                    Debug.Log($"[PowerRoleSession] Assigned Scale → {player} (PlayerId {player.PlayerId})");
+                    LogAssignments();
+                    return;
                 case PowerKind.Shape when ShapeVariantPlayer == PlayerRef.None:
-                    ShapeVariantPlayer = player; return;
+                    ShapeVariantPlayer = player;
+                    Debug.Log($"[PowerRoleSession] Assigned Shape → {player} (PlayerId {player.PlayerId})");
+                    LogAssignments();
+                    return;
                 case PowerKind.Pulse when PulsePowerPlayer == PlayerRef.None:
-                    PulsePowerPlayer = player; return;
+                    PulsePowerPlayer = player;
+                    Debug.Log($"[PowerRoleSession] Assigned Pulse → {player} (PlayerId {player.PlayerId})");
+                    LogAssignments();
+                    return;
             }
         }
 
@@ -189,15 +311,48 @@ public class PowerRoleSession : NetworkBehaviour, INetworkRunnerCallbacks
         StartCoroutine(DelayedAssignPlayerRoutine(player));
     }
 
+    private int CountGameplayPlayers()
+    {
+        if (Runner == null)
+            return 0;
+        int n = 0;
+        foreach (var p in Runner.ActivePlayers)
+            if (p != PlayerRef.None && !IsSpectator(p))
+                n++;
+        return n;
+    }
+
     private IEnumerator DelayedAssignPlayerRoutine(PlayerRef player)
     {
-        // Allow spectator clients time to RPC_RegisterSpectator before power assignment.
-        yield return new WaitForSeconds(1f);
+        float delay = CountGameplayPlayers() <= 1 ? 0.5f : powerAssignDelaySeconds;
+        float deadline = Time.time + delay;
+        while (Time.time < deadline)
+        {
+            if (!Object.IsValid || !Object.HasStateAuthority)
+                yield break;
+            if (player == PlayerRef.None || SlotContainsPlayer(player))
+                yield break;
+            if (IsSpectator(player))
+                yield break;
+            yield return null;
+        }
+
         if (!Object.IsValid || !Object.HasStateAuthority)
             yield break;
         if (player == PlayerRef.None || SlotContainsPlayer(player))
             yield break;
-        TryAssignPlayerToNextSlot(player);
+        if (IsSpectator(player))
+            yield break;
+
+        if (useFixedPlayerIdSlots)
+            ApplyFixedPlayerIdAssignments();
+        else
+            TryAssignPlayerToNextSlot(player);
+    }
+
+    private void LogAssignments()
+    {
+        Debug.Log($"[PowerRoleSession] Assignments — Pulse:{PulsePowerPlayer} Shape:{ShapeVariantPlayer} Color:{ColorPowerPlayer} Scale:{ScalePowerPlayer}");
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
