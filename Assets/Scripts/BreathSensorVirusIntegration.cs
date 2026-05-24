@@ -21,21 +21,40 @@ public class BreathSensorVirusIntegration : MonoBehaviour
 
     void Update()
     {
-        if (!BreathSensorHandler.triggerBlow)
-            return;
+        if (BreathSensorHandler.triggerBlow)
+        {
+            BreathSensorHandler.triggerBlow = false;
+            if (TryGetTargetVirus(out NetworkGrabbableVirus virus, "BLOW"))
+            {
+                Debug.Log($"[BreathIntegration] ✓ BLOW → {virus.name}");
+                virus.RequestSetPulsatingOn();
+            }
+        }
 
-        BreathSensorHandler.triggerBlow = false;
+        if (BreathSensorHandler.triggerButtonPressed)
+        {
+            BreathSensorHandler.triggerButtonPressed = false;
+            if (TryGetTargetVirus(out NetworkGrabbableVirus virus, "BUTTON_PRESSED"))
+            {
+                Debug.Log($"[BreathIntegration] ✓ BUTTON_PRESSED → stop pulse on {virus.name}");
+                virus.RequestSetPulsatingOff();
+            }
+        }
+    }
+
+    private bool TryGetTargetVirus(out NetworkGrabbableVirus virus, string eventLabel)
+    {
+        virus = null;
 
         if (_runner == null)
             _runner = FindFirstObjectByType<NetworkRunner>();
 
         if (_runner == null)
         {
-            Debug.LogWarning("[BreathIntegration] BLOW received but NetworkRunner not found!");
-            return;
+            Debug.LogWarning($"[BreathIntegration] {eventLabel} received but NetworkRunner not found!");
+            return false;
         }
 
-        // Gate: only the pulse player can trigger
         if (_powerRoleSession == null)
             _powerRoleSession = PowerRoleSession.Instance
                 ?? FindFirstObjectByType<PowerRoleSession>(FindObjectsInactive.Include);
@@ -43,23 +62,23 @@ public class BreathSensorVirusIntegration : MonoBehaviour
         bool debugAll = _powerRoleSession != null && _powerRoleSession.DebugAllowAllPowersWhenUnassigned;
         if (!debugAll && (_powerRoleSession == null || !_powerRoleSession.IsPulsePlayer(_runner.LocalPlayer)))
         {
-            Debug.Log("[BreathIntegration] BLOW received but local player does not have Pulse role — ignored.");
-            return;
+            Debug.Log($"[BreathIntegration] {eventLabel} received but local player does not have Pulse role — ignored.");
+            return false;
         }
 
         if (targetDish == null)
         {
             Debug.LogWarning("[BreathIntegration] No target dish assigned!");
-            return;
+            return false;
         }
 
         if (!targetDish.IsOccupied || targetDish.SnappedVirus == null)
         {
-            Debug.LogWarning("[BreathIntegration] BLOW received but no virus in the target dish.");
-            return;
+            Debug.LogWarning($"[BreathIntegration] {eventLabel} received but no virus in the target dish.");
+            return false;
         }
 
-        Debug.Log($"[BreathIntegration] ✓ BLOW → {targetDish.SnappedVirus.name}");
-        targetDish.SnappedVirus.RequestSetPulsatingOn();
+        virus = targetDish.SnappedVirus;
+        return true;
     }
 }
