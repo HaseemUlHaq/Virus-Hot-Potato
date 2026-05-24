@@ -114,6 +114,33 @@ White (1) = full effect, Black (0) = no effect. Soft gradients at zone boundarie
 - `_SpikeDisplacement` multiplies through the **G channel** of the ColorMask — only spike-zone vertices displace
 - **Only spikes move** — the whole body does not scale during pulse
 - In Shader Graph vertex stage: always use **`Sample Texture 2D LOD`** — the regular `Sample Texture 2D` is Fragment-only and silently breaks the Vertex Position connection
+- `spikePulseMaxDisplacement` on `VirusSwipeCycler`: correct value is **0.001** — any larger is visually too big
+
+### Pulse Interaction — Breath Sensor → Petri Dish
+
+**Rule:** the breath sensor targets the virus that is currently sitting in a **pre-assigned PetriDish**, not the last-touched or nearest virus.
+
+**Why:** proximity/last-touched approaches were unreliable in a collocated scene — the wrong virus fired consistently. The petri dish is always a fixed scene object with a deterministic reference, so the correct virus is always targeted regardless of hand positions or grab history.
+
+**How it works:**
+1. `BreathSensorHandler` (UDP listener, port 5006) sets `BreathSensorHandler.triggerBlow = true` via `UnityMainThreadDispatcher`
+2. `BreathSensorVirusIntegration.Update()` detects the flag, clears it, then:
+   - Guards on `PowerRoleSession.IsPulsePlayer(Runner.LocalPlayer)` — only the Pulse player can trigger
+   - Checks `targetDish.IsOccupied && targetDish.SnappedVirus != null`
+   - Calls `targetDish.SnappedVirus.RequestSetPulsatingOn()`
+3. `RequestSetPulsatingOn()` sends `RPC_RequestSetPulsatingOn` to `StateAuthority` — authority validates role again via `info.Source`, then sets `IsPulsating = true`
+
+**Scene setup required:**
+- Drag the specific `PetriDish` scene object into the **Target Dish** slot on `BreathSensorVirusIntegration`
+- Do the same for `ShapeTestDriver` (used for keyboard O key testing — same path as the real sensor)
+
+**Testing without the physical sensor (Link):**
+- Press **O** on keyboard → `ShapeTestDriver.TriggerPersistentPulse()` → same petri dish path as the real blow
+- Press **P** on keyboard → `RPC_TriggerPulse()` → timed (1-second) pulse on the first virus found
+
+**Persistent vs timed pulse:**
+- `RequestSetPulsatingOn()` = latched (stays on until the virus is correctly placed)
+- `RPC_TriggerPulse()` = timed (stops after `pulseDuration` seconds)
 
 ### Adding a new virus mesh / shape variant
 1. Import the FBX — check Scale Factor in the import settings so it matches the existing virus scale in-scene
@@ -214,7 +241,9 @@ Before building, verify the scene (`Spatial-Anchors.unity`) has:
 - [ ] `UnityMainThreadDispatcher` on its own GameObject
 - [ ] `UDPReceiver` GameObject **disabled** (conflicts with BreathSensorHandler on port 5006)
 - [ ] `PowerRoleSession` prefab configured: Element 0 = Color, Element 1 = Pulse (for 2-player test)
-- [ ] `VirusSwipeCycler` has **Apply To Child Renderers** enabled and Spike Pulse Max Displacement set to a visible value (0.03–0.05)
+- [ ] `BreathSensorVirusIntegration` → **Target Dish** field assigned to the specific `PetriDish` scene object
+- [ ] `ShapeTestDriver` (test scene) → **Target Dish** field assigned to the same `PetriDish`
+- [ ] `VirusSwipeCycler` has **Apply To Child Renderers** enabled and **Spike Pulse Max Displacement = 0.001**
 
 ---
 
