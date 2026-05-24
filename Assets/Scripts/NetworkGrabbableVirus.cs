@@ -43,6 +43,10 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
 
+    [Header("Spawn")]
+    [Tooltip("Initial VirusScale when this object is spawned (quantized to 0.5 steps).")]
+    [SerializeField] [Range(0.5f, 3f)] private float defaultSpawnScale = 1.5f;
+
     // ─── Networked State ──────────────────────────────────────────────────
     [Networked] public PlayerRef CurrentHolder { get; private set; } = PlayerRef.None;
     [Networked] private PlayerRef _lastTouchedPlayer { get; set; } = PlayerRef.None;
@@ -151,7 +155,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             FuseStarted = false;
             HasElimination = false;
             SpawnRestUnlocked = false;
-            VirusScale = 1.0f;
+            VirusScale = QuantizeScale(defaultSpawnScale);
             MaterialIndex = 1;
             IsPulsating = false;
             ShapeVariantIndex = 0;
