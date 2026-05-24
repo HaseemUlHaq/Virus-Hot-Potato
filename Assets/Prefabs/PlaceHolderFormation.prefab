@@ -59,9 +59,9 @@ MonoBehaviour:
   RequiredShapeVariantIndex: 0
   scaleTolerance: 0.3
   slotRenderer: {fileID: 2410359316494942622}
-  emptyMaterial: {fileID: 2100000, guid: 54a5256866bd2014b8f4d20d091a5b25, type: 2}
-  correctMaterial: {fileID: 2100000, guid: 275b2c99765ede142919b05d8a0a22b0, type: 2}
-  wrongMaterial: {fileID: 2100000, guid: fadf4ab759020d549bdc810492267a97, type: 2}
+  emptyMaterial: {fileID: 2100000, guid: 01afd0ea64f639644aa3039f9e9e21cc, type: 2}
+  correctMaterial: {fileID: 2100000, guid: caf28c865b6360a44b43acad8287686b, type: 2}
+  wrongMaterial: {fileID: 2100000, guid: 1c20f35a8ca4f48459ef033e7d44b07f, type: 2}
   _IsFilledCorrectly:
     _value: 0
 --- !u!33 &9038323295067192721
@@ -97,7 +97,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 7922251121040759823, guid: be8ca31a9f4544da99aa9b337d9c73d8, type: 3}
+  - {fileID: 2100000, guid: 01afd0ea64f639644aa3039f9e9e21cc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1517,9 +1517,9 @@ MonoBehaviour:
   RequiredShapeVariantIndex: 0
   scaleTolerance: 0.3
   slotRenderer: {fileID: 6037442220276127392}
-  emptyMaterial: {fileID: 2100000, guid: 54a5256866bd2014b8f4d20d091a5b25, type: 2}
-  correctMaterial: {fileID: 2100000, guid: 275b2c99765ede142919b05d8a0a22b0, type: 2}
-  wrongMaterial: {fileID: 2100000, guid: fadf4ab759020d549bdc810492267a97, type: 2}
+  emptyMaterial: {fileID: 2100000, guid: 01afd0ea64f639644aa3039f9e9e21cc, type: 2}
+  correctMaterial: {fileID: 2100000, guid: caf28c865b6360a44b43acad8287686b, type: 2}
+  wrongMaterial: {fileID: 2100000, guid: 1c20f35a8ca4f48459ef033e7d44b07f, type: 2}
   _IsFilledCorrectly:
     _value: 0
 --- !u!33 &8181332727289423825
@@ -1555,7 +1555,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 7922251121040759823, guid: be8ca31a9f4544da99aa9b337d9c73d8, type: 3}
+  - {fileID: 2100000, guid: 01afd0ea64f639644aa3039f9e9e21cc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1973,11 +1973,11 @@ MonoBehaviour:
   - slotA: 3
     slotB: 1
   connectionLineWidth: 0.012
-  connectionLineColor: {r: 0.5411765, g: 0.9490196, b: 0.6666667, a: 1}
+  connectionLineColor: {r: 0.6627451, g: 0.8745098, b: 0.8235294, a: 1}
   rotationSensitivity: 1
   autoRotateSpeed: 8
   handleVisualRenderer: {fileID: 9000000000000000023}
-  completeHandleColor: {r: 0.5411765, g: 0.9490196, b: 0.6666667, a: 1}
+  completeHandleColor: {r: 0.15294118, g: 0.99215686, b: 0.7921569, a: 1}
   _IsComplete:
     _value: 0
 --- !u!114 &2048533741542839071
@@ -2072,9 +2072,9 @@ MonoBehaviour:
   RequiredShapeVariantIndex: 0
   scaleTolerance: 0.3
   slotRenderer: {fileID: 1903393628767421219}
-  emptyMaterial: {fileID: 2100000, guid: 54a5256866bd2014b8f4d20d091a5b25, type: 2}
-  correctMaterial: {fileID: 2100000, guid: 275b2c99765ede142919b05d8a0a22b0, type: 2}
-  wrongMaterial: {fileID: 2100000, guid: fadf4ab759020d549bdc810492267a97, type: 2}
+  emptyMaterial: {fileID: 2100000, guid: 01afd0ea64f639644aa3039f9e9e21cc, type: 2}
+  correctMaterial: {fileID: 2100000, guid: caf28c865b6360a44b43acad8287686b, type: 2}
+  wrongMaterial: {fileID: 2100000, guid: 1c20f35a8ca4f48459ef033e7d44b07f, type: 2}
   _IsFilledCorrectly:
     _value: 0
 --- !u!33 &5482372752244632274
@@ -2110,7 +2110,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 7922251121040759823, guid: be8ca31a9f4544da99aa9b337d9c73d8, type: 3}
+  - {fileID: 2100000, guid: 96898a23be47ff24cb5e8e4aa143495c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2575,7 +2575,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c8930c42d8b3b1948bc11150c91a2127, type: 2}
+  - {fileID: 2100000, guid: 96898a23be47ff24cb5e8e4aa143495c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2659,9 +2659,9 @@ MonoBehaviour:
   RequiredShapeVariantIndex: 0
   scaleTolerance: 0.3
   slotRenderer: {fileID: 387773168477655753}
-  emptyMaterial: {fileID: 2100000, guid: 54a5256866bd2014b8f4d20d091a5b25, type: 2}
-  correctMaterial: {fileID: 2100000, guid: 275b2c99765ede142919b05d8a0a22b0, type: 2}
-  wrongMaterial: {fileID: 2100000, guid: fadf4ab759020d549bdc810492267a97, type: 2}
+  emptyMaterial: {fileID: 2100000, guid: 01afd0ea64f639644aa3039f9e9e21cc, type: 2}
+  correctMaterial: {fileID: 2100000, guid: caf28c865b6360a44b43acad8287686b, type: 2}
+  wrongMaterial: {fileID: 2100000, guid: 1c20f35a8ca4f48459ef033e7d44b07f, type: 2}
   _IsFilledCorrectly:
     _value: 0
 --- !u!33 &3255578589549540687
@@ -2697,7 +2697,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 7922251121040759823, guid: be8ca31a9f4544da99aa9b337d9c73d8, type: 3}
+  - {fileID: 2100000, guid: 01afd0ea64f639644aa3039f9e9e21cc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
