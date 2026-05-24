@@ -26,6 +26,14 @@ public class SpectatorNetworkBootstrap : MonoBehaviour, INetworkRunnerCallbacks
         StartCoroutine(ConnectRoutine());
     }
 
+    private void Update()
+    {
+        if (_spectatorRegistered || _runner == null || !_runner.IsRunning)
+            return;
+
+        TryRegisterSpectator();
+    }
+
     private IEnumerator ConnectRoutine()
     {
         yield return null;

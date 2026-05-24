@@ -146,14 +146,7 @@ public class NetworkedTableAnchor : NetworkBehaviour
             return false;
 
         if (SpectatorSession.LocalIsSpectator)
-        {
-            PowerRoleSession powerRoles = PowerRoleSession.Instance;
-            if (powerRoles != null && powerRoles.Object.IsValid &&
-                powerRoles.HasAssignedPowerSlot(runner.LocalPlayer))
-                return false;
-
             return true;
-        }
 
         return CanSpectatorRequestRoundReset(runner.LocalPlayer);
     }
@@ -182,11 +175,13 @@ public class NetworkedTableAnchor : NetworkBehaviour
             return;
         }
 
-        if (requester == PlayerRef.None || powerRoles.HasAssignedPowerSlot(requester))
+        if (requester == PlayerRef.None)
+            return;
+
+        if (powerRoles.HasAssignedPowerSlot(requester))
         {
             Debug.LogWarning(
-                $"[NetworkedTableAnchor] Spectator round reset denied for PlayerId {requester.PlayerId} (has gameplay power).");
-            return;
+                $"[NetworkedTableAnchor] Spectator round reset clearing mis-assigned gameplay power for PlayerId {requester.PlayerId}.");
         }
 
         powerRoles.RegisterSpectatorOnAuthority(requester);
