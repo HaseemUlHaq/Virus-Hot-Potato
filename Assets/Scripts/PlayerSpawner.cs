@@ -48,7 +48,9 @@ public class PlayerSpawner : MonoBehaviour
 
                 // right hand
                 var rightHandObject = runner.Spawn(RightHandPrefab, Vector3.zero, Quaternion.identity, runner.LocalPlayer);
-                rightHandObject.GetComponent<NetworkedHandSimple>().PlayerHandVisual = RightHandVisual;
+                var rightHand = rightHandObject.GetComponent<NetworkedHandSimple>();
+                rightHand.PlayerHandVisual = RightHandVisual;
+                rightHand.IsLeftHand = false;
 
                 var rightHandVisualMeshRenderer = rightHandObject.GetComponentInChildren<SkinnedMeshRenderer>();
                 rightHandVisualMeshRenderer.enabled = false;

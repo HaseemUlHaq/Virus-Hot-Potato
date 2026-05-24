@@ -49,7 +49,7 @@ public class FormationManager : MonoBehaviour
     public bool HasSpawned => _spawned;
     public bool WorkAreaWasSpawned => _workAreaSpawned;
 
-    // Called by VirusSpawner when table QR fires — spawns example formation only
+    // Called by VirusSpawner when table QR fires — spawns everything immediately
     public void TrySpawnFormations(NetworkRunner masterRunner, Vector3 tablePosition)
     {
         if (_spawned || masterRunner == null || formationData == null) return;
@@ -58,9 +58,10 @@ public class FormationManager : MonoBehaviour
         _runner = masterRunner;
 
         StartCoroutine(SpawnExampleFormationNextFrame(masterRunner));
+        SpawnWorkArea();
 
         _spawned = true;
-        Debug.Log("[FormationManager] Table QR fired — spawning example formation. Work area waits for box trigger.");
+        Debug.Log("[FormationManager] Table QR fired — spawning example formation + placeholder + work viruses.");
     }
 
     // Called by BoxFrontWallTrigger when player reaches the box
