@@ -754,6 +754,27 @@ public class NetworkGrabbableVirus : NetworkBehaviour
         IsPulsating = true;
     }
 
+    public void RequestSetPulsatingOff()
+    {
+        RPC_RequestSetPulsatingOff();
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void RPC_RequestSetPulsatingOff(RpcInfo info = default)
+    {
+        RefreshPowerRoleSessionReference();
+        if (_powerRoleSession != null && !_powerRoleSession.IsPulsePlayer(info.Source))
+            return;
+
+        if (_stopPulsateRoutine != null)
+        {
+            StopCoroutine(_stopPulsateRoutine);
+            _stopPulsateRoutine = null;
+        }
+
+        IsPulsating = false;
+    }
+
     // ─── UDP Button Pulse RPC ─────────────────────────────────────────────
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
