@@ -2,16 +2,9 @@ using Fusion;
 using TMPro;
 using UnityEngine;
 
-// A snap slot inside the placeholder formation. Extends PetriDish (inherits all snap logic) and checks if the snapped virus matches the required properties.
+// Snap slot in the placeholder formation. Green when the snapped virus matches any virus in the round formation (any slot).
 public class PlaceholderSlot : PetriDish
 {
-    [Header("Required Virus Properties")]
-    [Tooltip("Set by FormationManager at runtime from VirusFormationData.")]
-    public int RequiredMaterialIndex;
-    [Range(0.05f, 3.0f)] public float RequiredScale = 1f;
-    public bool RequiredIsPulsating;
-    public int RequiredShapeVariantIndex;
-
     [Header("Validation")]
     [SerializeField] private float scaleTolerance = 0.3f;
 
@@ -34,7 +27,15 @@ public class PlaceholderSlot : PetriDish
 
     [Networked] public NetworkBool IsFilledCorrectly { get; private set; }
 
+    private PlaceholderFormation _formation;
     private bool _wasOccupied;
+
+    public float ScaleTolerance => scaleTolerance;
+
+    public void BindFormation(PlaceholderFormation formation)
+    {
+        _formation = formation;
+    }
 
     public override void FixedUpdateNetwork()
     {
@@ -42,7 +43,7 @@ public class PlaceholderSlot : PetriDish
 
         if (!Object.HasStateAuthority) return;
 
-        IsFilledCorrectly = IsOccupied && SnappedVirus != null && ValidateVirus(SnappedVirus);
+        IsFilledCorrectly = IsOccupied && SnappedVirus != null && VirusMatchesFormation(SnappedVirus);
     }
 
     public override void Render()
@@ -61,21 +62,12 @@ public class PlaceholderSlot : PetriDish
         UpdateWrongPlacementPopup();
     }
 
-    public void ConfigureFromSlot(VirusFormationData.SlotConfig config)
+    public bool VirusMatchesFormation(NetworkGrabbableVirus virus)
     {
-        RequiredMaterialIndex = config.materialIndex;
-        RequiredScale = NetworkGrabbableVirus.QuantizeScale(config.scale);
-        RequiredIsPulsating = config.isPulsating;
-        RequiredShapeVariantIndex = config.shapeVariantIndex;
-    }
+        if (_formation == null)
+            _formation = GetComponentInParent<PlaceholderFormation>();
 
-    private bool ValidateVirus(NetworkGrabbableVirus virus)
-    {
-        if (virus.MaterialIndex != RequiredMaterialIndex) return false;
-        if (Mathf.Abs(virus.VirusScale - RequiredScale) > scaleTolerance) return false;
-        if ((bool)virus.IsPulsating != RequiredIsPulsating) return false;
-        if (virus.ShapeVariantIndex != RequiredShapeVariantIndex) return false;
-        return true;
+        return _formation != null && _formation.VirusMatchesFormation(virus, scaleTolerance);
     }
 
     private void UpdateSlotVisual()
@@ -103,22 +95,6 @@ public class PlaceholderSlot : PetriDish
         wrongPlacementPopup.SetActive(true);
 
         if (wrongPlacementText != null)
-            wrongPlacementText.text = BuildWrongPlacementMessage(SnappedVirus);
-    }
-
-    private string BuildWrongPlacementMessage(NetworkGrabbableVirus virus)
-    {
-        var sb = new System.Text.StringBuilder();
-
-        if (virus.MaterialIndex != RequiredMaterialIndex)
-            sb.AppendLine("Wrong color");
-        if (Mathf.Abs(virus.VirusScale - RequiredScale) > scaleTolerance)
-            sb.AppendLine("Wrong size");
-        if ((bool)virus.IsPulsating != RequiredIsPulsating)
-            sb.AppendLine(RequiredIsPulsating ? "Should be pulsating" : "Should not be pulsating");
-        if (virus.ShapeVariantIndex != RequiredShapeVariantIndex)
-            sb.AppendLine("Wrong shape");
-
-        return sb.ToString().TrimEnd();
+            wrongPlacementText.text = "Not in formation";
     }
 }

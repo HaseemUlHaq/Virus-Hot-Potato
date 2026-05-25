@@ -24,6 +24,9 @@ public class PlaceholderFormation : NetworkBehaviour
     [Header("Formation Data (assign in prefab — applied on all clients in Spawned)")]
     [SerializeField] private VirusFormationData preassignedFormationData;
 
+    [Header("Validation")]
+    [SerializeField] private float scaleTolerance = 0.3f;
+
     [Header("Connection Lines")]
     [Tooltip("Pairs to link (e.g. 0↔1, 1↔3). Uses this list when not empty; otherwise VirusFormationData.connectionIndices; else 0–1–2–3 chain.")]
     [SerializeField] private SlotConnection[] slotConnections;
@@ -59,6 +62,7 @@ public class PlaceholderFormation : NetworkBehaviour
 
     private ConnectionEdge[] _connectionEdges;
     private Transform _connectionLinesRoot;
+    private readonly List<FormationVirusKey> _requiredViruses = new List<FormationVirusKey>();
 
     [Networked] private float _rotationY { get; set; }
 
@@ -84,17 +88,7 @@ public class PlaceholderFormation : NetworkBehaviour
 
         if (!Object.HasStateAuthority) return;
 
-        bool complete = slots != null && slots.Length > 0;
-        foreach (var slot in slots)
-        {
-            if (slot == null || !slot.IsFilledCorrectly)
-            {
-                complete = false;
-                break;
-            }
-        }
-
-        IsComplete = complete;
+        IsComplete = IsFormationMultisetComplete();
 
         if (IsComplete)
             _rotationY += autoRotateSpeed * Runner.DeltaTime;
@@ -131,13 +125,51 @@ public class PlaceholderFormation : NetworkBehaviour
     public void ConfigureSlots(VirusFormationData data)
     {
         if (data == null || slots == null) return;
-        for (int i = 0; i < slots.Length && i < data.slots.Length; i++)
+
+        _requiredViruses.Clear();
+        if (data.slots != null)
+        {
+            for (int i = 0; i < data.slots.Length; i++)
+                _requiredViruses.Add(FormationVirusKey.FromConfig(data.slots[i]));
+        }
+
+        for (int i = 0; i < slots.Length; i++)
         {
             if (slots[i] != null)
-                slots[i].ConfigureFromSlot(data.slots[i]);
+                slots[i].BindFormation(this);
         }
 
         RebuildConnectionLines(data);
+    }
+
+    /// <summary>True when the virus matches any entry in this round's formation (placement order does not matter).</summary>
+    public bool VirusMatchesFormation(NetworkGrabbableVirus virus, float slotScaleTolerance)
+    {
+        return FormationVirusKey.TryMatchAny(_requiredViruses, virus, slotScaleTolerance, out _);
+    }
+
+    private bool IsFormationMultisetComplete()
+    {
+        if (slots == null || slots.Length == 0 || _requiredViruses.Count == 0)
+            return false;
+
+        var placed = new List<NetworkGrabbableVirus>(slots.Length);
+        float tolerance = scaleTolerance;
+
+        for (int i = 0; i < slots.Length; i++)
+        {
+            PlaceholderSlot slot = slots[i];
+            if (slot == null || !slot.IsOccupied || slot.SnappedVirus == null)
+                return false;
+
+            if (!slot.VirusMatchesFormation(slot.SnappedVirus))
+                return false;
+
+            placed.Add(slot.SnappedVirus);
+            tolerance = Mathf.Max(tolerance, slot.ScaleTolerance);
+        }
+
+        return FormationVirusKey.CountsMatch(_requiredViruses, placed, tolerance);
     }
 
     public int SlotCount => slots != null ? slots.Length : 0;
