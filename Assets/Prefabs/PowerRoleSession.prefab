@@ -67,7 +67,7 @@ MonoBehaviour:
   powerAssignmentOrder: 03000000020000000000000001000000
   powerAssignDelaySeconds: 2.5
   useFixedPlayerIdSlots: 1
-  debugAllowAllPowersWhenUnassigned: 1
+  debugAllowAllPowersWhenUnassigned: 0
   manualColorPlayerId: 1
   manualScalePlayerId: 1
   manualShapePlayerId: 1
