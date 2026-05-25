@@ -1,4 +1,5 @@
 using Fusion;
+using TMPro;
 using UnityEngine;
 
 // A snap slot inside the placeholder formation. Extends PetriDish (inherits all snap logic) and checks if the snapped virus matches the required properties.
@@ -19,6 +20,12 @@ public class PlaceholderSlot : PetriDish
     [SerializeField] private Material emptyMaterial;
     [SerializeField] private Material correctMaterial;
     [SerializeField] private Material wrongMaterial;
+
+    [Header("Wrong Placement Popup")]
+    [Tooltip("World-space UI GameObject that appears above the slot when placement is wrong.")]
+    [SerializeField] private GameObject wrongPlacementPopup;
+    [Tooltip("TextMeshPro text inside the popup that lists what is wrong.")]
+    [SerializeField] private TextMeshProUGUI wrongPlacementText;
 
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
@@ -50,6 +57,8 @@ public class PlaceholderSlot : PetriDish
                 audioSource.PlayOneShot(clip);
         }
         _wasOccupied = IsOccupied;
+
+        UpdateWrongPlacementPopup();
     }
 
     public void ConfigureFromSlot(VirusFormationData.SlotConfig config)
@@ -79,5 +88,37 @@ public class PlaceholderSlot : PetriDish
 
         if (slotRenderer.sharedMaterial != target)
             slotRenderer.sharedMaterial = target;
+    }
+
+    private void UpdateWrongPlacementPopup()
+    {
+        if (wrongPlacementPopup == null) return;
+
+        if (!IsOccupied || IsFilledCorrectly || SnappedVirus == null)
+        {
+            wrongPlacementPopup.SetActive(false);
+            return;
+        }
+
+        wrongPlacementPopup.SetActive(true);
+
+        if (wrongPlacementText != null)
+            wrongPlacementText.text = BuildWrongPlacementMessage(SnappedVirus);
+    }
+
+    private string BuildWrongPlacementMessage(NetworkGrabbableVirus virus)
+    {
+        var sb = new System.Text.StringBuilder();
+
+        if (virus.MaterialIndex != RequiredMaterialIndex)
+            sb.AppendLine("Wrong color");
+        if (Mathf.Abs(virus.VirusScale - RequiredScale) > scaleTolerance)
+            sb.AppendLine("Wrong size");
+        if ((bool)virus.IsPulsating != RequiredIsPulsating)
+            sb.AppendLine(RequiredIsPulsating ? "Should be pulsating" : "Should not be pulsating");
+        if (virus.ShapeVariantIndex != RequiredShapeVariantIndex)
+            sb.AppendLine("Wrong shape");
+
+        return sb.ToString().TrimEnd();
     }
 }
