@@ -2378,7 +2378,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 4436c8d923b6e4ddea48b58c99e782ca, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.054
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -11476,6 +11476,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1977987381}
     m_Modifications:
+    - target: {fileID: 1125734649048116097, guid: 740b5ee262c98df4381adba974c8f978, type: 3}
+      propertyPath: _minVelocity
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 1125734649379851866, guid: 740b5ee262c98df4381adba974c8f978, type: 3}
       propertyPath: _hand
       value: 
@@ -16390,7 +16394,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 4, y: 0}
+  m_AnchoredPosition: {x: 4, y: -0.00086515286}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1112016125
@@ -23464,7 +23468,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd1aee45832e0eb4fa0472fe5be7bb31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VirusGestureRouter
-  maxSwipeDistance: 0.3
+  maxSwipeDistance: 0.35
   leftHand: {fileID: 2131984123}
   rightHand: {fileID: 2131984120}
 --- !u!4 &1374894895
@@ -34731,7 +34735,7 @@ GameObject:
   - component: {fileID: 1934986861}
   - component: {fileID: 1934986860}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: debug manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -40954,6 +40958,10 @@ PrefabInstance:
       propertyPath: _centerEyeCamera
       value: 
       objectReference: {fileID: 2112735186}
+    - target: {fileID: 993019234162732016, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+      propertyPath: _supportedGrabTypes
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1089171842059734635, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -40993,6 +41001,10 @@ PrefabInstance:
     - target: {fileID: 3321003754091216138, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3774012668400742812, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+      propertyPath: _supportedGrabTypes
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3903482226883268838, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
       propertyPath: m_IsActive
@@ -41383,17 +41395,17 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2134053424}
   m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: -1.05}
+  m_LocalPosition: {x: 0, y: 0, z: -0.945}
   m_LocalScale: {x: 0.001, y: 0.001, z: 0.001}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 628748148}
   m_Father: {fileID: 152540251}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0.0018000007, y: 0.91819996}
-  m_SizeDelta: {x: 711.4, y: 707.4496}
+  m_AnchoredPosition: {x: 0.141, y: 1.379}
+  m_SizeDelta: {x: 400, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2137491244
 GameObject:

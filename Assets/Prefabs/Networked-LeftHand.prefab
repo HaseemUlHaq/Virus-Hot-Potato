@@ -80,7 +80,55 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3bf6df4a5ac85847831e1fb5fa00ff8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _jointMaps: []
+  _jointMaps:
+  - id: 2
+    transform: {fileID: 8487505516609223281}
+    rotationOffset: {x: 0, y: 0, z: 0}
+  - id: 3
+    transform: {fileID: 8438858738573315887}
+    rotationOffset: {x: 0, y: 0, z: 0}
+  - id: 4
+    transform: {fileID: 7985994236431543792}
+    rotationOffset: {x: 0, y: 0, z: 0}
+  - id: 7
+    transform: {fileID: 5903721613894452516}
+    rotationOffset: {x: 0, y: 0, z: 0}
+  - id: 8
+    transform: {fileID: 1765441883284994715}
+    rotationOffset: {x: 0, y: 0, z: 0}
+  - id: 9
+    transform: {fileID: 8719247459269691463}
+    rotationOffset: {x: 0, y: 0, z: 0}
+  - id: 12
+    transform: {fileID: 4160324151176346911}
+    rotationOffset: {x: 0, y: 0, z: 0}
+  - id: 13
+    transform: {fileID: 7533670047631310901}
+    rotationOffset: {x: 0, y: 0, z: 0}
+  - id: 14
+    transform: {fileID: 4115354308345430734}
+    rotationOffset: {x: 0, y: 0, z: 0}
+  - id: 17
+    transform: {fileID: 6771741537322877302}
+    rotationOffset: {x: 0, y: 0, z: 0}
+  - id: 18
+    transform: {fileID: 6213764804834998635}
+    rotationOffset: {x: 0, y: 0, z: 0}
+  - id: 19
+    transform: {fileID: 8301559951804213030}
+    rotationOffset: {x: 0, y: 0, z: 0}
+  - id: 21
+    transform: {fileID: 4291759865595568153}
+    rotationOffset: {x: 0, y: 0, z: 0}
+  - id: 22
+    transform: {fileID: 7473552325648751161}
+    rotationOffset: {x: 0, y: 0, z: 0}
+  - id: 23
+    transform: {fileID: 2439694485109901413}
+    rotationOffset: {x: 0, y: 0, z: 0}
+  - id: 24
+    transform: {fileID: 6650584705660945345}
+    rotationOffset: {x: 0, y: 0, z: 0}
 --- !u!114 &6265215938490587864
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -129,6 +177,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkedHandSimple
   PlayerHandVisual: {fileID: 0}
+  _IsLeftHand:
+    _value: 0
+  _JointPositions: []
   jointTransformsGhostHand:
   - {fileID: 7396914057871561366}
   - {fileID: 7396914057871561366}
