@@ -42,6 +42,12 @@ public class NetworkGrabbableVirus : NetworkBehaviour
 
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip pickupClip;
+    [SerializeField] private AudioClip dropClip;
+    [SerializeField] private AudioClip enlargeClip;
+    [SerializeField] private AudioClip colorChangeClip;
+    [SerializeField] private AudioClip shapeChangeClip;
+    [SerializeField] private AudioClip eliminationClip;
 
     [Header("Spawn")]
     [Tooltip("Initial VirusScale when this object is spawned (quantized to 0.5 steps).")]
@@ -391,6 +397,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             Object.RequestStateAuthority();
 
         _lastGrabInteractorId = interactorId;
+        PlayClip(pickupClip);
     }
 
     private void OnGrabEnded()
@@ -402,6 +409,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             ScheduleDeferredReleaseStateAuthority();
 
         _lastGrabInteractorId = -1;
+        PlayClip(dropClip);
     }
 
     // ─── Elimination UI ───────────────────────────────────────────────────
@@ -409,8 +417,10 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     private void OnEliminatedPlayerChanged()
     {
         if (_eliminatedPlayer == PlayerRef.None) return;
-        if (eliminationMessageText == null) return;
 
+        PlayClip(eliminationClip);
+
+        if (eliminationMessageText == null) return;
         eliminationMessageText.text = $"Player {_eliminatedPlayer.PlayerId} eliminated!";
         eliminationMessageText.gameObject.SetActive(true);
     }
@@ -582,13 +592,17 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     private void OnVirusScaleChanged()
     {
         if (!IsPulsating)
+        {
             transform.localScale = Vector3.one * VirusScale;
+            PlayClip(enlargeClip);
+        }
     }
 
     private void OnMaterialIndexChanged()
     {
         if (swipeCycler != null)
             swipeCycler.SetMaterialIndex(MaterialIndex);
+        PlayClip(colorChangeClip);
     }
 
     private void OnVirusPulsateChanged()
@@ -611,6 +625,7 @@ public class NetworkGrabbableVirus : NetworkBehaviour
             shapeCycler.SetShapeIndex(ShapeVariantIndex);
         if (swipeCycler != null)
             swipeCycler.RefreshAfterShapeChange();
+        PlayClip(shapeChangeClip);
     }
 
     // ─── Public API ───────────────────────────────────────────────────────
@@ -836,6 +851,12 @@ public class NetworkGrabbableVirus : NetworkBehaviour
     public override void Render()
     {
         base.Render();
+    }
+
+    private void PlayClip(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+            audioSource.PlayOneShot(clip);
     }
 
     // ─── Cleanup ──────────────────────────────────────────────────────────

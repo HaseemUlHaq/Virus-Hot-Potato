@@ -12,6 +12,10 @@ public class EndGameBottleReveal : MonoBehaviour
     [SerializeField] private GameObject[] sprayBottles;
     [SerializeField] private GameObject[] uiLabels;
     [SerializeField] private float revealDelay = 2f;
+    [SerializeField] private EndGameUI endGameUI;
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip winClip;
     [Tooltip("Skip the puzzle gate and reveal bottles immediately on Start. Disable before shipping.")]
     [SerializeField] private bool debugRevealOnStart = false;
 
@@ -71,6 +75,10 @@ public class EndGameBottleReveal : MonoBehaviour
     {
         yield return new WaitForSeconds(revealDelay);
         SetBottlesVisible(true);
+        if (audioSource != null && winClip != null)
+            audioSource.PlayOneShot(winClip);
+        if (endGameUI != null)
+            endGameUI.Show();
         Debug.Log("[EndGame] Spray bottles revealed.");
     }
 }

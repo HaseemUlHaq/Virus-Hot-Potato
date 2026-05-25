@@ -20,7 +20,14 @@ public class PlaceholderSlot : PetriDish
     [SerializeField] private Material correctMaterial;
     [SerializeField] private Material wrongMaterial;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip correctClip;
+    [SerializeField] private AudioClip wrongClip;
+
     [Networked] public NetworkBool IsFilledCorrectly { get; private set; }
+
+    private bool _wasOccupied;
 
     public override void FixedUpdateNetwork()
     {
@@ -35,6 +42,14 @@ public class PlaceholderSlot : PetriDish
     {
         base.Render();
         UpdateSlotVisual();
+
+        if (IsOccupied && !_wasOccupied)
+        {
+            AudioClip clip = IsFilledCorrectly ? correctClip : wrongClip;
+            if (audioSource != null && clip != null)
+                audioSource.PlayOneShot(clip);
+        }
+        _wasOccupied = IsOccupied;
     }
 
     public void ConfigureFromSlot(VirusFormationData.SlotConfig config)

@@ -532,6 +532,12 @@ MonoBehaviour:
   shapeCycler: {fileID: 8407094129555590774}
   eliminationMessageText: {fileID: 0}
   audioSource: {fileID: 3529899820184421752}
+  pickupClip: {fileID: 8300000, guid: cbaf8af418050074d94500378f012f45, type: 3}
+  dropClip: {fileID: 8300000, guid: cbaf8af418050074d94500378f012f45, type: 3}
+  enlargeClip: {fileID: 8300000, guid: deddf0b6994a9b543a2b4ffd829e8cad, type: 3}
+  colorChangeClip: {fileID: 8300000, guid: 152aafa4bc75a894f80f0da543555c4b, type: 3}
+  shapeChangeClip: {fileID: 8300000, guid: 152aafa4bc75a894f80f0da543555c4b, type: 3}
+  eliminationClip: {fileID: 8300000, guid: 33504eb0b3cd875429958bc67b832de0, type: 3}
   defaultSpawnScale: 2
   _VirusScale: 1
   _MaterialIndex: 1

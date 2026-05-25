@@ -13,11 +13,22 @@ public class PetriDish : NetworkBehaviour
     [SerializeField] private float snapOverlapRadius = 0.4f;
     [SerializeField] private Renderer dishRenderer;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip snapClip;
+
     // SIMPLE: Just track "is virus in dish" - nothing else
     [Networked] public NetworkGrabbableVirus SnappedVirus { get; set; }
-    [Networked] public NetworkBool IsOccupied { get; set; }
+    [Networked, OnChangedRender(nameof(OnIsOccupiedChanged))]
+    public NetworkBool IsOccupied { get; set; }
 
     private float _snapDwellStart = -1f;
+
+    private void OnIsOccupiedChanged()
+    {
+        if (IsOccupied && audioSource != null && snapClip != null)
+            audioSource.PlayOneShot(snapClip);
+    }
 
     public Vector3 GetHoverPosition()
     {
