@@ -95,6 +95,6 @@ public class PlaceholderSlot : PetriDish
         wrongPlacementPopup.SetActive(true);
 
         if (wrongPlacementText != null)
-            wrongPlacementText.text = "Not in formation";
+            wrongPlacementText.text = "Inte en match, försök igen.";
     }
 }
