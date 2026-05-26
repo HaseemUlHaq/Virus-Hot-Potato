@@ -12,6 +12,9 @@ public class EndGameBottleReveal : MonoBehaviour
     [SerializeField] private GameObject[] sprayBottles;
     [SerializeField] private GameObject[] uiLabels;
     [SerializeField] private float revealDelay = 2f;
+    [Tooltip("Shown during play (e.g. InstructionsSE). Hidden when the puzzle is solved.")]
+    [SerializeField] private GameObject startInstructions;
+    [Tooltip("Win panel animated in after solve (e.g. InstructionsWin).")]
     [SerializeField] private EndGameUI endGameUI;
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
@@ -77,6 +80,10 @@ public class EndGameBottleReveal : MonoBehaviour
         SetBottlesVisible(true);
         if (audioSource != null && winClip != null)
             audioSource.PlayOneShot(winClip);
+
+        if (startInstructions != null)
+            startInstructions.SetActive(false);
+
         if (endGameUI != null)
             endGameUI.Show();
         Debug.Log("[EndGame] Spray bottles revealed.");
