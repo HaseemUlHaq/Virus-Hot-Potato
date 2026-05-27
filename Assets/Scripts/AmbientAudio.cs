@@ -1,17 +1,11 @@
-using Fusion;
 using UnityEngine;
 
-// Plays looping ambient audio only on the master client to avoid doubling
-// in collocated MR where multiple headsets share the same physical space.
-public class AmbientAudio : NetworkBehaviour
+public class AmbientAudio : MonoBehaviour
 {
     [SerializeField] private AudioSource audioSource;
 
-    public override void Spawned()
+    private void Start()
     {
-        if (Runner.IsSharedModeMasterClient)
-            audioSource.Play();
-        else
-            audioSource.Stop();
+        audioSource.Play();
     }
 }
