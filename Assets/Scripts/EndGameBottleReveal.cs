@@ -23,6 +23,7 @@ public class EndGameBottleReveal : MonoBehaviour
     [SerializeField] private bool debugRevealOnStart = false;
 
     private bool _triggered;
+    private Coroutine _revealRoutine;
 
     private void Start()
     {
@@ -31,7 +32,7 @@ public class EndGameBottleReveal : MonoBehaviour
         if (debugRevealOnStart)
         {
             _triggered = true;
-            StartCoroutine(RevealAfterDelay());
+            _revealRoutine = StartCoroutine(RevealAfterDelay());
         }
     }
 
@@ -43,7 +44,22 @@ public class EndGameBottleReveal : MonoBehaviour
         if (formation == null || !formation.IsComplete) return;
 
         _triggered = true;
-        StartCoroutine(RevealAfterDelay());
+        _revealRoutine = StartCoroutine(RevealAfterDelay());
+    }
+
+    public void ResetForNewRound()
+    {
+        if (_revealRoutine != null)
+        {
+            StopCoroutine(_revealRoutine);
+            _revealRoutine = null;
+        }
+
+        _triggered = false;
+        SetBottlesVisible(false);
+
+        if (endGameUI != null)
+            endGameUI.HideImmediate();
     }
 
     /// <summary>
@@ -77,6 +93,7 @@ public class EndGameBottleReveal : MonoBehaviour
     private IEnumerator RevealAfterDelay()
     {
         yield return new WaitForSeconds(revealDelay);
+        _revealRoutine = null;
         SetBottlesVisible(true);
         if (audioSource != null && winClip != null)
             audioSource.PlayOneShot(winClip);

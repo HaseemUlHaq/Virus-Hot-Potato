@@ -27,6 +27,14 @@ public class EndGameUI : MonoBehaviour
         StartCoroutine(AnimateIn());
     }
 
+    public void HideImmediate()
+    {
+        StopAllCoroutines();
+        canvasGroup.alpha = 0f;
+        transform.localScale = Vector3.zero;
+        gameObject.SetActive(false);
+    }
+
     private IEnumerator AnimateIn()
     {
         if (audioSource != null && appearClip != null)
