@@ -166,7 +166,7 @@ public class NetworkedTableAnchor : NetworkBehaviour
         ExecuteRoundResetAsSpectator(info.Source);
     }
 
-    private static void ExecuteRoundResetAsSpectator(PlayerRef requester)
+    private void ExecuteRoundResetAsSpectator(PlayerRef requester)
     {
         PowerRoleSession powerRoles = PowerRoleSession.Instance;
         if (powerRoles == null || !powerRoles.Object.IsValid)
@@ -199,15 +199,21 @@ public class NetworkedTableAnchor : NetworkBehaviour
         return null;
     }
 
-    private static void ExecuteRoundReset()
+    private void ExecuteRoundReset()
     {
         VirusSpawner spawner = FindFirstObjectByType<VirusSpawner>(FindObjectsInactive.Include);
         if (spawner == null)
-        {
             Debug.LogWarning("[NetworkedTableAnchor] Round reset requested but no VirusSpawner found.");
-            return;
-        }
+        else
+            spawner.RestartRoundAtCurrentTable();
 
-        spawner.RestartRoundAtCurrentTable();
+        RPC_ResetEndGameVisuals();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_ResetEndGameVisuals()
+    {
+        EndGameBottleReveal reveal = FindFirstObjectByType<EndGameBottleReveal>(FindObjectsInactive.Include);
+        reveal?.ResetForNewRound();
     }
 }

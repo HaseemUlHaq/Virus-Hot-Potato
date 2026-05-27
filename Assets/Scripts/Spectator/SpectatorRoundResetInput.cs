@@ -19,7 +19,6 @@ public class SpectatorRoundResetInput : MonoBehaviour
     private NetworkRunner _runner;
     private NetworkedTableAnchor _tableAnchor;
     private PowerRoleSession _powerRoleSession;
-    private EndGameBottleReveal _endGameBottleReveal;
     private float _holdTimer;
     private float _cooldownTimer;
     private float _lastBlockedLogTime;
@@ -63,9 +62,6 @@ public class SpectatorRoundResetInput : MonoBehaviour
         _cooldownTimer = resetCooldownSeconds;
 
         _powerRoleSession?.RPC_RegisterSpectator();
-        if (_endGameBottleReveal == null)
-            _endGameBottleReveal = FindFirstObjectByType<EndGameBottleReveal>(FindObjectsInactive.Include);
-        _endGameBottleReveal?.ResetForNewRound();
         _tableAnchor.RequestSpectatorRoundReset();
         Debug.Log($"[SpectatorRoundReset] Round reset requested (held R {holdDurationSeconds:F2}s)");
     }
@@ -80,9 +76,6 @@ public class SpectatorRoundResetInput : MonoBehaviour
 
         if (_powerRoleSession == null)
             _powerRoleSession = PowerRoleSession.Instance;
-
-        if (_endGameBottleReveal == null)
-            _endGameBottleReveal = FindFirstObjectByType<EndGameBottleReveal>(FindObjectsInactive.Include);
     }
 
     private string GetBlockReason()
