@@ -54,6 +54,9 @@ The team set out to achieve the following:
 - **Role-based skills:** Each player has one exclusive interaction for modifying the virus (e.g. colour, scale, pulsation). No player can complete the puzzle alone.
 - **Snap-to-workspace mechanic:** The virus snaps into a player's personal petri dish workstation, locking it in place while they apply their modification.
 
+<img width="2380" height="336" alt="image" src="https://github.com/user-attachments/assets/0b5fa3a4-4301-4d06-8290-e1115c9b7408" />
+
+
 ### Interactions
 
 Interaction accessible for all players:
@@ -72,11 +75,31 @@ Skill-specific interactions:
   - Arduino IDE
 
 ### Environment
-- **Mixed reality lab:** The physical environment was set up as an isolated lab area using white wall dividers, with props including lab coats, a large instruction poster, and printed mission briefing documents. A large white table in the centre served as the shared play surface. Virtual elements such as virus objects, player workstations and UI panels were overlaid on the physical table through Quest passthrough, blending the real and virtual spaces into a single coherent lab experience.
-- **Player workstations:** Each player has an individual steel tray with UI panels showing their role name, a skill tutorial video and a skill description. The tray was designed in Blender as a virtual MR object, and a physical replica was also printed to reinforce the mixed reality experience.
-- **Instructions canvas:** A physical step-by-step reminder placed above the table, outlining the game loop and how to reach the goal. This was kept physical rather than virtual so that players can read it whether they are wearing a headset or not.
-- **The example formation:** The target virus formation was placed inside a physical box on the table, with occlusion hiding the virtual viruses while the lid was closed. Players had to physically open the box to reveal the virtual content inside. This was a key mixed reality design choice: tying the reveal to a tangible action rather than a UI button or timer, using the physical environment to gate access to virtual information.
-- **Unmodified viruses:** Players receive basic unmodified viruses alongside a placeholder formation that shows the correct structure with empty slots. Players must use their individual skills to modify each virus to match the example, then place it into the correct slot in the placeholder.
+The experience follows a clinical lab aesthetic with sterile, neutral surfaces contrasted by vibrant virus objects. A visual system was developed to ensure consistency across both physical elements (lab coats, gloves, printed documents, posters) and virtual elements (toolkit trays, petri dishes, virus objects). The colour palette uses dark teal tones and steel neutrals for surfaces and UI, with bright colours reserved for viruses and feedback states (red/green for incorrect/correct). The typeface Orbitron was chosen for its geometric, technical quality, supporting the sci-fi lab tone. The following moodboard, sourced mainly from Pinterest, guided the visual direction:
+
+<img width="1043" height="716" alt="image" src="https://github.com/user-attachments/assets/4a8eb6cf-0d7d-4e0e-b680-f1cc1a006fb4" />
+
+#### Mixed reality lab: 
+The physical environment was set up as an isolated lab area using white wall dividers, with props including lab coats, a large instruction poster, and printed mission briefing documents. A large white table in the centre served as the shared play surface. Virtual elements such as virus objects, player workstations and UI panels were overlaid on the physical table through Quest passthrough, blending the real and virtual spaces into a single coherent lab experience.
+
+<img width="6056" height="4424" alt="image" src="https://github.com/user-attachments/assets/7de1624e-5702-4672-8fd5-aa34c1b9427b" />
+
+#### Player workstations:
+Each player has an individual steel tray with UI panels showing their role name, a skill tutorial video and a skill description. The tray was designed in Blender as a virtual MR object, and a physical replica was also printed to reinforce the mixed reality experience.
+
+<img width="5224" height="3368" alt="image" src="https://github.com/user-attachments/assets/bf016aa8-c157-4f60-b9c5-60779e13d050" />
+<img width="1234" height="686" alt="image" src="https://github.com/user-attachments/assets/45e33abe-7677-4e03-8da6-d58d8f6f7c77" />
+<img width="7300" height="1684" alt="image" src="https://github.com/user-attachments/assets/2696e726-a8a1-48f9-9971-052e99a27b99" />
+
+#### Instructions canvas:
+A physical step-by-step reminder placed above the table, outlining the game loop and how to reach the goal. This was kept physical rather than virtual so that players can read it whether they are wearing a headset or not.
+
+<img width="2380" height="336" alt="image" src="https://github.com/user-attachments/assets/0b5fa3a4-4301-4d06-8290-e1115c9b7408" />
+
+#### The example formation:
+The target virus formation was placed inside a physical box on the table, with occlusion hiding the virtual viruses while the lid was closed. Players had to physically open the box to reveal the virtual content inside. This was a key mixed reality design choice: tying the reveal to a tangible action rather than a UI button or timer, using the physical environment to gate access to virtual information.
+
+<img width="1218" height="680" alt="image" src="https://github.com/user-attachments/assets/5419f193-498a-4d7a-ac6e-6058119d2909" />
 
 ### Technical
 - **Networked multiplayer:** Photon Fusion 2 with co-location support for shared physical space.
