@@ -54,7 +54,7 @@ The team set out to achieve the following:
 - **Role-based skills:** Each player has one exclusive interaction for modifying the virus (e.g. colour, scale, pulsation). No player can complete the puzzle alone.
 - **Snap-to-workspace mechanic:** The virus snaps into a player's personal petri dish workstation, locking it in place while they apply their modification.
 
-<img width="2380" height="336" alt="image" src="https://github.com/user-attachments/assets/0b5fa3a4-4301-4d06-8290-e1115c9b7408" />
+<img width="5186" height="2592" alt="image" src="https://github.com/user-attachments/assets/e08af6de-1147-4013-a011-9d7a9422e98f" />
 
 
 ### Interactions
@@ -75,7 +75,7 @@ Skill-specific interactions:
   - Arduino IDE
 
 ### Environment
-The experience follows a clinical lab aesthetic with sterile, neutral surfaces contrasted by vibrant virus objects. A visual system was developed to ensure consistency across both physical elements (lab coats, gloves, printed documents, posters) and virtual elements (toolkit trays, petri dishes, virus objects). The colour palette uses dark teal tones and steel neutrals for surfaces and UI, with bright colours reserved for viruses and feedback states (red/green for incorrect/correct). The typeface Orbitron was chosen for its geometric, technical quality, supporting the sci-fi lab tone. The following moodboard, sourced mainly from Pinterest, guided the visual direction:
+The experience follows a clinical lab aesthetic with sterile, neutral surfaces contrasted by vibrant virus objects. A visual system was developed to ensure consistency across both physical elements (lab coats, gloves, printed documents, posters) and virtual elements (toolkit trays, petri dishes, virus objects). The colour palette uses dark teal tones and steel neutrals for surfaces and UI, with bright colours reserved for viruses and feedback states (red/green for incorrect/correct). The typeface Orbitron was chosen for its sci-fi lab tone. The following moodboard, sourced mainly from Pinterest, guided the visual direction:
 
 <img width="1043" height="716" alt="image" src="https://github.com/user-attachments/assets/4a8eb6cf-0d7d-4e0e-b680-f1cc1a006fb4" />
 
@@ -88,7 +88,9 @@ The physical environment was set up as an isolated lab area using white wall div
 Each player has an individual steel tray with UI panels showing their role name, a skill tutorial video and a skill description. The tray was designed in Blender as a virtual MR object, and a physical replica was also printed to reinforce the mixed reality experience.
 
 <img width="5224" height="3368" alt="image" src="https://github.com/user-attachments/assets/bf016aa8-c157-4f60-b9c5-60779e13d050" />
+
 <img width="1234" height="686" alt="image" src="https://github.com/user-attachments/assets/45e33abe-7677-4e03-8da6-d58d8f6f7c77" />
+
 <img width="7300" height="1684" alt="image" src="https://github.com/user-attachments/assets/2696e726-a8a1-48f9-9971-052e99a27b99" />
 
 #### Instructions canvas:
@@ -99,7 +101,8 @@ A physical step-by-step reminder placed above the table, outlining the game loop
 #### The example formation:
 The target virus formation was placed inside a physical box on the table, with occlusion hiding the virtual viruses while the lid was closed. Players had to physically open the box to reveal the virtual content inside. This was a key mixed reality design choice: tying the reveal to a tangible action rather than a UI button or timer, using the physical environment to gate access to virtual information.
 
-<img width="1218" height="680" alt="image" src="https://github.com/user-attachments/assets/5419f193-498a-4d7a-ac6e-6058119d2909" />
+<img width="1044" height="640" alt="image" src="https://github.com/user-attachments/assets/6a9d685f-bd6c-4281-99b3-38e7148d6f71" />
+
 
 ### Technical
 - **Networked multiplayer:** Photon Fusion 2 with co-location support for shared physical space.
