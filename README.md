@@ -199,13 +199,10 @@ This project was developed as part of the DCDC VT26 course at Stockholm Universi
 
 | Name | Email |
 |---|---|
-
-
 | Tindra Heurlin | tindra.heurlin@gmail.com |
 | Lorena Livadaru | livadaru.design@gmail.com |
 | Shashank Salgarkar | salgarkarshashank@gmail.com |
 | Haseem Ul Haq | haseemulhaq@gmail.com |
-
 ## Video
 
 [▶ Watch the Virus Lab video](https://drive.google.com/file/d/1n82L6oJuqRL1XM7kF76wfUoVq3OoRonX/view?usp=share_link)
