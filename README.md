@@ -207,4 +207,4 @@ This project was developed as part of the DCDC VT26 course at Stockholm Universi
 | Haseem Ul Haq | haseemulhaq@gmail.com |
 ## Video
 
-[▶ Watch the Virus Lab video](https://drive.google.com/drive/u/0/folders/1fBl5Hdnyb7Shkrvboc-8jWBsb-VmhUpD)
+[▶ Watch the Virus Lab video](https://drive.google.com/file/d/1n82L6oJuqRL1XM7kF76wfUoVq3OoRonX/view?usp=share_link)
