@@ -107,7 +107,8 @@ The target virus formation was placed inside a physical box on the table, with o
 ### Technical
 - **Networked multiplayer:** Photon Fusion 2 with co-location support for shared physical space.
 - **Spatial Anchors:**  A QR code placed at the centre of the physical table served as the spatial anchor point. All virtual objects (workstations, virus holders, placeholder formation) were spawned relative to this position, ensuring consistent alignment between the physical table and the virtual elements across all headsets.
-- **Custom shader:** RGB channel mask texture allowing zone-based colouring (body, spikes, veins) with runtime theme injection and vertex displacement for pulse effects.
+- **Custom shader:** The virus uses a single Shader Graph with an RGB channel-packed mask texture: red masks the body, green masks the spikes (also for vertex displacement for the pulse effect), blue masks the vein/glow overlay. Three colour properties drive each zone independently at runtime via MaterialPropertyBlock, preserving GPU instancing across all virus instances.: only the index travels over the network, not the colour data itself
+- **PC Spectator build:**  A non-VR desktop build runs as an additional client in the same Photon session, used during the demo and testing to observe the shared play space from an external viewpoint without occupying one of the three player roles.
 
 ## Installation
 
@@ -181,6 +182,18 @@ All interactions use hand tracking (no controllers):
 - Study the target formation from multiple angles before starting. You can walk around the table to see it from different sides.
 - Communicate with your teammates about which properties still need to be matched.
 - If the virus is not snapping into the workstation, make sure you are releasing it close enough to the petri dish centre.
+  
+## References
+ 
+- **Meta XR SDK / Meta Interaction SDK** — Hand tracking, grab interactions, and the snapping/interaction patterns were built on Meta's SDKs. The spray bottle interaction from Meta's example scenes was used as a reference for grab-and-use interactions.
+- **Meta sample materials** — Some materials from Meta's sample assets were used or adapted for the environment and objects.
+- **Photon Fusion 2** — Networking and co-location support.
+- **Orbitron** — Typeface used across the UI, by Matt McInerney (SIL Open Font License).
+- **Moodboard imagery** — Visual references sourced mainly from Pinterest, used for design direction only.
+- **Arduino IDE** — Used along with associated libraries for the hardware components (MAX9814 sound sensor, ESP32-S2, LED strips).
+## License
+ 
+This project was developed as part of the DCDC VT26 course at Stockholm University (DSV) and is shared for educational and portfolio purposes. Third-party assets (Meta XR SDK samples, Photon Fusion 2, Orbitron) remain under their respective licenses.
 
 ## Contributors
 
