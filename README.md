@@ -126,7 +126,7 @@ The following section explains how to build and run The Virus Lab.
 
 1. Clone the repository:
 ```bash
-   git clone https://gitea.dsv.su.se/[username]/[project-name].git](https://github.com/HaseemUlHaq/Virus-Hot-Potato.git)
+   git clone https://github.com/HaseemUlHaq/Virus-Hot-Potato.git
 ```
 2. Open the project in Unity Hub. The first import may take several minutes.
 3. If prompted to import TMP Essential Resources, accept the import.
